@@ -10,6 +10,7 @@ import {
   FolderOpen,
   ArrowRight,
   Network,
+  Briefcase,
 } from "lucide-react";
 import { Header } from "@/components/layout/header";
 import { Sidebar } from "@/components/layout/sidebar";
@@ -23,6 +24,8 @@ interface NavItem {
   title: string;
   href: string;
   level?: number;
+  description?: string;
+  slug?: string;
 }
 
 interface NavSection {
@@ -40,6 +43,7 @@ const categoryIcons: Record<string, React.ComponentType<{ className?: string }>>
   llm: Brain,
   "ai-tooling": Wrench,
   reasoning: Network,
+  applications: Briefcase,
   resources: FolderOpen,
 };
 
@@ -52,6 +56,7 @@ export function HomePage({ navigation }: HomePageProps) {
     llm: t("llmDesc"),
     "ai-tooling": t("aiToolingDesc"),
     reasoning: t("reasoningDesc"),
+    applications: t("applicationsDesc"),
     resources: t("resourcesDesc"),
   };
 
@@ -60,6 +65,8 @@ export function HomePage({ navigation }: HomePageProps) {
       title: item.title,
       href: item.href,
       category: section.slug,
+      description: item.description || "",
+      slug: item.slug || "",
     }))
   );
 

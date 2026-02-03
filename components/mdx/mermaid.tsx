@@ -94,13 +94,26 @@ export function Mermaid({ chart }: MermaidProps) {
       return;
     }
 
+    // Wrap in try-catch to prevent crashes
+    let isMounted = true;
     renderChart(containerRef, chart)
       .then(() => {
-        setError(null);
+        if (isMounted) {
+          setError(null);
+        }
       })
       .catch((err) => {
-        setError(err instanceof Error ? err.message : String(err));
+        if (isMounted) {
+          const errorMessage = err instanceof Error ? err.message : String(err);
+          console.error("Mermaid rendering error:", err);
+          // Don't throw - just set error state to show error message
+          setError(errorMessage);
+        }
       });
+    
+    return () => {
+      isMounted = false;
+    };
   }, [chart, resolvedTheme, mounted, renderChart]);
 
   // Render fullscreen chart when dialog opens

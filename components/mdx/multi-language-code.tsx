@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Check, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -14,10 +14,10 @@ interface CodeExample {
 }
 
 interface MultiLanguageCodeProps {
-  python: string;
-  typescript: string;
-  csharp: string;
-  dart: string;
+  python?: string;
+  typescript?: string;
+  csharp?: string;
+  dart?: string;
   title?: string;
 }
 
@@ -35,18 +35,28 @@ export function MultiLanguageCode({
   dart,
   title,
 }: MultiLanguageCodeProps) {
-  const [selectedLanguage, setSelectedLanguage] = useState<keyof typeof languageConfig>("python");
-  const [copied, setCopied] = useState(false);
   const { t } = useLanguage();
 
   const codeExamples: CodeExample[] = [
-    { language: "python", code: python, label: languageConfig.python.label },
-    { language: "typescript", code: typescript, label: languageConfig.typescript.label },
-    { language: "csharp", code: csharp, label: languageConfig.csharp.label },
-    { language: "dart", code: dart, label: languageConfig.dart.label },
-  ];
+    python && { language: "python", code: python, label: languageConfig.python.label },
+    typescript && { language: "typescript", code: typescript, label: languageConfig.typescript.label },
+    csharp && { language: "csharp", code: csharp, label: languageConfig.csharp.label },
+    dart && { language: "dart", code: dart, label: languageConfig.dart.label },
+  ].filter(Boolean) as CodeExample[];
+
+  // Set default selected language to first available language
+  const defaultLanguage = codeExamples.length > 0 ? codeExamples[0].language as keyof typeof languageConfig : "python";
+  const [selectedLanguage, setSelectedLanguage] = useState<keyof typeof languageConfig>(defaultLanguage);
+  const [copied, setCopied] = useState(false);
 
   const currentCode = codeExamples.find((ex) => ex.language === selectedLanguage)?.code || "";
+
+  // Use useEffect to update selected language if current selection is not available
+  useEffect(() => {
+    if (codeExamples.length > 0 && !codeExamples.find(ex => ex.language === selectedLanguage)) {
+      setSelectedLanguage(defaultLanguage);
+    }
+  }, [codeExamples, selectedLanguage, defaultLanguage]);
 
   const copyToClipboard = async () => {
     try {
@@ -57,6 +67,15 @@ export function MultiLanguageCode({
       console.error("Failed to copy:", err);
     }
   };
+
+  // Don't render if no code examples
+  if (codeExamples.length === 0) {
+    return (
+      <div className="my-6 p-4 border border-destructive/50 bg-destructive/10 rounded-lg text-destructive text-sm">
+        <p>No code examples provided for MultiLanguageCode component.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="my-6">

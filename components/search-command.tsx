@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { FileText, BookOpen, Brain, Wrench, FolderOpen } from "lucide-react";
+import { FileText, BookOpen, Brain, Wrench, FolderOpen, Network, Briefcase } from "lucide-react";
 import {
   CommandDialog,
   CommandEmpty,
@@ -18,6 +18,7 @@ interface SearchItem {
   href: string;
   category: string;
   description?: string;
+  slug?: string;
 }
 
 interface SearchCommandProps {
@@ -30,6 +31,8 @@ const categoryIcons: Record<string, React.ComponentType<{ className?: string }>>
   prompting: BookOpen,
   llm: Brain,
   "ai-tooling": Wrench,
+  reasoning: Network,
+  applications: Briefcase,
   resources: FolderOpen,
 };
 
@@ -81,7 +84,7 @@ export function SearchCommand({ items, open, onOpenChange }: SearchCommandProps)
               {categoryItems.map((item) => (
                 <CommandItem
                   key={item.href}
-                  value={`${item.title} ${item.category} ${item.description || ""}`}
+                  value={`${item.title} ${item.category} ${item.description || ""} ${item.slug || ""} ${item.href}`}
                   onSelect={() => handleSelect(item.href)}
                   className="cursor-pointer"
                 >

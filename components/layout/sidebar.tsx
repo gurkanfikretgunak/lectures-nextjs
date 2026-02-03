@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronRight, ChevronLeft, BookOpen, Brain, Wrench, FolderOpen, Network } from "lucide-react";
+import { ChevronRight, ChevronLeft, BookOpen, Brain, Wrench, FolderOpen, Network, Briefcase } from "lucide-react";
 import {
   Collapsible,
   CollapsibleContent,
@@ -18,12 +18,14 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 
 interface NavItem {
   title: string;
   href: string;
   level?: number;
+  description?: string;
+  slug?: string;
 }
 
 interface NavSection {
@@ -43,15 +45,36 @@ const categoryIcons: Record<string, React.ComponentType<{ className?: string }>>
   llm: Brain,
   "ai-tooling": Wrench,
   reasoning: Network,
+  applications: Briefcase,
   resources: FolderOpen,
 };
 
 export function Sidebar({ navigation, defaultCollapsed = false, onNavigate }: SidebarProps) {
   const pathname = usePathname();
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
-  const [openSections, setOpenSections] = useState<string[]>(
-    navigation.map((section) => section.slug)
-  );
+  
+  // Memoize navigation slugs key to prevent unnecessary recalculations
+  const navigationSlugsKey = useMemo(() => {
+    if (!navigation || navigation.length === 0) return '';
+    return navigation.map(s => s?.slug).filter(Boolean).join(',');
+  }, [navigation]);
+  
+  // Memoize initial sections to prevent re-initialization on every render
+  const initialSections = useMemo(() => {
+    return navigation && navigation.length > 0 
+      ? navigation.map((section) => section?.slug).filter(Boolean) as string[]
+      : [];
+  }, [navigationSlugsKey]);
+  
+  const [openSections, setOpenSections] = useState<string[]>(initialSections);
+  
+  // Update openSections if navigation changes (but only if slugs actually changed)
+  useEffect(() => {
+    if (navigationSlugsKey && navigationSlugsKey !== openSections.join(',')) {
+      setOpenSections(initialSections);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [navigationSlugsKey]);
 
   const toggleSection = (slug: string) => {
     setOpenSections((prev) =>
@@ -112,12 +135,14 @@ export function Sidebar({ navigation, defaultCollapsed = false, onNavigate }: Si
 
         <ScrollArea className="flex-1">
           <nav className="p-2 space-y-1">
-            {navigation.map((section) => {
-              const Icon = categoryIcons[section.slug] || BookOpen;
-              const isOpen = openSections.includes(section.slug);
-              const hasActiveItem = section.items.some(item => pathname === item.href);
+            {navigation && navigation.length > 0 ? (
+              navigation.map((section) => {
+                if (!section || !section.slug) return null;
+                const Icon = categoryIcons[section.slug] || BookOpen;
+                const isOpen = openSections.includes(section.slug);
+                const hasActiveItem = section.items && section.items.some(item => item && pathname === item.href);
 
-              if (isCollapsed) {
+                if (isCollapsed) {
                 // Collapsed view - show only icons with tooltips
                 return (
                   <div key={section.slug} className="space-y-1">
@@ -139,30 +164,33 @@ export function Sidebar({ navigation, defaultCollapsed = false, onNavigate }: Si
                         {section.title}
                       </TooltipContent>
                     </Tooltip>
-                    {section.items.map((item) => {
-                      const isActive = pathname === item.href;
-                      return (
-                        <Tooltip key={item.href}>
-                          <TooltipTrigger asChild>
-                            <Link
-                              href={item.href}
-                              onClick={(e) => handleLinkClick(item.href, e)}
-                              className={cn(
-                                "flex items-center justify-center p-2 rounded-md transition-colors",
-                                isActive
-                                  ? "bg-primary text-primary-foreground"
-                                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                              )}
-                            >
-                              <span className="text-xs font-medium">{item.level}</span>
-                            </Link>
-                          </TooltipTrigger>
-                          <TooltipContent side="right">
-                            {item.title}
-                          </TooltipContent>
-                        </Tooltip>
-                      );
-                    })}
+                    {section.items && section.items.length > 0 ? (
+                      section.items.map((item) => {
+                        if (!item || !item.href) return null;
+                        const isActive = pathname === item.href;
+                        return (
+                          <Tooltip key={item.href}>
+                            <TooltipTrigger asChild>
+                              <Link
+                                href={item.href}
+                                onClick={(e) => handleLinkClick(item.href, e)}
+                                className={cn(
+                                  "flex items-center justify-center p-2 rounded-md transition-colors",
+                                  isActive
+                                    ? "bg-primary text-primary-foreground"
+                                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                                )}
+                              >
+                                <span className="text-xs font-medium">{item.level != null ? item.level : "?"}</span>
+                              </Link>
+                            </TooltipTrigger>
+                            <TooltipContent side="right">
+                              {item.title || item.slug || "Untitled"}
+                            </TooltipContent>
+                          </Tooltip>
+                        );
+                      })
+                    ) : null}
                   </div>
                 );
               }
@@ -187,38 +215,48 @@ export function Sidebar({ navigation, defaultCollapsed = false, onNavigate }: Si
                     />
                   </CollapsibleTrigger>
                   <CollapsibleContent className="pl-6 space-y-1 mt-1">
-                    {section.items.map((item) => {
-                      const isActive = pathname === item.href;
+                    {section.items && section.items.length > 0 ? (
+                      section.items.map((item) => {
+                        if (!item || !item.href) return null;
+                        const isActive = pathname === item.href;
 
-                      return (
-                        <Link
-                          key={item.href}
-                          href={item.href}
-                          onClick={(e) => handleLinkClick(item.href, e)}
-                          className={cn(
-                            "flex items-center justify-between py-1.5 px-2 text-sm rounded-md transition-colors gap-2",
-                            isActive
-                              ? "bg-primary text-primary-foreground font-medium"
-                              : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                          )}
-                        >
-                          <span className="truncate flex-1">{item.title}</span>
-                          <Badge
-                            variant={isActive ? "secondary" : "default"}
+                        return (
+                          <Link
+                            key={item.href}
+                            href={item.href}
+                            onClick={(e) => handleLinkClick(item.href, e)}
                             className={cn(
-                              "text-[10px] px-1.5 py-0 flex-shrink-0",
-                              !isActive && "bg-muted-foreground/20 text-foreground/70 hover:bg-muted-foreground/30"
+                              "flex items-center justify-between py-1.5 px-2 text-sm rounded-md transition-colors gap-2",
+                              isActive
+                                ? "bg-primary text-primary-foreground font-medium"
+                                : "text-muted-foreground hover:text-foreground hover:bg-muted"
                             )}
                           >
-                            {item.level}
-                          </Badge>
-                        </Link>
-                      );
-                    })}
+                            <span className="truncate flex-1">{item.title || item.slug || "Untitled"}</span>
+                            {item.level != null && (
+                              <Badge
+                                variant={isActive ? "secondary" : "default"}
+                                className={cn(
+                                  "text-[10px] px-1.5 py-0 flex-shrink-0",
+                                  !isActive && "bg-muted-foreground/20 text-foreground/70 hover:bg-muted-foreground/30"
+                                )}
+                              >
+                                {item.level}
+                              </Badge>
+                            )}
+                          </Link>
+                        );
+                      })
+                    ) : (
+                      <div className="px-2 py-1 text-xs text-muted-foreground">No items available</div>
+                    )}
                   </CollapsibleContent>
                 </Collapsible>
               );
-            })}
+              })
+            ) : (
+              <div className="p-4 text-sm text-muted-foreground">No navigation available</div>
+            )}
           </nav>
         </ScrollArea>
       </aside>

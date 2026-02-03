@@ -1,0 +1,4586 @@
+---
+title: "AI Applications in Commerce (A to Z)"
+description: "Comprehensive guide to AI applications in commerce and retail from basics to advanced implementations"
+category: "applications"
+level: 201
+order: 2
+---
+
+# AI Applications in Commerce (A to Z)
+
+Welcome to the comprehensive guide on AI Applications in Commerce! This lecture covers everything from foundational concepts to advanced implementations, providing a complete A-to-Z understanding of how artificial intelligence is transforming the commercial and retail landscape.
+
+## Overview: The AI Commerce Revolution
+
+Artificial Intelligence is revolutionizing commerce by personalizing customer experiences, optimizing supply chains, automating processes, and enabling data-driven decision-making. This transformation spans from e-commerce to brick-and-mortar retail and B2B commerce.
+
+<Mermaid chart={`
+flowchart TB
+    subgraph Customer [Customer Facing]
+        Personalization["Personalization"]
+        Recommendations["Recommendations"]
+        Chatbots["Customer Service"]
+        Pricing["Dynamic Pricing"]
+    end
+    
+    subgraph Operations [Operations]
+        Inventory["Inventory Management"]
+        Logistics["Logistics Optimization"]
+        Fraud["Fraud Detection"]
+        Analytics["Business Analytics"]
+    end
+    
+    subgraph Marketing [Marketing]
+        Targeting["Audience Targeting"]
+        Campaigns["Campaign Optimization"]
+        Content["Content Generation"]
+        Sentiment["Sentiment Analysis"]
+    end
+    
+    Customer --> Operations
+    Operations --> Marketing
+`} />
+
+## A: Automated Inventory Management
+
+AI-powered inventory systems predict demand, optimize stock levels, and prevent stockouts or overstocking.
+
+### Demand Forecasting System
+
+<Mermaid chart={`
+flowchart LR
+    Historical["Historical Data"] --> ML["ML Model"]
+    External["External Factors"] --> ML
+    ML --> Forecast["Demand Forecast"]
+    Forecast --> Inventory["Inventory Decision"]
+    Inventory --> Reorder["Reorder Points"]
+`} />
+
+### Implementation Example
+
+<MultiLanguageCode
+  python={`# AI-Powered Inventory Management System
+from typing import List, Dict
+from dataclasses import dataclass
+from datetime import datetime, timedelta
+import numpy as np
+
+@dataclass
+class Product:
+    product_id: str
+    name: str
+    current_stock: int
+    sales_history: List[float]
+    lead_time_days: int
+    reorder_point: int = 0
+
+class InventoryManagementSystem:
+    def __init__(self):
+        self.products: Dict[str, Product] = {}
+        self.safety_stock_multiplier = 1.5
+    
+    def add_product(self, product: Product):
+        """Add a product to the inventory system"""
+        self.products[product.product_id] = product
+        self._calculate_reorder_point(product.product_id)
+    
+    def _calculate_reorder_point(self, product_id: str):
+        """Calculate reorder point using AI-based demand forecasting"""
+        product = self.products[product_id]
+        
+        if len(product.sales_history) < 7:
+            # Not enough data, use simple average
+            avg_daily_sales = np.mean(product.sales_history) if product.sales_history else 0
+        else:
+            # Use weighted moving average (more weight to recent sales)
+            weights = np.linspace(0.5, 1.0, len(product.sales_history))
+            weighted_sales = np.average(product.sales_history, weights=weights)
+            avg_daily_sales = weighted_sales
+        
+        # Calculate safety stock
+        if len(product.sales_history) > 1:
+            std_dev = np.std(product.sales_history)
+            safety_stock = std_dev * self.safety_stock_multiplier
+        else:
+            safety_stock = avg_daily_sales * 0.2
+        
+        # Reorder point = (Average daily sales × Lead time) + Safety stock
+        product.reorder_point = int(
+            (avg_daily_sales * product.lead_time_days) + safety_stock
+        )
+    
+    def predict_demand(self, product_id: str, days_ahead: int = 30) -> Dict:
+        """Predict future demand for a product"""
+        product = self.products[product_id]
+        
+        if not product.sales_history:
+            return {"predicted_demand": 0, "confidence": 0.0}
+        
+        # Simple trend analysis
+        if len(product.sales_history) >= 2:
+            trend = np.polyfit(range(len(product.sales_history)), 
+                             product.sales_history, 1)[0]
+        else:
+            trend = 0
+        
+        # Predict future sales
+        last_sales = product.sales_history[-1]
+        predicted_daily = last_sales + (trend * days_ahead / len(product.sales_history))
+        predicted_total = predicted_daily * days_ahead
+        
+        # Calculate confidence based on data quality
+        confidence = min(1.0, len(product.sales_history) / 30)
+        
+        return {
+            "predicted_demand": max(0, int(predicted_total)),
+            "confidence": round(confidence, 2),
+            "daily_average": round(predicted_daily, 2)
+        }
+    
+    def check_reorder_status(self, product_id: str) -> Dict:
+        """Check if product needs reordering"""
+        product = self.products[product_id]
+        
+        needs_reorder = product.current_stock <= product.reorder_point
+        
+        return {
+            "product_id": product_id,
+            "current_stock": product.current_stock,
+            "reorder_point": product.reorder_point,
+            "needs_reorder": needs_reorder,
+            "recommended_quantity": max(0, product.reorder_point - product.current_stock + 50)
+        }
+    
+    def update_sales(self, product_id: str, quantity: float):
+        """Update sales history for demand forecasting"""
+        if product_id in self.products:
+            self.products[product_id].sales_history.append(quantity)
+            # Keep only last 90 days of history
+            if len(self.products[product_id].sales_history) > 90:
+                self.products[product_id].sales_history = \
+                    self.products[product_id].sales_history[-90:]
+            self._calculate_reorder_point(product_id)
+
+# Usage
+system = InventoryManagementSystem()
+
+# Add products
+product1 = Product(
+    product_id="PROD001",
+    name="Wireless Headphones",
+    current_stock=150,
+    sales_history=[20, 22, 18, 25, 23, 21, 24],
+    lead_time_days=7
+)
+system.add_product(product1)
+
+# Update sales
+system.update_sales("PROD001", 26)
+system.update_sales("PROD001", 28)
+
+# Check reorder status
+status = system.check_reorder_status("PROD001")
+print(f"Reorder needed: {status['needs_reorder']}")
+print(f"Recommended quantity: {status['recommended_quantity']}")
+
+# Predict demand
+forecast = system.predict_demand("PROD001", days_ahead=30)
+print(f"Predicted demand (30 days): {forecast['predicted_demand']} units")`}
+  typescript={`// AI-Powered Inventory Management System
+interface Product {
+  productId: string;
+  name: string;
+  currentStock: number;
+  salesHistory: number[];
+  leadTimeDays: number;
+  reorderPoint: number;
+}
+
+class InventoryManagementSystem {
+  private products: Map<string, Product> = new Map();
+  private safetyStockMultiplier = 1.5;
+  
+  addProduct(product: Omit<Product, 'reorderPoint'>): void {
+    const productWithReorder: Product = {
+      ...product,
+      reorderPoint: 0
+    };
+    this.products.set(product.productId, productWithReorder);
+    this.calculateReorderPoint(product.productId);
+  }
+  
+  private calculateReorderPoint(productId: string): void {
+    const product = this.products.get(productId)!;
+    
+    let avgDailySales: number;
+    if (product.salesHistory.length < 7) {
+      avgDailySales = product.salesHistory.length > 0
+        ? product.salesHistory.reduce((a, b) => a + b, 0) / product.salesHistory.length
+        : 0;
+    } else {
+      // Weighted moving average
+      const weights = product.salesHistory.map((_, i) => 
+        0.5 + (0.5 * i / (product.salesHistory.length - 1))
+      );
+      const weightedSum = product.salesHistory.reduce((sum, val, i) => 
+        sum + val * weights[i], 0
+      );
+      const weightSum = weights.reduce((a, b) => a + b, 0);
+      avgDailySales = weightedSum / weightSum;
+    }
+    
+    // Calculate safety stock
+    let safetyStock: number;
+    if (product.salesHistory.length > 1) {
+      const mean = avgDailySales;
+      const variance = product.salesHistory.reduce((sum, val) => 
+        sum + Math.pow(val - mean, 2), 0
+      ) / product.salesHistory.length;
+      const stdDev = Math.sqrt(variance);
+      safetyStock = stdDev * this.safetyStockMultiplier;
+    } else {
+      safetyStock = avgDailySales * 0.2;
+    }
+    
+    product.reorderPoint = Math.floor(
+      (avgDailySales * product.leadTimeDays) + safetyStock
+    );
+  }
+  
+  predictDemand(productId: string, daysAhead: number = 30): {
+    predictedDemand: number;
+    confidence: number;
+    dailyAverage: number;
+  } {
+    const product = this.products.get(productId)!;
+    
+    if (product.salesHistory.length === 0) {
+      return { predictedDemand: 0, confidence: 0.0, dailyAverage: 0 };
+    }
+    
+    // Simple trend analysis
+    let trend = 0;
+    if (product.salesHistory.length >= 2) {
+      const n = product.salesHistory.length;
+      const sumX = (n * (n - 1)) / 2;
+      const sumY = product.salesHistory.reduce((a, b) => a + b, 0);
+      const sumXY = product.salesHistory.reduce((sum, val, i) => sum + val * i, 0);
+      const sumXX = product.salesHistory.reduce((sum, _, i) => sum + i * i, 0);
+      
+      trend = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+    }
+    
+    const lastSales = product.salesHistory[product.salesHistory.length - 1];
+    const predictedDaily = lastSales + (trend * daysAhead / product.salesHistory.length);
+    const predictedTotal = predictedDaily * daysAhead;
+    
+    const confidence = Math.min(1.0, product.salesHistory.length / 30);
+    
+    return {
+      predictedDemand: Math.max(0, Math.floor(predictedTotal)),
+      confidence: Math.round(confidence * 100) / 100,
+      dailyAverage: Math.round(predictedDaily * 100) / 100
+    };
+  }
+  
+  checkReorderStatus(productId: string): {
+    productId: string;
+    currentStock: number;
+    reorderPoint: number;
+    needsReorder: boolean;
+    recommendedQuantity: number;
+  } {
+    const product = this.products.get(productId)!;
+    const needsReorder = product.currentStock <= product.reorderPoint;
+    
+    return {
+      productId,
+      currentStock: product.currentStock,
+      reorderPoint: product.reorderPoint,
+      needsReorder,
+      recommendedQuantity: Math.max(0, product.reorderPoint - product.currentStock + 50)
+    };
+  }
+  
+  updateSales(productId: string, quantity: number): void {
+    const product = this.products.get(productId);
+    if (product) {
+      product.salesHistory.push(quantity);
+      if (product.salesHistory.length > 90) {
+        product.salesHistory = product.salesHistory.slice(-90);
+      }
+      this.calculateReorderPoint(productId);
+    }
+  }
+}
+
+// Usage
+const system = new InventoryManagementSystem();
+system.addProduct({
+  productId: "PROD001",
+  name: "Wireless Headphones",
+  currentStock: 150,
+  salesHistory: [20, 22, 18, 25, 23, 21, 24],
+  leadTimeDays: 7
+});
+
+system.updateSales("PROD001", 26);
+system.updateSales("PROD001", 28);
+
+const status = system.checkReorderStatus("PROD001");
+console.log(\`Reorder needed: \${status.needsReorder}\`);
+console.log(\`Recommended quantity: \${status.recommendedQuantity}\`);
+
+const forecast = system.predictDemand("PROD001", 30);
+console.log(\`Predicted demand (30 days): \${forecast.predictedDemand} units\`);`}
+/>
+
+## B: Behavioral Analytics
+
+AI analyzes customer behavior patterns to understand preferences, predict actions, and optimize experiences.
+
+### Key Metrics Tracked
+
+- **Browsing Patterns**: Pages visited, time spent, scroll depth
+- **Purchase Behavior**: Buying frequency, cart abandonment, purchase timing
+- **Engagement Metrics**: Click-through rates, interaction rates, session duration
+- **Preference Signals**: Product views, wishlist additions, search queries
+
+### Implementation Example
+
+<MultiLanguageCode
+  python={`# Customer Behavior Analytics System
+from typing import List, Dict
+from dataclasses import dataclass
+from datetime import datetime
+from collections import defaultdict
+
+@dataclass
+class UserBehavior:
+    user_id: str
+    session_id: str
+    timestamp: datetime
+    event_type: str  # 'view', 'click', 'add_to_cart', 'purchase', 'abandon'
+    product_id: str
+    category: str
+    value: float = 0.0
+
+class BehaviorAnalytics:
+    def __init__(self):
+        self.behaviors: List[UserBehavior] = []
+        self.user_profiles: Dict[str, Dict] = defaultdict(dict)
+    
+    def track_event(self, behavior: UserBehavior):
+        """Track a user behavior event"""
+        self.behaviors.append(behavior)
+        
+        # Update user profile
+        if behavior.user_id not in self.user_profiles:
+            self.user_profiles[behavior.user_id] = {
+                'total_sessions': 0,
+                'total_purchases': 0,
+                'total_value': 0.0,
+                'preferred_categories': defaultdict(int),
+                'avg_session_duration': 0.0,
+                'cart_abandonment_rate': 0.0
+            }
+        
+        profile = self.user_profiles[behavior.user_id]
+        
+        if behavior.event_type == 'purchase':
+            profile['total_purchases'] += 1
+            profile['total_value'] += behavior.value
+        elif behavior.event_type == 'abandon':
+            profile['cart_abandonment_rate'] += 1
+        
+        profile['preferred_categories'][behavior.category] += 1
+    
+    def analyze_customer_segment(self, user_id: str) -> Dict:
+        """Analyze customer behavior and assign segment"""
+        if user_id not in self.user_profiles:
+            return {"segment": "new", "insights": []}
+        
+        profile = self.user_profiles[user_id]
+        insights = []
+        
+        # Determine customer segment
+        if profile['total_purchases'] >= 10:
+            segment = "champion"
+            insights.append("High-value customer with frequent purchases")
+        elif profile['total_purchases'] >= 5:
+            segment = "loyal"
+            insights.append("Regular customer with good engagement")
+        elif profile['total_purchases'] >= 1:
+            segment = "potential"
+            insights.append("One-time buyer, potential for repeat purchases")
+        else:
+            segment = "new"
+            insights.append("New customer, needs engagement")
+        
+        # Analyze preferences
+        if profile['preferred_categories']:
+            top_category = max(profile['preferred_categories'].items(), key=lambda x: x[1])
+            insights.append(f"Prefers {top_category[0]} category")
+        
+        # Cart abandonment analysis
+        if profile['cart_abandonment_rate'] > 3:
+            insights.append("High cart abandonment - consider retargeting")
+        
+        return {
+            "segment": segment,
+            "insights": insights,
+            "metrics": profile
+        }
+    
+    def predict_next_action(self, user_id: str) -> Dict:
+        """Predict next likely customer action"""
+        if user_id not in self.user_profiles:
+            return {"predicted_action": "browse", "confidence": 0.5}
+        
+        profile = self.user_profiles[user_id]
+        user_behaviors = [b for b in self.behaviors if b.user_id == user_id]
+        
+        if not user_behaviors:
+            return {"predicted_action": "browse", "confidence": 0.5}
+        
+        # Analyze recent behavior pattern
+        recent_behaviors = sorted(user_behaviors, key=lambda x: x.timestamp, reverse=True)[:5]
+        last_action = recent_behaviors[0].event_type if recent_behaviors else "browse"
+        
+        # Predict based on pattern
+        if last_action == "view":
+            predicted = "add_to_cart"
+            confidence = 0.7
+        elif last_action == "add_to_cart":
+            predicted = "purchase"
+            confidence = 0.6
+        else:
+            predicted = "browse"
+            confidence = 0.5
+        
+        return {
+            "predicted_action": predicted,
+            "confidence": confidence,
+            "recommended_products": self._get_recommended_products(user_id)
+        }
+    
+    def _get_recommended_products(self, user_id: str) -> List[str]:
+        """Get product recommendations based on behavior"""
+        profile = self.user_profiles.get(user_id, {})
+        if 'preferred_categories' in profile and profile['preferred_categories']:
+            top_category = max(profile['preferred_categories'].items(), key=lambda x: x[1])
+            return [f"product_{top_category[0]}_1", f"product_{top_category[0]}_2"]
+        return []
+
+# Usage
+analytics = BehaviorAnalytics()
+
+# Track events
+from datetime import datetime
+analytics.track_event(UserBehavior(
+    user_id="user_001",
+    session_id="session_001",
+    timestamp=datetime.now(),
+    event_type="view",
+    product_id="laptop_001",
+    category="electronics"
+))
+
+analytics.track_event(UserBehavior(
+    user_id="user_001",
+    session_id="session_001",
+    timestamp=datetime.now(),
+    event_type="add_to_cart",
+    product_id="laptop_001",
+    category="electronics"
+))
+
+# Analyze
+segment = analytics.analyze_customer_segment("user_001")
+print(f"Customer Segment: {segment['segment']}")
+print(f"Insights: {segment['insights']}")
+
+prediction = analytics.predict_next_action("user_001")
+print(f"Predicted Action: {prediction['predicted_action']}")`}
+  typescript={`// Customer Behavior Analytics System
+interface UserBehavior {
+  userId: string;
+  sessionId: string;
+  timestamp: Date;
+  eventType: 'view' | 'click' | 'add_to_cart' | 'purchase' | 'abandon';
+  productId: string;
+  category: string;
+  value?: number;
+}
+
+interface UserProfile {
+  totalSessions: number;
+  totalPurchases: number;
+  totalValue: number;
+  preferredCategories: Map<string, number>;
+  avgSessionDuration: number;
+  cartAbandonmentRate: number;
+}
+
+class BehaviorAnalytics {
+  private behaviors: UserBehavior[] = [];
+  private userProfiles: Map<string, UserProfile> = new Map();
+  
+  trackEvent(behavior: UserBehavior): void {
+    this.behaviors.push(behavior);
+    
+    if (!this.userProfiles.has(behavior.userId)) {
+      this.userProfiles.set(behavior.userId, {
+        totalSessions: 0,
+        totalPurchases: 0,
+        totalValue: 0,
+        preferredCategories: new Map(),
+        avgSessionDuration: 0,
+        cartAbandonmentRate: 0
+      });
+    }
+    
+    const profile = this.userProfiles.get(behavior.userId)!;
+    
+    if (behavior.eventType === 'purchase') {
+      profile.totalPurchases++;
+      profile.totalValue += behavior.value || 0;
+    } else if (behavior.eventType === 'abandon') {
+      profile.cartAbandonmentRate++;
+    }
+    
+    const categoryCount = profile.preferredCategories.get(behavior.category) || 0;
+    profile.preferredCategories.set(behavior.category, categoryCount + 1);
+  }
+  
+  analyzeCustomerSegment(userId: string): {
+    segment: string;
+    insights: string[];
+    metrics: UserProfile;
+  } {
+    const profile = this.userProfiles.get(userId);
+    if (!profile) {
+      return { segment: "new", insights: [], metrics: {} as UserProfile };
+    }
+    
+    const insights: string[] = [];
+    let segment: string;
+    
+    if (profile.totalPurchases >= 10) {
+      segment = "champion";
+      insights.push("High-value customer with frequent purchases");
+    } else if (profile.totalPurchases >= 5) {
+      segment = "loyal";
+      insights.push("Regular customer with good engagement");
+    } else if (profile.totalPurchases >= 1) {
+      segment = "potential";
+      insights.push("One-time buyer, potential for repeat purchases");
+    } else {
+      segment = "new";
+      insights.push("New customer, needs engagement");
+    }
+    
+    if (profile.preferredCategories.size > 0) {
+      const topCategory = Array.from(profile.preferredCategories.entries())
+        .sort((a, b) => b[1] - a[1])[0];
+      insights.push(\`Prefers \${topCategory[0]} category\`);
+    }
+    
+    if (profile.cartAbandonmentRate > 3) {
+      insights.push("High cart abandonment - consider retargeting");
+    }
+    
+    return { segment, insights, metrics: profile };
+  }
+  
+  predictNextAction(userId: string): {
+    predictedAction: string;
+    confidence: number;
+    recommendedProducts: string[];
+  } {
+    const profile = this.userProfiles.get(userId);
+    if (!profile) {
+      return { predictedAction: "browse", confidence: 0.5, recommendedProducts: [] };
+    }
+    
+    const userBehaviors = this.behaviors
+      .filter(b => b.userId === userId)
+      .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
+      .slice(0, 5);
+    
+    if (userBehaviors.length === 0) {
+      return { predictedAction: "browse", confidence: 0.5, recommendedProducts: [] };
+    }
+    
+    const lastAction = userBehaviors[0].eventType;
+    let predicted: string;
+    let confidence: number;
+    
+    if (lastAction === "view") {
+      predicted = "add_to_cart";
+      confidence = 0.7;
+    } else if (lastAction === "add_to_cart") {
+      predicted = "purchase";
+      confidence = 0.6;
+    } else {
+      predicted = "browse";
+      confidence = 0.5;
+    }
+    
+    return {
+      predictedAction: predicted,
+      confidence,
+      recommendedProducts: this.getRecommendedProducts(userId)
+    };
+  }
+  
+  private getRecommendedProducts(userId: string): string[] {
+    const profile = this.userProfiles.get(userId);
+    if (!profile || profile.preferredCategories.size === 0) {
+      return [];
+    }
+    
+    const topCategory = Array.from(profile.preferredCategories.entries())
+      .sort((a, b) => b[1] - a[1])[0];
+    
+    return [
+      \`product_\${topCategory[0]}_1\`,
+      \`product_\${topCategory[0]}_2\`
+    ];
+  }
+}
+
+// Usage
+const analytics = new BehaviorAnalytics();
+analytics.trackEvent({
+  userId: "user_001",
+  sessionId: "session_001",
+  timestamp: new Date(),
+  eventType: "view",
+  productId: "laptop_001",
+  category: "electronics"
+});
+
+const segment = analytics.analyzeCustomerSegment("user_001");
+console.log(\`Customer Segment: \${segment.segment}\`);`}
+/>
+
+### Use Cases
+
+1. **E-commerce Personalization**: Tailor product recommendations based on browsing history
+2. **Cart Abandonment Prevention**: Identify at-risk customers and send targeted offers
+3. **Customer Lifetime Value Prediction**: Forecast long-term customer value
+4. **Churn Prevention**: Detect early warning signs of customer churn
+
+## C: Customer Service Chatbots
+
+AI chatbots provide 24/7 customer support, handle inquiries, process orders, and resolve issues.
+
+### Key Capabilities
+
+- **Natural Language Understanding**: Process customer queries in natural language
+- **Intent Recognition**: Identify what customers want
+- **Context Management**: Maintain conversation context
+- **Escalation Handling**: Transfer to human agents when needed
+
+### Implementation Example
+
+<MultiLanguageCode
+  python={`# AI Customer Service Chatbot
+from typing import Dict, List, Optional
+from dataclasses import dataclass
+from enum import Enum
+import re
+
+class IntentType(Enum):
+    ORDER_STATUS = "order_status"
+    RETURN_REQUEST = "return_request"
+    PRODUCT_INFO = "product_info"
+    COMPLAINT = "complaint"
+    GENERAL_QUERY = "general_query"
+
+@dataclass
+class ChatMessage:
+    user_id: str
+    message: str
+    timestamp: str
+    intent: Optional[IntentType] = None
+    entities: Dict[str, str] = None
+
+class CustomerServiceChatbot:
+    def __init__(self):
+        self.conversations: Dict[str, List[ChatMessage]] = {}
+        self.intent_keywords = {
+            IntentType.ORDER_STATUS: ["order", "track", "shipping", "delivery", "status"],
+            IntentType.RETURN_REQUEST: ["return", "refund", "exchange", "send back"],
+            IntentType.PRODUCT_INFO: ["product", "price", "available", "specifications", "features"],
+            IntentType.COMPLAINT: ["problem", "issue", "broken", "wrong", "defective"],
+            IntentType.GENERAL_QUERY: ["help", "question", "information"]
+        }
+        self.order_database = {
+            "ORD001": {"status": "shipped", "tracking": "TRACK123", "eta": "2024-02-10"},
+            "ORD002": {"status": "processing", "tracking": None, "eta": "2024-02-12"}
+        }
+    
+    def process_message(self, user_id: str, message: str) -> str:
+        """Process customer message and generate response"""
+        # Store message
+        if user_id not in self.conversations:
+            self.conversations[user_id] = []
+        
+        # Detect intent
+        intent = self._detect_intent(message)
+        entities = self._extract_entities(message)
+        
+        chat_message = ChatMessage(
+            user_id=user_id,
+            message=message,
+            timestamp="now",
+            intent=intent,
+            entities=entities
+        )
+        self.conversations[user_id].append(chat_message)
+        
+        # Generate response based on intent
+        response = self._generate_response(intent, entities, user_id)
+        
+        return response
+    
+    def _detect_intent(self, message: str) -> IntentType:
+        """Detect user intent from message"""
+        message_lower = message.lower()
+        intent_scores = {}
+        
+        for intent, keywords in self.intent_keywords.items():
+            score = sum(1 for keyword in keywords if keyword in message_lower)
+            if score > 0:
+                intent_scores[intent] = score
+        
+        if intent_scores:
+            return max(intent_scores.items(), key=lambda x: x[1])[0]
+        
+        return IntentType.GENERAL_QUERY
+    
+    def _extract_entities(self, message: str) -> Dict[str, str]:
+        """Extract entities like order numbers, product names"""
+        entities = {}
+        
+        # Extract order number
+        order_match = re.search(r'ORD\\d+', message, re.IGNORECASE)
+        if order_match:
+            entities['order_number'] = order_match.group().upper()
+        
+        # Extract product mentions
+        product_keywords = ["laptop", "phone", "headphones", "tablet"]
+        for keyword in product_keywords:
+            if keyword.lower() in message.lower():
+                entities['product'] = keyword
+                break
+        
+        return entities
+    
+    def _generate_response(self, intent: IntentType, entities: Dict[str, str], user_id: str) -> str:
+        """Generate appropriate response based on intent"""
+        if intent == IntentType.ORDER_STATUS:
+            order_number = entities.get('order_number')
+            if order_number and order_number in self.order_database:
+                order_info = self.order_database[order_number]
+                return f"Your order {order_number} is currently {order_info['status']}. " \\
+                       f"Tracking: {order_info.get('tracking', 'N/A')}. " \\
+                       f"Estimated delivery: {order_info.get('eta', 'N/A')}"
+            else:
+                return "I'd be happy to help you track your order. Could you please provide your order number?"
+        
+        elif intent == IntentType.RETURN_REQUEST:
+            return "I can help you with a return. Please provide your order number and reason for return."
+        
+        elif intent == IntentType.PRODUCT_INFO:
+            product = entities.get('product', 'product')
+            return f"I'd be happy to provide information about {product}. What specific details would you like to know?"
+        
+        elif intent == IntentType.COMPLAINT:
+            return "I'm sorry to hear about your issue. Let me connect you with our support team who can better assist you."
+        
+        else:
+            return "How can I help you today? I can assist with order tracking, returns, product information, and more."
+    
+    def should_escalate(self, user_id: str) -> bool:
+        """Determine if conversation should be escalated to human"""
+        if user_id not in self.conversations:
+            return False
+        
+        messages = self.conversations[user_id]
+        
+        # Escalate if multiple complaints
+        complaint_count = sum(1 for m in messages if m.intent == IntentType.COMPLAINT)
+        if complaint_count >= 2:
+            return True
+        
+        # Escalate if conversation is too long
+        if len(messages) > 10:
+            return True
+        
+        return False
+
+# Usage
+chatbot = CustomerServiceChatbot()
+
+response1 = chatbot.process_message("user_001", "I want to track my order ORD001")
+print(f"Bot: {response1}")
+
+response2 = chatbot.process_message("user_001", "When will it arrive?")
+print(f"Bot: {response2}")
+
+should_escalate = chatbot.should_escalate("user_001")
+print(f"Escalate to human: {should_escalate}")`}
+  typescript={`// AI Customer Service Chatbot
+enum IntentType {
+  ORDER_STATUS = "order_status",
+  RETURN_REQUEST = "return_request",
+  PRODUCT_INFO = "product_info",
+  COMPLAINT = "complaint",
+  GENERAL_QUERY = "general_query"
+}
+
+interface ChatMessage {
+  userId: string;
+  message: string;
+  timestamp: string;
+  intent?: IntentType;
+  entities?: Record<string, string>;
+}
+
+class CustomerServiceChatbot {
+  private conversations: Map<string, ChatMessage[]> = new Map();
+  private intentKeywords: Record<IntentType, string[]> = {
+    [IntentType.ORDER_STATUS]: ["order", "track", "shipping", "delivery", "status"],
+    [IntentType.RETURN_REQUEST]: ["return", "refund", "exchange", "send back"],
+    [IntentType.PRODUCT_INFO]: ["product", "price", "available", "specifications", "features"],
+    [IntentType.COMPLAINT]: ["problem", "issue", "broken", "wrong", "defective"],
+    [IntentType.GENERAL_QUERY]: ["help", "question", "information"]
+  };
+  
+  private orderDatabase: Record<string, { status: string; tracking?: string; eta?: string }> = {
+    "ORD001": { status: "shipped", tracking: "TRACK123", eta: "2024-02-10" },
+    "ORD002": { status: "processing", tracking: undefined, eta: "2024-02-12" }
+  };
+  
+  processMessage(userId: string, message: string): string {
+    if (!this.conversations.has(userId)) {
+      this.conversations.set(userId, []);
+    }
+    
+    const intent = this.detectIntent(message);
+    const entities = this.extractEntities(message);
+    
+    const chatMessage: ChatMessage = {
+      userId,
+      message,
+      timestamp: new Date().toISOString(),
+      intent,
+      entities
+    };
+    
+    this.conversations.get(userId)!.push(chatMessage);
+    
+    return this.generateResponse(intent, entities, userId);
+  }
+  
+  private detectIntent(message: string): IntentType {
+    const messageLower = message.toLowerCase();
+    const intentScores: Record<IntentType, number> = {} as Record<IntentType, number>;
+    
+    for (const [intent, keywords] of Object.entries(this.intentKeywords)) {
+      const score = keywords.filter(keyword => messageLower.includes(keyword)).length;
+      if (score > 0) {
+        intentScores[intent as IntentType] = score;
+      }
+    }
+    
+    if (Object.keys(intentScores).length > 0) {
+      return Object.entries(intentScores)
+        .sort((a, b) => b[1] - a[1])[0][0] as IntentType;
+    }
+    
+    return IntentType.GENERAL_QUERY;
+  }
+  
+  private extractEntities(message: string): Record<string, string> {
+    const entities: Record<string, string> = {};
+    
+    const orderMatch = message.match(/ORD\\d+/i);
+    if (orderMatch) {
+      entities.orderNumber = orderMatch[0].toUpperCase();
+    }
+    
+    const productKeywords = ["laptop", "phone", "headphones", "tablet"];
+    for (const keyword of productKeywords) {
+      if (message.toLowerCase().includes(keyword)) {
+        entities.product = keyword;
+        break;
+      }
+    }
+    
+    return entities;
+  }
+  
+  private generateResponse(intent: IntentType, entities: Record<string, string>, userId: string): string {
+    if (intent === IntentType.ORDER_STATUS) {
+      const orderNumber = entities.orderNumber;
+      if (orderNumber && this.orderDatabase[orderNumber]) {
+        const orderInfo = this.orderDatabase[orderNumber];
+        return \`Your order \${orderNumber} is currently \${orderInfo.status}. \` +
+               \`Tracking: \${orderInfo.tracking || 'N/A'}. \` +
+               \`Estimated delivery: \${orderInfo.eta || 'N/A'}\`;
+      } else {
+        return "I'd be happy to help you track your order. Could you please provide your order number?";
+      }
+    } else if (intent === IntentType.RETURN_REQUEST) {
+      return "I can help you with a return. Please provide your order number and reason for return.";
+    } else if (intent === IntentType.PRODUCT_INFO) {
+      const product = entities.product || "product";
+      return \`I'd be happy to provide information about \${product}. What specific details would you like to know?\`;
+    } else if (intent === IntentType.COMPLAINT) {
+      return "I'm sorry to hear about your issue. Let me connect you with our support team who can better assist you.";
+    } else {
+      return "How can I help you today? I can assist with order tracking, returns, product information, and more.";
+    }
+  }
+  
+  shouldEscalate(userId: string): boolean {
+    const messages = this.conversations.get(userId);
+    if (!messages) return false;
+    
+    const complaintCount = messages.filter(m => m.intent === IntentType.COMPLAINT).length;
+    if (complaintCount >= 2) return true;
+    
+    if (messages.length > 10) return true;
+    
+    return false;
+  }
+}
+
+// Usage
+const chatbot = new CustomerServiceChatbot();
+const response = chatbot.processMessage("user_001", "I want to track my order ORD001");
+console.log(\`Bot: \${response}\`);`}
+/>
+
+### Use Cases
+
+1. **Order Tracking**: Automatically provide order status and tracking information
+2. **Product Queries**: Answer questions about products, availability, and specifications
+3. **Return Processing**: Guide customers through return and refund processes
+4. **24/7 Support**: Provide round-the-clock customer assistance
+
+## D: Dynamic Pricing
+
+AI adjusts prices in real-time based on demand, competition, inventory levels, and market conditions.
+
+### Pricing Factors
+
+- **Demand Signals**: Current demand, historical patterns, seasonal trends
+- **Competition**: Competitor prices, market positioning
+- **Inventory**: Stock levels, time-to-sellout
+- **Market Conditions**: Economic indicators, consumer sentiment
+
+### Implementation Example
+
+<MultiLanguageCode
+  python={`# Dynamic Pricing System
+from typing import Dict, List
+from dataclasses import dataclass
+from datetime import datetime
+import math
+
+@dataclass
+class ProductPricing:
+    product_id: str
+    base_price: float
+    current_price: float
+    min_price: float
+    max_price: float
+    demand_score: float
+    inventory_level: int
+    competitor_price: float
+
+class DynamicPricingEngine:
+    def __init__(self):
+        self.products: Dict[str, ProductPricing] = {}
+        self.price_history: Dict[str, List[tuple]] = {}  # product_id -> [(timestamp, price)]
+    
+    def add_product(self, product: ProductPricing):
+        """Add product to pricing system"""
+        self.products[product.product_id] = product
+        self.price_history[product.product_id] = []
+    
+    def calculate_optimal_price(self, product_id: str, 
+                               demand_multiplier: float = 1.0,
+                               competitor_price: float = None,
+                               inventory_pressure: float = 0.0) -> float:
+        """Calculate optimal price using multiple factors"""
+        if product_id not in self.products:
+            return 0.0
+        
+        product = self.products[product_id]
+        base = product.base_price
+        
+        # Factor 1: Demand-based adjustment
+        demand_adjustment = base * (demand_multiplier - 1.0) * 0.3
+        
+        # Factor 2: Competitor-based adjustment
+        competitor_adjustment = 0.0
+        if competitor_price:
+            price_diff = competitor_price - base
+            # Adjust to be competitive but not too low
+            competitor_adjustment = price_diff * 0.2
+        
+        # Factor 3: Inventory pressure
+        # Lower price if inventory is high
+        inventory_adjustment = 0.0
+        if inventory_pressure > 0.7:  # High inventory
+            inventory_adjustment = -base * 0.1
+        elif inventory_pressure < 0.3:  # Low inventory
+            inventory_adjustment = base * 0.05
+        
+        # Factor 4: Time-based (e.g., end of day, end of season)
+        time_adjustment = self._calculate_time_adjustment(product_id)
+        
+        # Calculate final price
+        new_price = base + demand_adjustment + competitor_adjustment + inventory_adjustment + time_adjustment
+        
+        # Ensure price is within bounds
+        new_price = max(product.min_price, min(product.max_price, new_price))
+        
+        return round(new_price, 2)
+    
+    def _calculate_time_adjustment(self, product_id: str) -> float:
+        """Calculate time-based price adjustment"""
+        product = self.products[product_id]
+        hour = datetime.now().hour
+        
+        # Lower prices during off-peak hours (e.g., 2-6 AM)
+        if 2 <= hour <= 6:
+            return -product.base_price * 0.05
+        
+        # Higher prices during peak hours (e.g., 7-9 PM)
+        if 19 <= hour <= 21:
+            return product.base_price * 0.03
+        
+        return 0.0
+    
+    def update_price(self, product_id: str, new_price: float):
+        """Update product price and record history"""
+        if product_id in self.products:
+            self.products[product_id].current_price = new_price
+            self.price_history[product_id].append((datetime.now(), new_price))
+            
+            # Keep only last 100 price changes
+            if len(self.price_history[product_id]) > 100:
+                self.price_history[product_id] = self.price_history[product_id][-100:]
+    
+    def get_pricing_strategy(self, product_id: str) -> Dict:
+        """Get recommended pricing strategy"""
+        if product_id not in self.products:
+            return {}
+        
+        product = self.products[product_id]
+        optimal_price = self.calculate_optimal_price(
+            product_id,
+            demand_multiplier=product.demand_score,
+            competitor_price=product.competitor_price,
+            inventory_pressure=product.inventory_level / 100.0
+        )
+        
+        strategy = "maintain"
+        if optimal_price > product.current_price * 1.05:
+            strategy = "increase"
+        elif optimal_price < product.current_price * 0.95:
+            strategy = "decrease"
+        
+        return {
+            "current_price": product.current_price,
+            "recommended_price": optimal_price,
+            "strategy": strategy,
+            "potential_revenue_change": self._estimate_revenue_change(product_id, optimal_price)
+        }
+    
+    def _estimate_revenue_change(self, product_id: str, new_price: float) -> float:
+        """Estimate revenue change from price adjustment"""
+        product = self.products[product_id]
+        price_change_percent = (new_price - product.current_price) / product.current_price
+        
+        # Price elasticity: -2.0 means 1% price increase = 2% demand decrease
+        elasticity = -2.0
+        demand_change = price_change_percent * elasticity
+        
+        # Estimate revenue change
+        current_revenue = product.current_price * 100  # Assume 100 units
+        new_demand = 100 * (1 + demand_change)
+        new_revenue = new_price * new_demand
+        
+        return new_revenue - current_revenue
+
+# Usage
+pricing_engine = DynamicPricingEngine()
+
+# Add product
+product = ProductPricing(
+    product_id="PROD001",
+    base_price=100.0,
+    current_price=100.0,
+    min_price=80.0,
+    max_price=150.0,
+    demand_score=1.2,  # 20% above average demand
+    inventory_level=30,  # Low inventory
+    competitor_price=95.0
+)
+pricing_engine.add_product(product)
+
+# Calculate optimal price
+optimal_price = pricing_engine.calculate_optimal_price(
+    "PROD001",
+    demand_multiplier=1.2,
+    competitor_price=95.0,
+    inventory_pressure=0.3
+)
+print(f"Optimal Price: {optimal_price}")
+
+# Get pricing strategy
+strategy = pricing_engine.get_pricing_strategy("PROD001")
+print(f"Strategy: {strategy['strategy']}")
+print(f"Recommended Price: {strategy['recommended_price']}")`}
+  typescript={`// Dynamic Pricing System
+interface ProductPricing {
+  productId: string;
+  basePrice: number;
+  currentPrice: number;
+  minPrice: number;
+  maxPrice: number;
+  demandScore: number;
+  inventoryLevel: number;
+  competitorPrice: number;
+}
+
+class DynamicPricingEngine {
+  private products: Map<string, ProductPricing> = new Map();
+  private priceHistory: Map<string, Array<[Date, number]>> = new Map();
+  
+  addProduct(product: ProductPricing): void {
+    this.products.set(product.productId, product);
+    this.priceHistory.set(product.productId, []);
+  }
+  
+  calculateOptimalPrice(
+    productId: string,
+    demandMultiplier: number = 1.0,
+    competitorPrice?: number,
+    inventoryPressure: number = 0.0
+  ): number {
+    const product = this.products.get(productId);
+    if (!product) return 0.0;
+    
+    const base = product.basePrice;
+    
+    // Demand-based adjustment
+    const demandAdjustment = base * (demandMultiplier - 1.0) * 0.3;
+    
+    // Competitor-based adjustment
+    let competitorAdjustment = 0.0;
+    if (competitorPrice) {
+      const priceDiff = competitorPrice - base;
+      competitorAdjustment = priceDiff * 0.2;
+    }
+    
+    // Inventory pressure
+    let inventoryAdjustment = 0.0;
+    if (inventoryPressure > 0.7) {
+      inventoryAdjustment = -base * 0.1;
+    } else if (inventoryPressure < 0.3) {
+      inventoryAdjustment = base * 0.05;
+    }
+    
+    // Time-based adjustment
+    const timeAdjustment = this.calculateTimeAdjustment(productId);
+    
+    let newPrice = base + demandAdjustment + competitorAdjustment + inventoryAdjustment + timeAdjustment;
+    newPrice = Math.max(product.minPrice, Math.min(product.maxPrice, newPrice));
+    
+    return Math.round(newPrice * 100) / 100;
+  }
+  
+  private calculateTimeAdjustment(productId: string): number {
+    const product = this.products.get(productId)!;
+    const hour = new Date().getHours();
+    
+    if (hour >= 2 && hour <= 6) {
+      return -product.basePrice * 0.05;
+    }
+    if (hour >= 19 && hour <= 21) {
+      return product.basePrice * 0.03;
+    }
+    
+    return 0.0;
+  }
+  
+  getPricingStrategy(productId: string): {
+    currentPrice: number;
+    recommendedPrice: number;
+    strategy: string;
+    potentialRevenueChange: number;
+  } {
+    const product = this.products.get(productId)!;
+    const optimalPrice = this.calculateOptimalPrice(
+      productId,
+      product.demandScore,
+      product.competitorPrice,
+      product.inventoryLevel / 100.0
+    );
+    
+    let strategy = "maintain";
+    if (optimalPrice > product.currentPrice * 1.05) {
+      strategy = "increase";
+    } else if (optimalPrice < product.currentPrice * 0.95) {
+      strategy = "decrease";
+    }
+    
+    return {
+      currentPrice: product.currentPrice,
+      recommendedPrice: optimalPrice,
+      strategy,
+      potentialRevenueChange: this.estimateRevenueChange(productId, optimalPrice)
+    };
+  }
+  
+  private estimateRevenueChange(productId: string, newPrice: number): number {
+    const product = this.products.get(productId)!;
+    const priceChangePercent = (newPrice - product.currentPrice) / product.currentPrice;
+    const elasticity = -2.0;
+    const demandChange = priceChangePercent * elasticity;
+    
+    const currentRevenue = product.currentPrice * 100;
+    const newDemand = 100 * (1 + demandChange);
+    const newRevenue = newPrice * newDemand;
+    
+    return newRevenue - currentRevenue;
+  }
+}
+
+// Usage
+const pricingEngine = new DynamicPricingEngine();
+pricingEngine.addProduct({
+  productId: "PROD001",
+  basePrice: 100.0,
+  currentPrice: 100.0,
+  minPrice: 80.0,
+  maxPrice: 150.0,
+  demandScore: 1.2,
+  inventoryLevel: 30,
+  competitorPrice: 95.0
+});
+
+const strategy = pricingEngine.getPricingStrategy("PROD001");
+console.log(\`Strategy: \${strategy.strategy}\`);`}
+/>
+
+### Use Cases
+
+1. **E-commerce**: Adjust prices based on demand and competition
+2. **Hospitality**: Dynamic hotel and flight pricing
+3. **Ride-sharing**: Surge pricing during high demand
+4. **Retail**: Markdown optimization for clearance items
+
+## E: E-commerce Personalization
+
+AI personalizes product recommendations, content, and shopping experiences for each customer.
+
+### Personalization Dimensions
+
+- **Product Recommendations**: Based on browsing history, purchase history, and similar users
+- **Content Personalization**: Homepage layout, banners, and messaging
+- **Search Results**: Personalized search ranking
+- **Email Marketing**: Targeted campaigns based on behavior
+
+### Implementation Example
+
+<MultiLanguageCode
+  python={`# E-commerce Personalization Engine
+from typing import List, Dict
+from dataclasses import dataclass
+from collections import defaultdict
+
+@dataclass
+class UserProfile:
+    user_id: str
+    viewed_products: List[str]
+    purchased_products: List[str]
+    preferred_categories: List[str]
+    price_range: tuple
+    browsing_history: List[str]
+
+class PersonalizationEngine:
+    def __init__(self):
+        self.user_profiles: Dict[str, UserProfile] = {}
+        self.product_features: Dict[str, Dict] = {}
+    
+    def build_user_profile(self, user_id: str, interactions: List[Dict]):
+        """Build comprehensive user profile from interactions"""
+        viewed = []
+        purchased = []
+        categories = defaultdict(int)
+        prices = []
+        
+        for interaction in interactions:
+            if interaction['type'] == 'view':
+                viewed.append(interaction['product_id'])
+                categories[interaction['category']] += 1
+            elif interaction['type'] == 'purchase':
+                purchased.append(interaction['product_id'])
+                prices.append(interaction['price'])
+        
+        preferred_categories = sorted(categories.items(), key=lambda x: x[1], reverse=True)[:3]
+        price_range = (min(prices) if prices else 0, max(prices) if prices else 1000)
+        
+        self.user_profiles[user_id] = UserProfile(
+            user_id=user_id,
+            viewed_products=viewed,
+            purchased_products=purchased,
+            preferred_categories=[c[0] for c in preferred_categories],
+            price_range=price_range,
+            browsing_history=viewed[-10:]  # Last 10 viewed
+        )
+    
+    def personalize_homepage(self, user_id: str) -> Dict:
+        """Generate personalized homepage content"""
+        if user_id not in self.user_profiles:
+            return self._get_default_homepage()
+        
+        profile = self.user_profiles[user_id]
+        
+        return {
+            "recommended_products": self._get_recommendations(user_id, top_n=8),
+            "continue_browsing": profile.browsing_history[-3:],
+            "personalized_banner": self._get_personalized_banner(profile),
+            "category_sections": self._get_category_sections(profile)
+        }
+    
+    def _get_recommendations(self, user_id: str, top_n: int = 10) -> List[str]:
+        """Get personalized product recommendations"""
+        profile = self.user_profiles[user_id]
+        
+        # Combine viewed and purchased for better recommendations
+        all_interactions = set(profile.viewed_products + profile.purchased_products)
+        
+        # Find similar products
+        recommendations = []
+        for category in profile.preferred_categories:
+            category_products = [p for p, f in self.product_features.items() 
+                              if f.get('category') == category]
+            recommendations.extend([p for p in category_products if p not in all_interactions])
+        
+        return recommendations[:top_n]
+    
+    def _get_personalized_banner(self, profile: UserProfile) -> str:
+        """Generate personalized banner message"""
+        if profile.preferred_categories:
+            return f"New arrivals in {profile.preferred_categories[0]} - Shop now!"
+        return "Discover our latest collection"
+    
+    def _get_category_sections(self, profile: UserProfile) -> List[str]:
+        """Get personalized category sections"""
+        return profile.preferred_categories[:3]
+
+# Usage
+engine = PersonalizationEngine()
+
+# Build user profile
+interactions = [
+    {"type": "view", "product_id": "laptop_001", "category": "electronics", "price": 999},
+    {"type": "view", "product_id": "mouse_001", "category": "electronics", "price": 29},
+    {"type": "purchase", "product_id": "laptop_001", "category": "electronics", "price": 999}
+]
+engine.build_user_profile("user_001", interactions)
+
+# Personalize homepage
+homepage = engine.personalize_homepage("user_001")
+print(f"Recommended Products: {homepage['recommended_products']}")`}
+  typescript={`// E-commerce Personalization Engine
+interface UserProfile {
+  userId: string;
+  viewedProducts: string[];
+  purchasedProducts: string[];
+  preferredCategories: string[];
+  priceRange: [number, number];
+  browsingHistory: string[];
+}
+
+class PersonalizationEngine {
+  private userProfiles: Map<string, UserProfile> = new Map();
+  private productFeatures: Map<string, Record<string, any>> = new Map();
+  
+  buildUserProfile(userId: string, interactions: Array<{
+    type: string;
+    productId: string;
+    category: string;
+    price: number;
+  }>): void {
+    const viewed: string[] = [];
+    const purchased: string[] = [];
+    const categories: Map<string, number> = new Map();
+    const prices: number[] = [];
+    
+    for (const interaction of interactions) {
+      if (interaction.type === 'view') {
+        viewed.push(interaction.productId);
+        categories.set(interaction.category, (categories.get(interaction.category) || 0) + 1);
+      } else if (interaction.type === 'purchase') {
+        purchased.push(interaction.productId);
+        prices.push(interaction.price);
+      }
+    }
+    
+    const preferredCategories = Array.from(categories.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3)
+      .map(([cat]) => cat);
+    
+    const priceRange: [number, number] = [
+      prices.length > 0 ? Math.min(...prices) : 0,
+      prices.length > 0 ? Math.max(...prices) : 1000
+    ];
+    
+    this.userProfiles.set(userId, {
+      userId,
+      viewedProducts: viewed,
+      purchasedProducts: purchased,
+      preferredCategories,
+      priceRange,
+      browsingHistory: viewed.slice(-10)
+    });
+  }
+  
+  personalizeHomepage(userId: string): {
+    recommendedProducts: string[];
+    continueBrowsing: string[];
+    personalizedBanner: string;
+    categorySections: string[];
+  } {
+    const profile = this.userProfiles.get(userId);
+    if (!profile) {
+      return this.getDefaultHomepage();
+    }
+    
+    return {
+      recommendedProducts: this.getRecommendations(userId, 8),
+      continueBrowsing: profile.browsingHistory.slice(-3),
+      personalizedBanner: this.getPersonalizedBanner(profile),
+      categorySections: this.getCategorySections(profile)
+    };
+  }
+  
+  private getRecommendations(userId: string, topN: number): string[] {
+    const profile = this.userProfiles.get(userId)!;
+    const allInteractions = new Set([...profile.viewedProducts, ...profile.purchasedProducts]);
+    const recommendations: string[] = [];
+    
+    for (const category of profile.preferredCategories) {
+      const categoryProducts = Array.from(this.productFeatures.entries())
+        .filter(([_, features]) => features.category === category)
+        .map(([productId]) => productId)
+        .filter(id => !allInteractions.has(id));
+      recommendations.push(...categoryProducts);
+    }
+    
+    return recommendations.slice(0, topN);
+  }
+  
+  private getPersonalizedBanner(profile: UserProfile): string {
+    if (profile.preferredCategories.length > 0) {
+      return \`New arrivals in \${profile.preferredCategories[0]} - Shop now!\`;
+    }
+    return "Discover our latest collection";
+  }
+  
+  private getCategorySections(profile: UserProfile): string[] {
+    return profile.preferredCategories.slice(0, 3);
+  }
+  
+  private getDefaultHomepage(): {
+    recommendedProducts: string[];
+    continueBrowsing: string[];
+    personalizedBanner: string;
+    categorySections: string[];
+  } {
+    return {
+      recommendedProducts: [],
+      continueBrowsing: [],
+      personalizedBanner: "Welcome to our store",
+      categorySections: []
+    };
+  }
+}
+
+// Usage
+const engine = new PersonalizationEngine();
+engine.buildUserProfile("user_001", [
+  { type: "view", productId: "laptop_001", category: "electronics", price: 999 },
+  { type: "purchase", productId: "laptop_001", category: "electronics", price: 999 }
+]);
+
+const homepage = engine.personalizeHomepage("user_001");
+console.log(\`Recommended: \${homepage.recommendedProducts.join(', ')}\`);`}
+/>
+
+### Use Cases
+
+1. **Homepage Personalization**: Customize homepage for each visitor
+2. **Product Recommendations**: Show relevant products based on behavior
+3. **Email Campaigns**: Send personalized product suggestions
+4. **Search Personalization**: Rank search results by user preferences
+
+## F: Fraud Detection
+
+AI identifies fraudulent transactions, suspicious activities, and security threats in real-time.
+
+### Fraud Indicators
+
+- **Transaction Patterns**: Unusual amounts, frequencies, or locations
+- **Behavioral Anomalies**: Deviations from normal user behavior
+- **Device Fingerprinting**: Suspicious device characteristics
+- **Network Analysis**: Connections to known fraud networks
+
+### Implementation Example
+
+<MultiLanguageCode
+  python={`# Fraud Detection System
+from typing import Dict, List
+from dataclasses import dataclass
+from datetime import datetime, timedelta
+from collections import defaultdict
+
+@dataclass
+class Transaction:
+    transaction_id: str
+    user_id: str
+    amount: float
+    timestamp: datetime
+    merchant: str
+    location: str
+    device_id: str
+    ip_address: str
+
+class FraudDetectionSystem:
+    def __init__(self):
+        self.transactions: List[Transaction] = []
+        self.user_profiles: Dict[str, Dict] = defaultdict(dict)
+        self.fraud_rules = {
+            "high_amount": 1000.0,
+            "velocity_threshold": 5,  # transactions per hour
+            "location_change_threshold": 1000.0  # km
+        }
+    
+    def analyze_transaction(self, transaction: Transaction) -> Dict:
+        """Analyze transaction for fraud indicators"""
+        risk_score = 0.0
+        flags = []
+        
+        # Check 1: Unusual amount
+        user_avg = self._get_user_average_amount(transaction.user_id)
+        if transaction.amount > user_avg * 3:
+            risk_score += 30
+            flags.append("Unusually high amount")
+        
+        # Check 2: Transaction velocity
+        recent_count = self._count_recent_transactions(transaction.user_id, hours=1)
+        if recent_count >= self.fraud_rules["velocity_threshold"]:
+            risk_score += 25
+            flags.append("High transaction velocity")
+        
+        # Check 3: Location anomaly
+        if self._is_location_suspicious(transaction.user_id, transaction.location):
+            risk_score += 20
+            flags.append("Suspicious location change")
+        
+        # Check 4: Device anomaly
+        if self._is_device_suspicious(transaction.user_id, transaction.device_id):
+            risk_score += 15
+            flags.append("New or suspicious device")
+        
+        # Check 5: Time pattern
+        if self._is_time_suspicious(transaction.timestamp):
+            risk_score += 10
+            flags.append("Unusual transaction time")
+        
+        # Store transaction
+        self.transactions.append(transaction)
+        self._update_user_profile(transaction)
+        
+        # Determine fraud status
+        is_fraud = risk_score >= 50
+        
+        return {
+            "transaction_id": transaction.transaction_id,
+            "risk_score": round(risk_score, 2),
+            "is_fraud": is_fraud,
+            "flags": flags,
+            "recommendation": "block" if is_fraud else "review" if risk_score >= 30 else "approve"
+        }
+    
+    def _get_user_average_amount(self, user_id: str) -> float:
+        """Get user's average transaction amount"""
+        user_transactions = [t for t in self.transactions if t.user_id == user_id]
+        if not user_transactions:
+            return 100.0  # Default average
+        
+        return sum(t.amount for t in user_transactions) / len(user_transactions)
+    
+    def _count_recent_transactions(self, user_id: str, hours: int = 1) -> int:
+        """Count recent transactions for velocity check"""
+        cutoff = datetime.now() - timedelta(hours=hours)
+        return sum(1 for t in self.transactions 
+                  if t.user_id == user_id and t.timestamp >= cutoff)
+    
+    def _is_location_suspicious(self, user_id: str, new_location: str) -> bool:
+        """Check if location change is suspicious"""
+        user_transactions = [t for t in self.transactions if t.user_id == user_id]
+        if len(user_transactions) < 2:
+            return False
+        
+        # Get last transaction location
+        last_location = user_transactions[-1].location
+        # Simplified: In real system, calculate distance
+        return last_location != new_location and len(user_transactions) > 0
+    
+    def _is_device_suspicious(self, user_id: str, device_id: str) -> bool:
+        """Check if device is suspicious"""
+        user_transactions = [t for t in self.transactions if t.user_id == user_id]
+        if not user_transactions:
+            return False
+        
+        # Check if this is a new device
+        known_devices = set(t.device_id for t in user_transactions)
+        return device_id not in known_devices
+    
+    def _is_time_suspicious(self, timestamp: datetime) -> bool:
+        """Check if transaction time is suspicious"""
+        hour = timestamp.hour
+        # Transactions between 2-5 AM are more suspicious
+        return 2 <= hour <= 5
+    
+    def _update_user_profile(self, transaction: Transaction):
+        """Update user profile with transaction data"""
+        if transaction.user_id not in self.user_profiles:
+            self.user_profiles[transaction.user_id] = {
+                "total_transactions": 0,
+                "total_amount": 0.0,
+                "locations": set(),
+                "devices": set()
+            }
+        
+        profile = self.user_profiles[transaction.user_id]
+        profile["total_transactions"] += 1
+        profile["total_amount"] += transaction.amount
+        profile["locations"].add(transaction.location)
+        profile["devices"].add(transaction.device_id)
+
+# Usage
+fraud_system = FraudDetectionSystem()
+
+# Analyze transactions
+tx1 = Transaction(
+    transaction_id="TXN001",
+    user_id="user_001",
+    amount=50.0,
+    timestamp=datetime.now(),
+    merchant="Store A",
+    location="New York",
+    device_id="device_001",
+    ip_address="192.168.1.1"
+)
+
+result1 = fraud_system.analyze_transaction(tx1)
+print(f"Transaction {result1['transaction_id']}: Risk Score {result1['risk_score']}, Fraud: {result1['is_fraud']}")
+
+# Suspicious transaction
+tx2 = Transaction(
+    transaction_id="TXN002",
+    user_id="user_001",
+    amount=5000.0,  # Very high amount
+    timestamp=datetime.now(),
+    merchant="Store B",
+    location="Los Angeles",  # Different location
+    device_id="device_999",  # New device
+    ip_address="10.0.0.1"
+)
+
+result2 = fraud_system.analyze_transaction(tx2)
+print(f"Transaction {result2['transaction_id']}: Risk Score {result2['risk_score']}, Flags: {result2['flags']}")`}
+  typescript={`// Fraud Detection System
+interface Transaction {
+  transactionId: string;
+  userId: string;
+  amount: number;
+  timestamp: Date;
+  merchant: string;
+  location: string;
+  deviceId: string;
+  ipAddress: string;
+}
+
+class FraudDetectionSystem {
+  private transactions: Transaction[] = [];
+  private userProfiles: Map<string, {
+    totalTransactions: number;
+    totalAmount: number;
+    locations: Set<string>;
+    devices: Set<string>;
+  }> = new Map();
+  
+  private fraudRules = {
+    highAmount: 1000.0,
+    velocityThreshold: 5,
+    locationChangeThreshold: 1000.0
+  };
+  
+  analyzeTransaction(transaction: Transaction): {
+    transactionId: string;
+    riskScore: number;
+    isFraud: boolean;
+    flags: string[];
+    recommendation: string;
+  } {
+    let riskScore = 0.0;
+    const flags: string[] = [];
+    
+    // Check unusual amount
+    const userAvg = this.getUserAverageAmount(transaction.userId);
+    if (transaction.amount > userAvg * 3) {
+      riskScore += 30;
+      flags.push("Unusually high amount");
+    }
+    
+    // Check velocity
+    const recentCount = this.countRecentTransactions(transaction.userId, 1);
+    if (recentCount >= this.fraudRules.velocityThreshold) {
+      riskScore += 25;
+      flags.push("High transaction velocity");
+    }
+    
+    // Check location
+    if (this.isLocationSuspicious(transaction.userId, transaction.location)) {
+      riskScore += 20;
+      flags.push("Suspicious location change");
+    }
+    
+    // Check device
+    if (this.isDeviceSuspicious(transaction.userId, transaction.deviceId)) {
+      riskScore += 15;
+      flags.push("New or suspicious device");
+    }
+    
+    // Check time
+    if (this.isTimeSuspicious(transaction.timestamp)) {
+      riskScore += 10;
+      flags.push("Unusual transaction time");
+    }
+    
+    this.transactions.push(transaction);
+    this.updateUserProfile(transaction);
+    
+    const isFraud = riskScore >= 50;
+    
+    return {
+      transactionId: transaction.transactionId,
+      riskScore: Math.round(riskScore * 100) / 100,
+      isFraud,
+      flags,
+      recommendation: isFraud ? "block" : riskScore >= 30 ? "review" : "approve"
+    };
+  }
+  
+  private getUserAverageAmount(userId: string): number {
+    const userTransactions = this.transactions.filter(t => t.userId === userId);
+    if (userTransactions.length === 0) return 100.0;
+    return userTransactions.reduce((sum, t) => sum + t.amount, 0) / userTransactions.length;
+  }
+  
+  private countRecentTransactions(userId: string, hours: number): number {
+    const cutoff = new Date(Date.now() - hours * 60 * 60 * 1000);
+    return this.transactions.filter(t => 
+      t.userId === userId && t.timestamp >= cutoff
+    ).length;
+  }
+  
+  private isLocationSuspicious(userId: string, newLocation: string): boolean {
+    const userTransactions = this.transactions.filter(t => t.userId === userId);
+    if (userTransactions.length < 2) return false;
+    const lastLocation = userTransactions[userTransactions.length - 1].location;
+    return lastLocation !== newLocation;
+  }
+  
+  private isDeviceSuspicious(userId: string, deviceId: string): boolean {
+    const userTransactions = this.transactions.filter(t => t.userId === userId);
+    if (userTransactions.length === 0) return false;
+    const knownDevices = new Set(userTransactions.map(t => t.deviceId));
+    return !knownDevices.has(deviceId);
+  }
+  
+  private isTimeSuspicious(timestamp: Date): boolean {
+    const hour = timestamp.getHours();
+    return hour >= 2 && hour <= 5;
+  }
+  
+  private updateUserProfile(transaction: Transaction): void {
+    if (!this.userProfiles.has(transaction.userId)) {
+      this.userProfiles.set(transaction.userId, {
+        totalTransactions: 0,
+        totalAmount: 0,
+        locations: new Set(),
+        devices: new Set()
+      });
+    }
+    
+    const profile = this.userProfiles.get(transaction.userId)!;
+    profile.totalTransactions++;
+    profile.totalAmount += transaction.amount;
+    profile.locations.add(transaction.location);
+    profile.devices.add(transaction.deviceId);
+  }
+}
+
+// Usage
+const fraudSystem = new FraudDetectionSystem();
+const result = fraudSystem.analyzeTransaction({
+  transactionId: "TXN001",
+  userId: "user_001",
+  amount: 5000,
+  timestamp: new Date(),
+  merchant: "Store A",
+  location: "New York",
+  deviceId: "device_001",
+  ipAddress: "192.168.1.1"
+});
+
+console.log(\`Risk Score: \${result.riskScore}, Fraud: \${result.isFraud}\`);`}
+/>
+
+### Use Cases
+
+1. **Payment Fraud**: Detect fraudulent credit card transactions
+2. **Account Takeover**: Identify unauthorized account access
+3. **Refund Fraud**: Detect suspicious refund patterns
+4. **Identity Theft**: Identify stolen identity usage
+
+## G: Geospatial Analytics
+
+AI analyzes location data to optimize store locations, delivery routes, and market coverage.
+
+### Analytics Applications
+
+- **Site Selection**: Optimal store locations based on demographics and competition
+- **Route Optimization**: Best delivery routes for efficiency
+- **Market Analysis**: Geographic market potential
+- **Demand Forecasting**: Location-based demand prediction
+
+### Implementation Example
+
+<MultiLanguageCode
+  python={`# Geospatial Analytics System
+from typing import List, Dict, Tuple
+from dataclasses import dataclass
+import math
+
+@dataclass
+class Location:
+    latitude: float
+    longitude: float
+    address: str = ""
+
+@dataclass
+class StoreLocation:
+    location: Location
+    store_id: str
+    sales_volume: float
+    customer_count: int
+    competition_count: int
+
+class GeospatialAnalytics:
+    def __init__(self):
+        self.stores: List[StoreLocation] = []
+        self.customer_locations: List[Location] = []
+    
+    def calculate_distance(self, loc1: Location, loc2: Location) -> float:
+        """Calculate distance between two locations (Haversine formula)"""
+        R = 6371  # Earth radius in km
+        
+        lat1_rad = math.radians(loc1.latitude)
+        lat2_rad = math.radians(loc2.latitude)
+        delta_lat = math.radians(loc2.latitude - loc1.latitude)
+        delta_lon = math.radians(loc2.longitude - loc1.longitude)
+        
+        a = math.sin(delta_lat/2)**2 + math.cos(lat1_rad) * math.cos(lat2_rad) * math.sin(delta_lon/2)**2
+        c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+        
+        return R * c
+    
+    def find_optimal_store_location(self, candidate_locations: List[Location],
+                                   customer_locations: List[Location],
+                                   max_stores: int = 1) -> List[Location]:
+        """Find optimal store locations to maximize coverage"""
+        best_locations = []
+        remaining_customers = set(range(len(customer_locations)))
+        
+        for _ in range(max_stores):
+            best_location = None
+            best_coverage = 0
+            best_covered = set()
+            
+            for candidate in candidate_locations:
+                covered = set()
+                for i, customer in enumerate(customer_locations):
+                    distance = self.calculate_distance(candidate, customer)
+                    if distance <= 5.0:  # 5km coverage radius
+                        covered.add(i)
+                
+                if len(covered) > best_coverage:
+                    best_coverage = len(covered)
+                    best_location = candidate
+                    best_covered = covered
+            
+            if best_location:
+                best_locations.append(best_location)
+                remaining_customers -= best_covered
+        
+        return best_locations
+    
+    def optimize_delivery_routes(self, depot: Location, 
+                                 delivery_locations: List[Location],
+                                 max_distance: float = 100.0) -> List[List[Location]]:
+        """Optimize delivery routes using nearest neighbor algorithm"""
+        routes = []
+        unvisited = delivery_locations.copy()
+        current_route = [depot]
+        current_distance = 0.0
+        
+        while unvisited:
+            if not current_route or current_route[-1] == depot:
+                # Start new route from depot
+                if len(current_route) > 1:  # Save previous route
+                    routes.append(current_route)
+                current_route = [depot]
+                current_distance = 0.0
+            
+            # Find nearest unvisited location
+            nearest = None
+            nearest_distance = float('inf')
+            
+            for location in unvisited:
+                distance = self.calculate_distance(current_route[-1], location)
+                if distance < nearest_distance:
+                    nearest = location
+                    nearest_distance = distance
+            
+            # Check if adding this location exceeds max distance
+            return_distance = self.calculate_distance(nearest, depot)
+            if current_distance + nearest_distance + return_distance <= max_distance:
+                current_route.append(nearest)
+                current_distance += nearest_distance
+                unvisited.remove(nearest)
+            else:
+                # Complete current route
+                current_route.append(depot)
+                routes.append(current_route)
+                current_route = [depot]
+                current_distance = 0.0
+        
+        # Add final route
+        if current_route:
+            if current_route[-1] != depot:
+                current_route.append(depot)
+            routes.append(current_route)
+        
+        return routes
+    
+    def analyze_market_potential(self, location: Location, 
+                                radius_km: float = 10.0) -> Dict:
+        """Analyze market potential for a location"""
+        nearby_customers = [
+            c for c in self.customer_locations
+            if self.calculate_distance(location, c) <= radius_km
+        ]
+        
+        nearby_stores = [
+            s for s in self.stores
+            if self.calculate_distance(location, s.location) <= radius_km
+        ]
+        
+        competition_score = len(nearby_stores)
+        market_potential = len(nearby_customers) / max(competition_score, 1)
+        
+        return {
+            "customer_count": len(nearby_customers),
+            "competition_count": competition_score,
+            "market_potential_score": round(market_potential, 2),
+            "recommendation": "high" if market_potential > 50 else "medium" if market_potential > 20 else "low"
+        }
+
+# Usage
+geo_analytics = GeospatialAnalytics()
+
+# Add stores
+store1 = StoreLocation(
+    location=Location(40.7128, -74.0060, "New York"),
+    store_id="STORE001",
+    sales_volume=100000,
+    customer_count=5000,
+    competition_count=3
+)
+geo_analytics.stores.append(store1)
+
+# Analyze market potential
+new_location = Location(40.7589, -73.9851, "Midtown Manhattan")
+potential = geo_analytics.analyze_market_potential(new_location)
+print(f"Market Potential: {potential['market_potential_score']}")
+print(f"Recommendation: {potential['recommendation']}")`}
+  typescript={`// Geospatial Analytics System
+interface Location {
+  latitude: number;
+  longitude: number;
+  address?: string;
+}
+
+class GeospatialAnalytics {
+  private stores: Array<{ location: Location; storeId: string }> = [];
+  private customerLocations: Location[] = [];
+  
+  calculateDistance(loc1: Location, loc2: Location): number {
+    const R = 6371; // Earth radius in km
+    const lat1Rad = this.toRadians(loc1.latitude);
+    const lat2Rad = this.toRadians(loc2.latitude);
+    const deltaLat = this.toRadians(loc2.latitude - loc1.latitude);
+    const deltaLon = this.toRadians(loc2.longitude - loc1.longitude);
+    
+    const a = Math.sin(deltaLat/2)**2 + 
+              Math.cos(lat1Rad) * Math.cos(lat2Rad) * Math.sin(deltaLon/2)**2;
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    
+    return R * c;
+  }
+  
+  private toRadians(degrees: number): number {
+    return degrees * Math.PI / 180;
+  }
+  
+  analyzeMarketPotential(location: Location, radiusKm: number = 10.0): {
+    customerCount: number;
+    competitionCount: number;
+    marketPotentialScore: number;
+    recommendation: string;
+  } {
+    const nearbyCustomers = this.customerLocations.filter(c =>
+      this.calculateDistance(location, c) <= radiusKm
+    );
+    
+    const nearbyStores = this.stores.filter(s =>
+      this.calculateDistance(location, s.location) <= radiusKm
+    );
+    
+    const competitionScore = nearbyStores.length;
+    const marketPotential = nearbyCustomers.length / Math.max(competitionScore, 1);
+    
+    return {
+      customerCount: nearbyCustomers.length,
+      competitionCount: competitionScore,
+      marketPotentialScore: Math.round(marketPotential * 100) / 100,
+      recommendation: marketPotential > 50 ? "high" : marketPotential > 20 ? "medium" : "low"
+    };
+  }
+  
+  optimizeDeliveryRoutes(
+    depot: Location,
+    deliveryLocations: Location[],
+    maxDistance: number = 100.0
+  ): Location[][] {
+    const routes: Location[][] = [];
+    const unvisited = [...deliveryLocations];
+    let currentRoute = [depot];
+    let currentDistance = 0.0;
+    
+    while (unvisited.length > 0) {
+      if (currentRoute.length === 1 || currentRoute[currentRoute.length - 1] === depot) {
+        if (currentRoute.length > 1) {
+          routes.push([...currentRoute]);
+        }
+        currentRoute = [depot];
+        currentDistance = 0.0;
+      }
+      
+      let nearest: Location | null = null;
+      let nearestDistance = Infinity;
+      
+      for (const location of unvisited) {
+        const distance = this.calculateDistance(
+          currentRoute[currentRoute.length - 1],
+          location
+        );
+        if (distance < nearestDistance) {
+          nearest = location;
+          nearestDistance = distance;
+        }
+      }
+      
+      if (nearest) {
+        const returnDistance = this.calculateDistance(nearest, depot);
+        if (currentDistance + nearestDistance + returnDistance <= maxDistance) {
+          currentRoute.push(nearest);
+          currentDistance += nearestDistance;
+          unvisited.splice(unvisited.indexOf(nearest), 1);
+        } else {
+          currentRoute.push(depot);
+          routes.push([...currentRoute]);
+          currentRoute = [depot];
+          currentDistance = 0.0;
+        }
+      }
+    }
+    
+    if (currentRoute.length > 0) {
+      if (currentRoute[currentRoute.length - 1] !== depot) {
+        currentRoute.push(depot);
+      }
+      routes.push(currentRoute);
+    }
+    
+    return routes;
+  }
+}
+
+// Usage
+const geoAnalytics = new GeospatialAnalytics();
+const potential = geoAnalytics.analyzeMarketPotential({
+  latitude: 40.7589,
+  longitude: -73.9851
+});
+
+console.log(\`Market Potential: \${potential.marketPotentialScore}\`);`}
+/>
+
+### Use Cases
+
+1. **Retail Expansion**: Identify optimal locations for new stores
+2. **Delivery Optimization**: Plan efficient delivery routes
+3. **Market Analysis**: Understand geographic market opportunities
+4. **Competitive Intelligence**: Analyze competitor locations
+
+## H: Hyper-Personalization
+
+AI creates highly personalized experiences by analyzing individual customer data and preferences.
+
+### Personalization Levels
+
+- **Individual Level**: Unique experiences for each customer
+- **Real-time Adaptation**: Dynamic content based on current session
+- **Multi-channel Consistency**: Same personalization across all touchpoints
+- **Predictive Personalization**: Anticipate customer needs
+
+### Implementation Example
+
+<MultiLanguageCode
+  python={`# Hyper-Personalization Engine
+from typing import Dict, List
+from dataclasses import dataclass
+from datetime import datetime
+import json
+
+@dataclass
+class CustomerContext:
+    user_id: str
+    current_page: str
+    time_of_day: str
+    device_type: str
+    weather: str
+    location: str
+    recent_searches: List[str]
+
+class HyperPersonalizationEngine:
+    def __init__(self):
+        self.customer_profiles: Dict[str, Dict] = {}
+        self.context_history: Dict[str, List[CustomerContext]] = {}
+    
+    def personalize_experience(self, user_id: str, context: CustomerContext) -> Dict:
+        """Create hyper-personalized experience"""
+        # Build comprehensive profile
+        profile = self._build_dynamic_profile(user_id, context)
+        
+        return {
+            "personalized_content": self._generate_content(profile, context),
+            "product_recommendations": self._get_contextual_recommendations(profile, context),
+            "pricing": self._get_personalized_pricing(user_id, profile),
+            "messaging": self._get_personalized_messaging(profile, context),
+            "layout": self._get_personalized_layout(profile)
+        }
+    
+    def _build_dynamic_profile(self, user_id: str, context: CustomerContext) -> Dict:
+        """Build dynamic customer profile"""
+        if user_id not in self.customer_profiles:
+            self.customer_profiles[user_id] = {
+                "preferences": {},
+                "behavior_patterns": {},
+                "lifetime_value": 0.0,
+                "engagement_score": 0.0
+            }
+        
+        profile = self.customer_profiles[user_id]
+        
+        # Update based on context
+        if context.time_of_day not in profile["preferences"]:
+            profile["preferences"][context.time_of_day] = {}
+        
+        # Track behavior patterns
+        if user_id not in self.context_history:
+            self.context_history[user_id] = []
+        self.context_history[user_id].append(context)
+        
+        return profile
+    
+    def _generate_content(self, profile: Dict, context: CustomerContext) -> Dict:
+        """Generate personalized content"""
+        # Time-based personalization
+        if context.time_of_day == "morning":
+            greeting = "Good morning! Start your day with our best deals"
+        elif context.time_of_day == "evening":
+            greeting = "Good evening! Relax and browse our collection"
+        else:
+            greeting = "Welcome back!"
+        
+        # Weather-based personalization
+        if context.weather == "rainy":
+            content_theme = "indoor activities and cozy products"
+        elif context.weather == "sunny":
+            content_theme = "outdoor adventures and summer essentials"
+        else:
+            content_theme = "our featured collection"
+        
+        return {
+            "greeting": greeting,
+            "theme": content_theme,
+            "headline": f"{greeting} - Discover {content_theme}"
+        }
+    
+    def _get_contextual_recommendations(self, profile: Dict, context: CustomerContext) -> List[str]:
+        """Get contextual product recommendations"""
+        recommendations = []
+        
+        # Based on recent searches
+        if context.recent_searches:
+            recommendations.extend([f"product_{search}_1" for search in context.recent_searches[:2]])
+        
+        # Based on time of day
+        if context.time_of_day == "morning":
+            recommendations.append("coffee_maker_001")
+        elif context.time_of_day == "evening":
+            recommendations.append("entertainment_product_001")
+        
+        # Based on device
+        if context.device_type == "mobile":
+            recommendations.append("mobile_accessory_001")
+        
+        return recommendations[:5]
+    
+    def _get_personalized_pricing(self, user_id: str, profile: Dict) -> Dict:
+        """Get personalized pricing"""
+        # VIP customers get better prices
+        if profile["lifetime_value"] > 1000:
+            discount = 0.10
+        elif profile["engagement_score"] > 0.8:
+            discount = 0.05
+        else:
+            discount = 0.0
+        
+        return {
+            "discount_percent": discount * 100,
+            "message": f"Special {discount*100:.0f}% discount for you!" if discount > 0 else "Best prices guaranteed"
+        }
+    
+    def _get_personalized_messaging(self, profile: Dict, context: CustomerContext) -> str:
+        """Get personalized messaging"""
+        if profile["engagement_score"] > 0.7:
+            return "Welcome back, valued customer!"
+        elif context.recent_searches:
+            return f"Based on your interest in {context.recent_searches[0]}..."
+        else:
+            return "Discover products tailored just for you"
+    
+    def _get_personalized_layout(self, profile: Dict) -> Dict:
+        """Get personalized page layout"""
+        # High engagement users prefer detailed layouts
+        if profile["engagement_score"] > 0.7:
+            return {
+                "layout_type": "detailed",
+                "show_reviews": True,
+                "show_comparisons": True,
+                "items_per_row": 3
+            }
+        else:
+            return {
+                "layout_type": "simple",
+                "show_reviews": False,
+                "show_comparisons": False,
+                "items_per_row": 2
+            }
+
+# Usage
+engine = HyperPersonalizationEngine()
+
+context = CustomerContext(
+    user_id="user_001",
+    current_page="homepage",
+    time_of_day="morning",
+    device_type="desktop",
+    weather="sunny",
+    location="New York",
+    recent_searches=["laptops", "headphones"]
+)
+
+experience = engine.personalize_experience("user_001", context)
+print(f"Personalized Content: {experience['personalized_content']}")
+print(f"Recommendations: {experience['product_recommendations']}")`}
+  typescript={`// Hyper-Personalization Engine
+interface CustomerContext {
+  userId: string;
+  currentPage: string;
+  timeOfDay: string;
+  deviceType: string;
+  weather: string;
+  location: string;
+  recentSearches: string[];
+}
+
+class HyperPersonalizationEngine {
+  private customerProfiles: Map<string, {
+    preferences: Record<string, any>;
+    behaviorPatterns: Record<string, any>;
+    lifetimeValue: number;
+    engagementScore: number;
+  }> = new Map();
+  
+  private contextHistory: Map<string, CustomerContext[]> = new Map();
+  
+  personalizeExperience(userId: string, context: CustomerContext): {
+    personalizedContent: { greeting: string; theme: string; headline: string };
+    productRecommendations: string[];
+    pricing: { discountPercent: number; message: string };
+    messaging: string;
+    layout: { layoutType: string; showReviews: boolean; showComparisons: boolean; itemsPerRow: number };
+  } {
+    const profile = this.buildDynamicProfile(userId, context);
+    
+    return {
+      personalizedContent: this.generateContent(profile, context),
+      productRecommendations: this.getContextualRecommendations(profile, context),
+      pricing: this.getPersonalizedPricing(userId, profile),
+      messaging: this.getPersonalizedMessaging(profile, context),
+      layout: this.getPersonalizedLayout(profile)
+    };
+  }
+  
+  private buildDynamicProfile(userId: string, context: CustomerContext): any {
+    if (!this.customerProfiles.has(userId)) {
+      this.customerProfiles.set(userId, {
+        preferences: {},
+        behaviorPatterns: {},
+        lifetimeValue: 0,
+        engagementScore: 0
+      });
+    }
+    
+    const profile = this.customerProfiles.get(userId)!;
+    
+    if (!this.contextHistory.has(userId)) {
+      this.contextHistory.set(userId, []);
+    }
+    this.contextHistory.get(userId)!.push(context);
+    
+    return profile;
+  }
+  
+  private generateContent(profile: any, context: CustomerContext): {
+    greeting: string;
+    theme: string;
+    headline: string;
+  } {
+    let greeting: string;
+    if (context.timeOfDay === "morning") {
+      greeting = "Good morning! Start your day with our best deals";
+    } else if (context.timeOfDay === "evening") {
+      greeting = "Good evening! Relax and browse our collection";
+    } else {
+      greeting = "Welcome back!";
+    }
+    
+    let theme: string;
+    if (context.weather === "rainy") {
+      theme = "indoor activities and cozy products";
+    } else if (context.weather === "sunny") {
+      theme = "outdoor adventures and summer essentials";
+    } else {
+      theme = "our featured collection";
+    }
+    
+    return {
+      greeting,
+      theme,
+      headline: \`\${greeting} - Discover \${theme}\`
+    };
+  }
+  
+  private getContextualRecommendations(profile: any, context: CustomerContext): string[] {
+    const recommendations: string[] = [];
+    
+    if (context.recentSearches.length > 0) {
+      recommendations.push(...context.recentSearches.slice(0, 2).map(s => \`product_\${s}_1\`));
+    }
+    
+    if (context.timeOfDay === "morning") {
+      recommendations.push("coffee_maker_001");
+    } else if (context.timeOfDay === "evening") {
+      recommendations.push("entertainment_product_001");
+    }
+    
+    return recommendations.slice(0, 5);
+  }
+  
+  private getPersonalizedPricing(userId: string, profile: any): {
+    discountPercent: number;
+    message: string;
+  } {
+    let discount = 0.0;
+    if (profile.lifetimeValue > 1000) {
+      discount = 0.10;
+    } else if (profile.engagementScore > 0.8) {
+      discount = 0.05;
+    }
+    
+    return {
+      discountPercent: discount * 100,
+      message: discount > 0 ? \`Special \${discount * 100}% discount for you!\` : "Best prices guaranteed"
+    };
+  }
+  
+  private getPersonalizedMessaging(profile: any, context: CustomerContext): string {
+    if (profile.engagementScore > 0.7) {
+      return "Welcome back, valued customer!";
+    } else if (context.recentSearches.length > 0) {
+      return \`Based on your interest in \${context.recentSearches[0]}...\`;
+    }
+    return "Discover products tailored just for you";
+  }
+  
+  private getPersonalizedLayout(profile: any): {
+    layoutType: string;
+    showReviews: boolean;
+    showComparisons: boolean;
+    itemsPerRow: number;
+  } {
+    if (profile.engagementScore > 0.7) {
+      return {
+        layoutType: "detailed",
+        showReviews: true,
+        showComparisons: true,
+        itemsPerRow: 3
+      };
+    }
+    return {
+      layoutType: "simple",
+      showReviews: false,
+      showComparisons: false,
+      itemsPerRow: 2
+    };
+  }
+}
+
+// Usage
+const engine = new HyperPersonalizationEngine();
+const experience = engine.personalizeExperience("user_001", {
+  userId: "user_001",
+  currentPage: "homepage",
+  timeOfDay: "morning",
+  deviceType: "desktop",
+  weather: "sunny",
+  location: "New York",
+  recentSearches: ["laptops", "headphones"]
+});
+
+console.log(\`Recommendations: \${experience.productRecommendations.join(', ')}\`);`}
+/>
+
+### Use Cases
+
+1. **Dynamic Content**: Personalized homepage content for each visitor
+2. **Contextual Offers**: Time and location-based promotions
+3. **Adaptive UI**: Interface that adapts to user preferences
+4. **Predictive Suggestions**: Anticipate what customers want
+
+## I: Inventory Optimization
+
+AI optimizes inventory levels across multiple locations to minimize costs while meeting demand.
+
+### Optimization Strategies
+
+- **Multi-Echelon Optimization**: Optimize across warehouse and store levels
+- **Safety Stock Calculation**: Dynamic safety stock based on demand variability
+- **Cross-Docking**: Minimize storage time
+- **ABC Analysis**: Prioritize high-value items
+
+### Implementation Example
+
+<MultiLanguageCode
+  python={`# Multi-Location Inventory Optimization
+from typing import Dict, List
+from dataclasses import dataclass
+from collections import defaultdict
+
+@dataclass
+class LocationInventory:
+    location_id: str
+    product_id: str
+    current_stock: int
+    demand_forecast: float
+    lead_time_days: int
+    holding_cost: float
+    stockout_cost: float
+
+class MultiLocationInventoryOptimizer:
+    def __init__(self):
+        self.locations: Dict[str, List[LocationInventory]] = defaultdict(list)
+        self.transfer_costs: Dict[tuple, float] = {}  # (from, to) -> cost
+    
+    def optimize_inventory_allocation(self, product_id: str) -> Dict:
+        """Optimize inventory across all locations"""
+        locations = self.locations[product_id]
+        
+        if not locations:
+            return {}
+        
+        total_demand = sum(loc.demand_forecast for loc in locations)
+        total_stock = sum(loc.current_stock for loc in locations)
+        
+        # Calculate optimal allocation
+        allocations = {}
+        transfers = []
+        
+        for loc in locations:
+            # Calculate optimal stock level
+            optimal_stock = self._calculate_optimal_stock(loc)
+            current_stock = loc.current_stock
+            
+            if current_stock < optimal_stock:
+                # Need to transfer in
+                shortage = optimal_stock - current_stock
+                source = self._find_best_source(product_id, loc.location_id, shortage)
+                if source:
+                    transfers.append({
+                        "from": source,
+                        "to": loc.location_id,
+                        "quantity": shortage,
+                        "cost": self.transfer_costs.get((source, loc.location_id), 10.0)
+                    })
+                    allocations[loc.location_id] = optimal_stock
+                else:
+                    allocations[loc.location_id] = current_stock
+            else:
+                allocations[loc.location_id] = current_stock
+        
+        return {
+            "product_id": product_id,
+            "allocations": allocations,
+            "transfers": transfers,
+            "total_cost": sum(t["cost"] * t["quantity"] for t in transfers),
+            "service_level": self._calculate_service_level(locations, allocations)
+        }
+    
+    def _calculate_optimal_stock(self, location: LocationInventory) -> int:
+        """Calculate optimal stock level using newsvendor model"""
+        # Simplified calculation
+        demand_mean = location.demand_forecast
+        safety_stock = demand_mean * 0.2  # 20% safety margin
+        
+        optimal_stock = int(demand_mean * location.lead_time_days + safety_stock)
+        return optimal_stock
+    
+    def _find_best_source(self, product_id: str, target_location: str, quantity: int) -> str:
+        """Find best source location for transfer"""
+        candidates = [
+            loc for loc in self.locations[product_id]
+            if loc.location_id != target_location and loc.current_stock > quantity
+        ]
+        
+        if not candidates:
+            return None
+        
+        # Choose location with lowest transfer cost
+        best_source = None
+        best_cost = float('inf')
+        
+        for candidate in candidates:
+            cost = self.transfer_costs.get((candidate.location_id, target_location), 10.0)
+            if cost < best_cost:
+                best_cost = cost
+                best_source = candidate.location_id
+        
+        return best_source
+    
+    def _calculate_service_level(self, locations: List[LocationInventory], 
+                                allocations: Dict[str, int]) -> float:
+        """Calculate overall service level"""
+        total_demand = sum(loc.demand_forecast for loc in locations)
+        satisfied_demand = 0.0
+        
+        for loc in locations:
+            allocated = allocations.get(loc.location_id, loc.current_stock)
+            satisfied = min(allocated, loc.demand_forecast)
+            satisfied_demand += satisfied
+        
+        return satisfied_demand / total_demand if total_demand > 0 else 0.0
+
+# Usage
+optimizer = MultiLocationInventoryOptimizer()
+
+# Add locations
+optimizer.locations["PROD001"].append(LocationInventory(
+    location_id="WAREHOUSE_A",
+    product_id="PROD001",
+    current_stock=100,
+    demand_forecast=50,
+    lead_time_days=7,
+    holding_cost=0.1,
+    stockout_cost=5.0
+))
+
+optimizer.locations["PROD001"].append(LocationInventory(
+    location_id="STORE_B",
+    product_id="PROD001",
+    current_stock=20,
+    demand_forecast=30,
+    lead_time_days=3,
+    holding_cost=0.2,
+    stockout_cost=10.0
+))
+
+# Set transfer costs
+optimizer.transfer_costs[("WAREHOUSE_A", "STORE_B")] = 5.0
+
+# Optimize
+result = optimizer.optimize_inventory_allocation("PROD001")
+print(f"Allocations: {result['allocations']}")
+print(f"Service Level: {result['service_level']:.2%}")`}
+  typescript={`// Multi-Location Inventory Optimization
+interface LocationInventory {
+  locationId: string;
+  productId: string;
+  currentStock: number;
+  demandForecast: number;
+  leadTimeDays: number;
+  holdingCost: number;
+  stockoutCost: number;
+}
+
+class MultiLocationInventoryOptimizer {
+  private locations: Map<string, LocationInventory[]> = new Map();
+  private transferCosts: Map<string, number> = new Map();
+  
+  optimizeInventoryAllocation(productId: string): {
+    productId: string;
+    allocations: Record<string, number>;
+    transfers: Array<{ from: string; to: string; quantity: number; cost: number }>;
+    totalCost: number;
+    serviceLevel: number;
+  } {
+    const locations = this.locations.get(productId) || [];
+    if (locations.length === 0) {
+      return { productId, allocations: {}, transfers: [], totalCost: 0, serviceLevel: 0 };
+    }
+    
+    const allocations: Record<string, number> = {};
+    const transfers: Array<{ from: string; to: string; quantity: number; cost: number }> = [];
+    
+    for (const loc of locations) {
+      const optimalStock = this.calculateOptimalStock(loc);
+      const currentStock = loc.currentStock;
+      
+      if (currentStock < optimalStock) {
+        const shortage = optimalStock - currentStock;
+        const source = this.findBestSource(productId, loc.locationId, shortage);
+        if (source) {
+          const cost = this.transferCosts.get(\`\${source}-\${loc.locationId}\`) || 10.0;
+          transfers.push({
+            from: source,
+            to: loc.locationId,
+            quantity: shortage,
+            cost
+          });
+          allocations[loc.locationId] = optimalStock;
+        } else {
+          allocations[loc.locationId] = currentStock;
+        }
+      } else {
+        allocations[loc.locationId] = currentStock;
+      }
+    }
+    
+    const totalCost = transfers.reduce((sum, t) => sum + t.cost * t.quantity, 0);
+    const serviceLevel = this.calculateServiceLevel(locations, allocations);
+    
+    return {
+      productId,
+      allocations,
+      transfers,
+      totalCost,
+      serviceLevel
+    };
+  }
+  
+  private calculateOptimalStock(location: LocationInventory): number {
+    const demandMean = location.demandForecast;
+    const safetyStock = demandMean * 0.2;
+    return Math.floor(demandMean * location.leadTimeDays + safetyStock);
+  }
+  
+  private findBestSource(productId: string, targetLocation: string, quantity: number): string | null {
+    const candidates = (this.locations.get(productId) || [])
+      .filter(loc => loc.locationId !== targetLocation && loc.currentStock > quantity);
+    
+    if (candidates.length === 0) return null;
+    
+    let bestSource: string | null = null;
+    let bestCost = Infinity;
+    
+    for (const candidate of candidates) {
+      const cost = this.transferCosts.get(\`\${candidate.locationId}-\${targetLocation}\`) || 10.0;
+      if (cost < bestCost) {
+        bestCost = cost;
+        bestSource = candidate.locationId;
+      }
+    }
+    
+    return bestSource;
+  }
+  
+  private calculateServiceLevel(
+    locations: LocationInventory[],
+    allocations: Record<string, number>
+  ): number {
+    const totalDemand = locations.reduce((sum, loc) => sum + loc.demandForecast, 0);
+    const satisfiedDemand = locations.reduce((sum, loc) => {
+      const allocated = allocations[loc.locationId] || loc.currentStock;
+      return sum + Math.min(allocated, loc.demandForecast);
+    }, 0);
+    
+    return totalDemand > 0 ? satisfiedDemand / totalDemand : 0;
+  }
+}
+
+// Usage
+const optimizer = new MultiLocationInventoryOptimizer();
+optimizer.locations.set("PROD001", [
+  {
+    locationId: "WAREHOUSE_A",
+    productId: "PROD001",
+    currentStock: 100,
+    demandForecast: 50,
+    leadTimeDays: 7,
+    holdingCost: 0.1,
+    stockoutCost: 5.0
+  }
+]);
+
+const result = optimizer.optimizeInventoryAllocation("PROD001");
+console.log(\`Service Level: \${(result.serviceLevel * 100).toFixed(2)}%\`);`}
+/>
+
+### Use Cases
+
+1. **Retail Chains**: Optimize inventory across multiple stores
+2. **E-commerce Fulfillment**: Balance inventory across fulfillment centers
+3. **Automotive Parts**: Manage parts inventory across dealerships
+4. **Pharmaceutical Distribution**: Optimize drug inventory across pharmacies
+
+## J: Journey Mapping
+
+AI maps customer journeys to identify pain points and optimize touchpoints.
+
+### Journey Analysis
+
+- **Touchpoint Identification**: All customer interaction points
+- **Pain Point Detection**: Friction areas in the journey
+- **Optimization Opportunities**: Areas for improvement
+- **Personalization Points**: Where to add personalization
+
+## K: Knowledge Management
+
+AI organizes and retrieves product information, policies, and customer data efficiently.
+
+### Knowledge Base Features
+
+- **Semantic Search**: Understand meaning, not just keywords
+- **Auto-categorization**: Automatically organize information
+- **Question Answering**: Direct answers to customer questions
+- **Content Recommendations**: Suggest relevant information
+
+## L: Logistics Optimization
+
+AI optimizes shipping routes, delivery schedules, and warehouse operations.
+
+### Optimization Areas
+
+- **Route Planning**: Optimal delivery routes
+- **Load Optimization**: Maximize vehicle capacity
+- **Scheduling**: Efficient delivery time slots
+- **Warehouse Layout**: Optimal storage and picking paths
+
+## M: Market Basket Analysis
+
+AI identifies product associations and cross-selling opportunities.
+
+### Analysis Types
+
+- **Association Rules**: Products frequently bought together
+- **Sequential Patterns**: Products bought in sequence
+- **Cross-sell Recommendations**: What to suggest next
+- **Basket Optimization**: Optimal product combinations
+
+### Implementation Example
+
+<MultiLanguageCode
+  python={`# Market Basket Analysis System
+from typing import List, Dict, Set, Tuple
+from collections import defaultdict
+from itertools import combinations
+
+class MarketBasketAnalyzer:
+    def __init__(self):
+        self.transactions: List[Set[str]] = []
+        self.item_support: Dict[str, float] = {}
+        self.association_rules: List[Dict] = []
+    
+    def add_transaction(self, items: List[str]):
+        """Add a transaction (basket)"""
+        self.transactions.append(set(items))
+    
+    def calculate_support(self, itemset: Set[str]) -> float:
+        """Calculate support for an itemset"""
+        count = sum(1 for transaction in self.transactions if itemset.issubset(transaction))
+        return count / len(self.transactions) if self.transactions else 0.0
+    
+    def calculate_confidence(self, antecedent: Set[str], consequent: Set[str]) -> float:
+        """Calculate confidence for association rule"""
+        antecedent_support = self.calculate_support(antecedent)
+        if antecedent_support == 0:
+            return 0.0
+        
+        combined_support = self.calculate_support(antecedent | consequent)
+        return combined_support / antecedent_support
+    
+    def find_association_rules(self, min_support: float = 0.1, 
+                              min_confidence: float = 0.5) -> List[Dict]:
+        """Find association rules meeting thresholds"""
+        rules = []
+        
+        # Get all unique items
+        all_items = set()
+        for transaction in self.transactions:
+            all_items.update(transaction)
+        
+        # Find frequent itemsets (simplified - check pairs)
+        for item1, item2 in combinations(all_items, 2):
+            itemset = {item1, item2}
+            support = self.calculate_support(itemset)
+            
+            if support >= min_support:
+                # Check both directions
+                conf1 = self.calculate_confidence({item1}, {item2})
+                conf2 = self.calculate_confidence({item2}, {item1})
+                
+                if conf1 >= min_confidence:
+                    rules.append({
+                        "antecedent": item1,
+                        "consequent": item2,
+                        "support": support,
+                        "confidence": conf1,
+                        "lift": conf1 / self.calculate_support({item2}) if self.calculate_support({item2}) > 0 else 0
+                    })
+                
+                if conf2 >= min_confidence:
+                    rules.append({
+                        "antecedent": item2,
+                        "consequent": item1,
+                        "support": support,
+                        "confidence": conf2,
+                        "lift": conf2 / self.calculate_support({item1}) if self.calculate_support({item1}) > 0 else 0
+                    })
+        
+        # Sort by confidence
+        rules.sort(key=lambda x: x["confidence"], reverse=True)
+        self.association_rules = rules
+        return rules
+    
+    def get_recommendations(self, current_items: List[str], top_n: int = 5) -> List[Tuple[str, float]]:
+        """Get product recommendations based on current basket"""
+        recommendations = {}
+        current_set = set(current_items)
+        
+        for rule in self.association_rules:
+            if rule["antecedent"] in current_set and rule["consequent"] not in current_set:
+                product = rule["consequent"]
+                if product not in recommendations:
+                    recommendations[product] = rule["confidence"]
+                else:
+                    recommendations[product] = max(recommendations[product], rule["confidence"])
+        
+        # Sort by confidence
+        sorted_recs = sorted(recommendations.items(), key=lambda x: x[1], reverse=True)
+        return sorted_recs[:top_n]
+    
+    def analyze_basket(self, items: List[str]) -> Dict:
+        """Analyze a shopping basket"""
+        recommendations = self.get_recommendations(items)
+        total_value = len(items)
+        
+        # Check for common patterns
+        common_patterns = []
+        for rule in self.association_rules[:5]:
+            if rule["antecedent"] in items:
+                common_patterns.append({
+                    "pattern": f"Customers who buy {rule['antecedent']} also buy {rule['consequent']}",
+                    "confidence": rule["confidence"]
+                })
+        
+        return {
+            "basket_size": total_value,
+            "recommendations": [{"product": r[0], "confidence": r[1]} for r in recommendations],
+            "common_patterns": common_patterns,
+            "suggested_additions": [r[0] for r in recommendations[:3]]
+        }
+
+# Usage
+analyzer = MarketBasketAnalyzer()
+
+# Add transactions
+analyzer.add_transaction(["laptop", "mouse", "keyboard"])
+analyzer.add_transaction(["laptop", "mouse"])
+analyzer.add_transaction(["laptop", "keyboard", "monitor"])
+analyzer.add_transaction(["mouse", "keyboard"])
+analyzer.add_transaction(["laptop", "mouse", "keyboard", "monitor"])
+
+# Find association rules
+rules = analyzer.find_association_rules(min_support=0.2, min_confidence=0.5)
+print(f"Found {len(rules)} association rules")
+
+# Get recommendations
+current_basket = ["laptop"]
+recommendations = analyzer.get_recommendations(current_basket)
+print(f"Recommendations for {current_basket}: {recommendations}")
+
+# Analyze basket
+basket_analysis = analyzer.analyze_basket(["laptop", "mouse"])
+print(f"Suggested additions: {basket_analysis['suggested_additions']}")`}
+  typescript={`// Market Basket Analysis System
+class MarketBasketAnalyzer {
+  private transactions: Set<string>[] = [];
+  private associationRules: Array<{
+    antecedent: string;
+    consequent: string;
+    support: number;
+    confidence: number;
+    lift: number;
+  }> = [];
+  
+  addTransaction(items: string[]): void {
+    this.transactions.push(new Set(items));
+  }
+  
+  calculateSupport(itemset: Set<string>): number {
+    const count = this.transactions.filter(t => 
+      Array.from(itemset).every(item => t.has(item))
+    ).length;
+    return this.transactions.length > 0 ? count / this.transactions.length : 0.0;
+  }
+  
+  calculateConfidence(antecedent: Set<string>, consequent: Set<string>): number {
+    const antecedentSupport = this.calculateSupport(antecedent);
+    if (antecedentSupport === 0) return 0.0;
+    
+    const combinedSupport = this.calculateSupport(new Set([...antecedent, ...consequent]));
+    return combinedSupport / antecedentSupport;
+  }
+  
+  findAssociationRules(minSupport: number = 0.1, minConfidence: number = 0.5): Array<{
+    antecedent: string;
+    consequent: string;
+    support: number;
+    confidence: number;
+    lift: number;
+  }> {
+    const allItems = new Set<string>();
+    this.transactions.forEach(t => t.forEach(item => allItems.add(item)));
+    
+    const rules: Array<{
+      antecedent: string;
+      consequent: string;
+      support: number;
+      confidence: number;
+      lift: number;
+    }> = [];
+    
+    const itemsArray = Array.from(allItems);
+    for (let i = 0; i < itemsArray.length; i++) {
+      for (let j = i + 1; j < itemsArray.length; j++) {
+        const item1 = itemsArray[i];
+        const item2 = itemsArray[j];
+        const itemset = new Set([item1, item2]);
+        const support = this.calculateSupport(itemset);
+        
+        if (support >= minSupport) {
+          const conf1 = this.calculateConfidence(new Set([item1]), new Set([item2]));
+          const conf2 = this.calculateConfidence(new Set([item2]), new Set([item1]));
+          
+          if (conf1 >= minConfidence) {
+            const consequentSupport = this.calculateSupport(new Set([item2]));
+            rules.push({
+              antecedent: item1,
+              consequent: item2,
+              support,
+              confidence: conf1,
+              lift: consequentSupport > 0 ? conf1 / consequentSupport : 0
+            });
+          }
+          
+          if (conf2 >= minConfidence) {
+            const consequentSupport = this.calculateSupport(new Set([item1]));
+            rules.push({
+              antecedent: item2,
+              consequent: item1,
+              support,
+              confidence: conf2,
+              lift: consequentSupport > 0 ? conf2 / consequentSupport : 0
+            });
+          }
+        }
+      }
+    }
+    
+    rules.sort((a, b) => b.confidence - a.confidence);
+    this.associationRules = rules;
+    return rules;
+  }
+  
+  getRecommendations(currentItems: string[], topN: number = 5): Array<[string, number]> {
+    const recommendations: Map<string, number> = new Map();
+    const currentSet = new Set(currentItems);
+    
+    for (const rule of this.associationRules) {
+      if (currentSet.has(rule.antecedent) && !currentSet.has(rule.consequent)) {
+        const product = rule.consequent;
+        const currentConf = recommendations.get(product) || 0;
+        recommendations.set(product, Math.max(currentConf, rule.confidence));
+      }
+    }
+    
+    return Array.from(recommendations.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, topN);
+  }
+}
+
+// Usage
+const analyzer = new MarketBasketAnalyzer();
+analyzer.addTransaction(["laptop", "mouse", "keyboard"]);
+analyzer.addTransaction(["laptop", "mouse"]);
+
+const rules = analyzer.findAssociationRules(0.2, 0.5);
+console.log(\`Found \${rules.length} association rules\`);`}
+/>
+
+### Use Cases
+
+1. **Cross-selling**: Suggest complementary products
+2. **Bundle Creation**: Create product bundles based on associations
+3. **Store Layout**: Organize store layout based on associations
+4. **Promotional Campaigns**: Design promotions for frequently bought together items
+
+## N: Natural Language Processing
+
+NLP enables chatbots, review analysis, and customer sentiment understanding.
+
+### NLP Applications in Commerce
+
+- **Review Sentiment Analysis**: Understand customer opinions from reviews
+- **Query Understanding**: Better search and customer service
+- **Content Generation**: Automated product descriptions
+- **Voice Commerce**: Voice-activated shopping
+
+### Implementation Example: Review Sentiment Analysis
+
+<MultiLanguageCode
+  python={`# Review Sentiment Analysis System
+from typing import List, Dict
+from dataclasses import dataclass
+from collections import Counter
+import re
+
+@dataclass
+class Review:
+    review_id: str
+    product_id: str
+    rating: int
+    text: str
+    sentiment: str = ""
+    sentiment_score: float = 0.0
+    key_topics: List[str] = None
+
+class ReviewSentimentAnalyzer:
+    def __init__(self):
+        self.reviews: List[Review] = []
+        self.positive_words = {"great", "excellent", "amazing", "love", "perfect", "good", "wonderful", "fantastic"}
+        self.negative_words = {"bad", "terrible", "awful", "hate", "poor", "disappointed", "worst", "horrible"}
+        self.topic_keywords = {
+            "quality": ["quality", "durable", "sturdy", "well-made", "cheap", "flimsy"],
+            "price": ["price", "expensive", "affordable", "value", "cost", "worth"],
+            "shipping": ["shipping", "delivery", "fast", "slow", "arrived"],
+            "customer_service": ["service", "support", "helpful", "responsive"]
+        }
+    
+    def analyze_review(self, review: Review) -> Review:
+        """Analyze review sentiment and extract topics"""
+        text_lower = review.text.lower()
+        
+        # Calculate sentiment score
+        positive_count = sum(1 for word in self.positive_words if word in text_lower)
+        negative_count = sum(1 for word in self.negative_words if word in text_lower)
+        
+        # Combine with rating
+        rating_score = (review.rating - 3) / 2.0  # Normalize to -1 to 1
+        sentiment_score = (positive_count - negative_count) / max(len(text_lower.split()), 1) + rating_score * 0.5
+        
+        # Determine sentiment
+        if sentiment_score > 0.2:
+            sentiment = "positive"
+        elif sentiment_score < -0.2:
+            sentiment = "negative"
+        else:
+            sentiment = "neutral"
+        
+        # Extract topics
+        key_topics = []
+        for topic, keywords in self.topic_keywords.items():
+            if any(keyword in text_lower for keyword in keywords):
+                key_topics.append(topic)
+        
+        review.sentiment = sentiment
+        review.sentiment_score = sentiment_score
+        review.key_topics = key_topics
+        
+        self.reviews.append(review)
+        return review
+    
+    def analyze_product_sentiment(self, product_id: str) -> Dict:
+        """Analyze overall sentiment for a product"""
+        product_reviews = [r for r in self.reviews if r.product_id == product_id]
+        
+        if not product_reviews:
+            return {"error": "No reviews found"}
+        
+        avg_sentiment_score = sum(r.sentiment_score for r in product_reviews) / len(product_reviews)
+        sentiment_distribution = Counter(r.sentiment for r in product_reviews)
+        
+        # Extract common topics
+        all_topics = []
+        for review in product_reviews:
+            all_topics.extend(review.key_topics)
+        common_topics = Counter(all_topics).most_common(3)
+        
+        return {
+            "product_id": product_id,
+            "total_reviews": len(product_reviews),
+            "average_sentiment": "positive" if avg_sentiment_score > 0.2 else "negative" if avg_sentiment_score < -0.2 else "neutral",
+            "sentiment_score": round(avg_sentiment_score, 2),
+            "sentiment_distribution": dict(sentiment_distribution),
+            "common_topics": [topic[0] for topic in common_topics],
+            "average_rating": sum(r.rating for r in product_reviews) / len(product_reviews)
+        }
+    
+    def extract_actionable_insights(self, product_id: str) -> List[str]:
+        """Extract actionable insights from reviews"""
+        product_reviews = [r for r in self.reviews if r.product_id == product_id]
+        negative_reviews = [r for r in product_reviews if r.sentiment == "negative"]
+        
+        insights = []
+        
+        # Analyze negative review topics
+        if negative_reviews:
+            negative_topics = Counter()
+            for review in negative_reviews:
+                negative_topics.update(review.key_topics)
+            
+            top_issues = negative_topics.most_common(2)
+            for issue, count in top_issues:
+                insights.append(f"Address {issue} issues (mentioned in {count} negative reviews)")
+        
+        # Overall sentiment insight
+        positive_count = sum(1 for r in product_reviews if r.sentiment == "positive")
+        if positive_count / len(product_reviews) > 0.8:
+            insights.append("High customer satisfaction - consider highlighting positive reviews")
+        elif positive_count / len(product_reviews) < 0.5:
+            insights.append("Low customer satisfaction - urgent action needed")
+        
+        return insights
+
+# Usage
+analyzer = ReviewSentimentAnalyzer()
+
+review1 = Review(
+    review_id="REV001",
+    product_id="PROD001",
+    rating=5,
+    text="Great product! Excellent quality and fast shipping. Highly recommend!"
+)
+analyzer.analyze_review(review1)
+
+review2 = Review(
+    review_id="REV002",
+    product_id="PROD001",
+    rating=2,
+    text="Poor quality, arrived damaged. Customer service was not helpful."
+)
+analyzer.analyze_review(review2)
+
+# Analyze product sentiment
+product_sentiment = analyzer.analyze_product_sentiment("PROD001")
+print(f"Average Sentiment: {product_sentiment['average_sentiment']}")
+print(f"Common Topics: {product_sentiment['common_topics']}")
+
+insights = analyzer.extract_actionable_insights("PROD001")
+print(f"Insights: {insights}")`}
+  typescript={`// Review Sentiment Analysis System
+interface Review {
+  reviewId: string;
+  productId: string;
+  rating: number;
+  text: string;
+  sentiment?: string;
+  sentimentScore?: number;
+  keyTopics?: string[];
+}
+
+class ReviewSentimentAnalyzer {
+  private reviews: Review[] = [];
+  private positiveWords = new Set(["great", "excellent", "amazing", "love", "perfect", "good"]);
+  private negativeWords = new Set(["bad", "terrible", "awful", "hate", "poor", "disappointed"]);
+  private topicKeywords: Record<string, string[]> = {
+    quality: ["quality", "durable", "sturdy", "well-made", "cheap"],
+    price: ["price", "expensive", "affordable", "value"],
+    shipping: ["shipping", "delivery", "fast", "slow"],
+    customerService: ["service", "support", "helpful"]
+  };
+  
+  analyzeReview(review: Review): Review {
+    const textLower = review.text.toLowerCase();
+    
+    const positiveCount = Array.from(this.positiveWords).filter(w => textLower.includes(w)).length;
+    const negativeCount = Array.from(this.negativeWords).filter(w => textLower.includes(w)).length;
+    
+    const ratingScore = (review.rating - 3) / 2.0;
+    const sentimentScore = (positiveCount - negativeCount) / Math.max(textLower.split(' ').length, 1) + ratingScore * 0.5;
+    
+    let sentiment: string;
+    if (sentimentScore > 0.2) {
+      sentiment = "positive";
+    } else if (sentimentScore < -0.2) {
+      sentiment = "negative";
+    } else {
+      sentiment = "neutral";
+    }
+    
+    const keyTopics: string[] = [];
+    for (const [topic, keywords] of Object.entries(this.topicKeywords)) {
+      if (keywords.some(kw => textLower.includes(kw))) {
+        keyTopics.push(topic);
+      }
+    }
+    
+    review.sentiment = sentiment;
+    review.sentimentScore = sentimentScore;
+    review.keyTopics = keyTopics;
+    
+    this.reviews.push(review);
+    return review;
+  }
+  
+  analyzeProductSentiment(productId: string): {
+    productId: string;
+    totalReviews: number;
+    averageSentiment: string;
+    sentimentScore: number;
+    sentimentDistribution: Record<string, number>;
+    commonTopics: string[];
+    averageRating: number;
+  } {
+    const productReviews = this.reviews.filter(r => r.productId === productId);
+    if (productReviews.length === 0) {
+      throw new Error("No reviews found");
+    }
+    
+    const avgSentimentScore = productReviews.reduce((sum, r) => sum + (r.sentimentScore || 0), 0) / productReviews.length;
+    const sentimentDist: Record<string, number> = {};
+    productReviews.forEach(r => {
+      sentimentDist[r.sentiment || "unknown"] = (sentimentDist[r.sentiment || "unknown"] || 0) + 1;
+    });
+    
+    const allTopics: string[] = [];
+    productReviews.forEach(r => {
+      if (r.keyTopics) allTopics.push(...r.keyTopics);
+    });
+    const topicCounts: Record<string, number> = {};
+    allTopics.forEach(topic => {
+      topicCounts[topic] = (topicCounts[topic] || 0) + 1;
+    });
+    const commonTopics = Object.entries(topicCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3)
+      .map(([topic]) => topic);
+    
+    return {
+      productId,
+      totalReviews: productReviews.length,
+      averageSentiment: avgSentimentScore > 0.2 ? "positive" : avgSentimentScore < -0.2 ? "negative" : "neutral",
+      sentimentScore: Math.round(avgSentimentScore * 100) / 100,
+      sentimentDistribution: sentimentDist,
+      commonTopics,
+      averageRating: productReviews.reduce((sum, r) => sum + r.rating, 0) / productReviews.length
+    };
+  }
+}
+
+// Usage
+const analyzer = new ReviewSentimentAnalyzer();
+analyzer.analyzeReview({
+  reviewId: "REV001",
+  productId: "PROD001",
+  rating: 5,
+  text: "Great product! Excellent quality."
+});
+
+const sentiment = analyzer.analyzeProductSentiment("PROD001");
+console.log(\`Sentiment: \${sentiment.averageSentiment}\`);`}
+/>
+
+### Use Cases
+
+1. **Product Improvement**: Identify issues from negative reviews
+2. **Marketing**: Highlight positive sentiment in campaigns
+3. **Customer Service**: Prioritize responses to negative reviews
+4. **Competitive Analysis**: Compare sentiment across competitors
+
+## O: Order Management
+
+AI optimizes order processing, fulfillment, and tracking.
+
+### Order Management Features
+
+- **Intelligent Routing**: Route orders to optimal fulfillment centers
+- **Priority Management**: Prioritize orders based on value and urgency
+- **Exception Handling**: Automatically handle order exceptions
+- **Predictive Fulfillment**: Predict and prepare for orders
+
+## P: Predictive Analytics
+
+AI predicts customer behavior, sales trends, and market changes.
+
+### Prediction Types
+
+- **Customer Lifetime Value**: Predict long-term customer value
+- **Churn Prediction**: Identify customers likely to leave
+- **Sales Forecasting**: Predict future sales
+- **Demand Forecasting**: Predict product demand
+
+### Implementation Example: Customer Lifetime Value Prediction
+
+<MultiLanguageCode
+  python={`# Customer Lifetime Value Prediction System
+from typing import Dict, List
+from dataclasses import dataclass
+from datetime import datetime, timedelta
+from collections import defaultdict
+
+@dataclass
+class CustomerData:
+    customer_id: str
+    first_purchase_date: datetime
+    total_orders: int
+    total_spent: float
+    average_order_value: float
+    days_since_last_purchase: int
+    purchase_frequency: float  # purchases per month
+    product_categories: List[str]
+
+class CLVPredictor:
+    def __init__(self):
+        self.customer_data: Dict[str, CustomerData] = {}
+        self.historical_clv: Dict[str, float] = {}
+    
+    def add_customer(self, customer: CustomerData):
+        """Add customer data"""
+        self.customer_data[customer.customer_id] = customer
+    
+    def calculate_clv(self, customer_id: str, months: int = 12) -> Dict:
+        """Calculate Customer Lifetime Value"""
+        if customer_id not in self.customer_data:
+            return {"error": "Customer not found"}
+        
+        customer = self.customer_data[customer_id]
+        
+        # Calculate average monthly value
+        months_active = max(1, (datetime.now() - customer.first_purchase_date).days / 30)
+        avg_monthly_value = customer.total_spent / months_active
+        
+        # Predict future value
+        # Factor 1: Purchase frequency
+        frequency_factor = min(customer.purchase_frequency / 2.0, 1.5)  # Cap at 1.5x
+        
+        # Factor 2: Recency (customers who bought recently are more valuable)
+        recency_factor = 1.0
+        if customer.days_since_last_purchase < 30:
+            recency_factor = 1.2
+        elif customer.days_since_last_purchase > 90:
+            recency_factor = 0.7
+        
+        # Factor 3: Order value trend
+        value_factor = 1.0
+        if customer.average_order_value > 100:
+            value_factor = 1.1
+        
+        # Calculate predicted monthly value
+        predicted_monthly_value = avg_monthly_value * frequency_factor * recency_factor * value_factor
+        
+        # Calculate CLV
+        clv = predicted_monthly_value * months
+        
+        # Calculate retention probability
+        retention_prob = self._calculate_retention_probability(customer)
+        
+        # Adjust CLV by retention probability
+        adjusted_clv = clv * retention_prob
+        
+        return {
+            "customer_id": customer_id,
+            "predicted_clv": round(adjusted_clv, 2),
+            "monthly_value": round(predicted_monthly_value, 2),
+            "retention_probability": round(retention_prob, 2),
+            "customer_segment": self._classify_customer(customer, adjusted_clv),
+            "recommendations": self._get_clv_recommendations(customer, adjusted_clv)
+        }
+    
+    def _calculate_retention_probability(self, customer: CustomerData) -> float:
+        """Calculate probability of customer retention"""
+        # Base retention
+        retention = 0.5
+        
+        # Adjust based on purchase frequency
+        if customer.purchase_frequency >= 2:
+            retention += 0.2
+        elif customer.purchase_frequency >= 1:
+            retention += 0.1
+        
+        # Adjust based on recency
+        if customer.days_since_last_purchase < 30:
+            retention += 0.2
+        elif customer.days_since_last_purchase > 90:
+            retention -= 0.2
+        
+        # Adjust based on order count
+        if customer.total_orders >= 5:
+            retention += 0.1
+        
+        return max(0.1, min(0.95, retention))
+    
+    def _classify_customer(self, customer: CustomerData, clv: float) -> str:
+        """Classify customer into segment"""
+        if clv >= 1000:
+            return "champion"
+        elif clv >= 500:
+            return "loyal"
+        elif clv >= 200:
+            return "potential"
+        else:
+            return "at_risk"
+    
+    def _get_clv_recommendations(self, customer: CustomerData, clv: float) -> List[str]:
+        """Get recommendations to increase CLV"""
+        recommendations = []
+        
+        if customer.days_since_last_purchase > 60:
+            recommendations.append("Send re-engagement campaign")
+        
+        if customer.purchase_frequency < 1:
+            recommendations.append("Increase purchase frequency with subscription offers")
+        
+        if customer.average_order_value < 50:
+            recommendations.append("Upsell higher-value products")
+        
+        if clv < 200:
+            recommendations.append("Focus on retention strategies")
+        
+        return recommendations
+    
+    def predict_churn(self, customer_id: str) -> Dict:
+        """Predict customer churn probability"""
+        if customer_id not in self.customer_data:
+            return {"error": "Customer not found"}
+        
+        customer = self.customer_data[customer_id]
+        
+        churn_score = 0.0
+        
+        # Factor 1: Days since last purchase
+        if customer.days_since_last_purchase > 90:
+            churn_score += 40
+        elif customer.days_since_last_purchase > 60:
+            churn_score += 20
+        
+        # Factor 2: Purchase frequency decline
+        if customer.purchase_frequency < 0.5:
+            churn_score += 30
+        
+        # Factor 3: Order value decline
+        if customer.average_order_value < 20:
+            churn_score += 20
+        
+        # Factor 4: Total orders
+        if customer.total_orders < 2:
+            churn_score += 10
+        
+        churn_probability = min(churn_score / 100.0, 0.95)
+        
+        return {
+            "customer_id": customer_id,
+            "churn_probability": round(churn_probability, 2),
+            "risk_level": "high" if churn_probability > 0.7 else "medium" if churn_probability > 0.4 else "low",
+            "recommended_actions": self._get_churn_prevention_actions(churn_probability)
+        }
+    
+    def _get_churn_prevention_actions(self, churn_prob: float) -> List[str]:
+        """Get recommended actions to prevent churn"""
+        actions = []
+        
+        if churn_prob > 0.7:
+            actions.extend(["Immediate outreach", "Special discount offer", "Personalized re-engagement"])
+        elif churn_prob > 0.4:
+            actions.extend(["Send personalized email", "Offer loyalty rewards"])
+        else:
+            actions.append("Monitor engagement")
+        
+        return actions
+
+# Usage
+clv_predictor = CLVPredictor()
+
+customer = CustomerData(
+    customer_id="CUST001",
+    first_purchase_date=datetime.now() - timedelta(days=180),
+    total_orders=8,
+    total_spent=1200.0,
+    average_order_value=150.0,
+    days_since_last_purchase=15,
+    purchase_frequency=1.5,
+    product_categories=["electronics", "accessories"]
+)
+clv_predictor.add_customer(customer)
+
+# Calculate CLV
+clv_result = clv_predictor.calculate_clv("CUST001")
+print(f"Predicted CLV: {clv_result['predicted_clv']}")
+print(f"Customer Segment: {clv_result['customer_segment']}")
+
+# Predict churn
+churn_result = clv_predictor.predict_churn("CUST001")
+print(f"Churn Probability: {churn_result['churn_probability']:.2%}")`}
+  typescript={`// Customer Lifetime Value Prediction System
+interface CustomerData {
+  customerId: string;
+  firstPurchaseDate: Date;
+  totalOrders: number;
+  totalSpent: number;
+  averageOrderValue: number;
+  daysSinceLastPurchase: number;
+  purchaseFrequency: number;
+  productCategories: string[];
+}
+
+class CLVPredictor {
+  private customerData: Map<string, CustomerData> = new Map();
+  
+  addCustomer(customer: CustomerData): void {
+    this.customerData.set(customer.customerId, customer);
+  }
+  
+  calculateCLV(customerId: string, months: number = 12): {
+    customerId: string;
+    predictedCLV: number;
+    monthlyValue: number;
+    retentionProbability: number;
+    customerSegment: string;
+    recommendations: string[];
+  } {
+    const customer = this.customerData.get(customerId);
+    if (!customer) {
+      throw new Error("Customer not found");
+    }
+    
+    const monthsActive = Math.max(1, 
+      (Date.now() - customer.firstPurchaseDate.getTime()) / (30 * 24 * 60 * 60 * 1000)
+    );
+    const avgMonthlyValue = customer.totalSpent / monthsActive;
+    
+    const frequencyFactor = Math.min(customer.purchaseFrequency / 2.0, 1.5);
+    let recencyFactor = 1.0;
+    if (customer.daysSinceLastPurchase < 30) {
+      recencyFactor = 1.2;
+    } else if (customer.daysSinceLastPurchase > 90) {
+      recencyFactor = 0.7;
+    }
+    
+    const valueFactor = customer.averageOrderValue > 100 ? 1.1 : 1.0;
+    const predictedMonthlyValue = avgMonthlyValue * frequencyFactor * recencyFactor * valueFactor;
+    const clv = predictedMonthlyValue * months;
+    const retentionProb = this.calculateRetentionProbability(customer);
+    const adjustedCLV = clv * retentionProb;
+    
+    return {
+      customerId,
+      predictedCLV: Math.round(adjustedCLV * 100) / 100,
+      monthlyValue: Math.round(predictedMonthlyValue * 100) / 100,
+      retentionProbability: Math.round(retentionProb * 100) / 100,
+      customerSegment: this.classifyCustomer(customer, adjustedCLV),
+      recommendations: this.getCLVRecommendations(customer, adjustedCLV)
+    };
+  }
+  
+  private calculateRetentionProbability(customer: CustomerData): number {
+    let retention = 0.5;
+    
+    if (customer.purchaseFrequency >= 2) {
+      retention += 0.2;
+    } else if (customer.purchaseFrequency >= 1) {
+      retention += 0.1;
+    }
+    
+    if (customer.daysSinceLastPurchase < 30) {
+      retention += 0.2;
+    } else if (customer.daysSinceLastPurchase > 90) {
+      retention -= 0.2;
+    }
+    
+    if (customer.totalOrders >= 5) {
+      retention += 0.1;
+    }
+    
+    return Math.max(0.1, Math.min(0.95, retention));
+  }
+  
+  private classifyCustomer(customer: CustomerData, clv: number): string {
+    if (clv >= 1000) return "champion";
+    if (clv >= 500) return "loyal";
+    if (clv >= 200) return "potential";
+    return "at_risk";
+  }
+  
+  private getCLVRecommendations(customer: CustomerData, clv: number): string[] {
+    const recommendations: string[] = [];
+    
+    if (customer.daysSinceLastPurchase > 60) {
+      recommendations.push("Send re-engagement campaign");
+    }
+    if (customer.purchaseFrequency < 1) {
+      recommendations.push("Increase purchase frequency with subscription offers");
+    }
+    if (clv < 200) {
+      recommendations.push("Focus on retention strategies");
+    }
+    
+    return recommendations;
+  }
+  
+  predictChurn(customerId: string): {
+    customerId: string;
+    churnProbability: number;
+    riskLevel: string;
+    recommendedActions: string[];
+  } {
+    const customer = this.customerData.get(customerId);
+    if (!customer) {
+      throw new Error("Customer not found");
+    }
+    
+    let churnScore = 0.0;
+    
+    if (customer.daysSinceLastPurchase > 90) {
+      churnScore += 40;
+    } else if (customer.daysSinceLastPurchase > 60) {
+      churnScore += 20;
+    }
+    
+    if (customer.purchaseFrequency < 0.5) {
+      churnScore += 30;
+    }
+    
+    if (customer.averageOrderValue < 20) {
+      churnScore += 20;
+    }
+    
+    if (customer.totalOrders < 2) {
+      churnScore += 10;
+    }
+    
+    const churnProbability = Math.min(churnScore / 100.0, 0.95);
+    
+    return {
+      customerId,
+      churnProbability: Math.round(churnProbability * 100) / 100,
+      riskLevel: churnProbability > 0.7 ? "high" : churnProbability > 0.4 ? "medium" : "low",
+      recommendedActions: this.getChurnPreventionActions(churnProbability)
+    };
+  }
+  
+  private getChurnPreventionActions(churnProb: number): string[] {
+    if (churnProb > 0.7) {
+      return ["Immediate outreach", "Special discount offer", "Personalized re-engagement"];
+    } else if (churnProb > 0.4) {
+      return ["Send personalized email", "Offer loyalty rewards"];
+    }
+    return ["Monitor engagement"];
+  }
+}
+
+// Usage
+const predictor = new CLVPredictor();
+predictor.addCustomer({
+  customerId: "CUST001",
+  firstPurchaseDate: new Date(Date.now() - 180 * 24 * 60 * 60 * 1000),
+  totalOrders: 8,
+  totalSpent: 1200,
+  averageOrderValue: 150,
+  daysSinceLastPurchase: 15,
+  purchaseFrequency: 1.5,
+  productCategories: ["electronics"]
+});
+
+const clv = predictor.calculateCLV("CUST001");
+console.log(\`Predicted CLV: $\${clv.predictedCLV}\`);`}
+/>
+
+### Use Cases
+
+1. **Marketing Budget Allocation**: Focus marketing spend on high-CLV customers
+2. **Customer Segmentation**: Segment customers by predicted value
+3. **Churn Prevention**: Identify and retain at-risk customers
+4. **Loyalty Programs**: Design programs based on CLV predictions
+
+## Q: Quality Assurance
+
+AI monitors product quality, detects defects, and ensures standards.
+
+### Quality Control Applications
+
+- **Visual Inspection**: Automated defect detection using computer vision
+- **Quality Scoring**: Rate product quality automatically
+- **Batch Analysis**: Identify quality issues in batches
+- **Supplier Quality**: Monitor supplier quality metrics
+
+## R: Recommendation Engines
+
+AI recommends products, content, and services based on customer preferences.
+
+### Recommendation Types
+
+- **Collaborative Filtering**: Based on similar users
+- **Content-Based**: Based on product features
+- **Hybrid**: Combination of multiple approaches
+- **Contextual**: Based on current context and situation
+
+## S: Supply Chain Optimization
+
+AI optimizes supply chain operations from sourcing to delivery.
+
+### Optimization Areas
+
+- **Supplier Selection**: Choose optimal suppliers
+- **Inventory Management**: Optimize inventory levels
+- **Transportation**: Optimize shipping and logistics
+- **Risk Management**: Identify and mitigate supply chain risks
+
+### Implementation Example: Supply Chain Risk Management
+
+<MultiLanguageCode
+  python={`# Supply Chain Risk Management System
+from typing import Dict, List
+from dataclasses import dataclass
+from enum import Enum
+from datetime import datetime
+
+class RiskLevel(Enum):
+    LOW = "low"
+    MEDIUM = "medium"
+    HIGH = "high"
+    CRITICAL = "critical"
+
+@dataclass
+class Supplier:
+    supplier_id: str
+    name: str
+    location: str
+    reliability_score: float
+    lead_time_days: int
+    quality_score: float
+    cost_score: float
+    risk_factors: List[str]
+
+@dataclass
+class SupplyChainRisk:
+    risk_id: str
+    risk_type: str
+    severity: RiskLevel
+    probability: float
+    impact: float
+    mitigation_strategy: str
+
+class SupplyChainOptimizer:
+    def __init__(self):
+        self.suppliers: Dict[str, Supplier] = {}
+        self.risks: List[SupplyChainRisk] = []
+    
+    def add_supplier(self, supplier: Supplier):
+        """Add supplier to system"""
+        self.suppliers[supplier.supplier_id] = supplier
+        self._assess_supplier_risks(supplier)
+    
+    def _assess_supplier_risks(self, supplier: Supplier):
+        """Assess risks for a supplier"""
+        risk_score = 0.0
+        risk_factors = []
+        
+        # Reliability risk
+        if supplier.reliability_score < 0.7:
+            risk_score += 30
+            risk_factors.append("Low reliability")
+        
+        # Lead time risk
+        if supplier.lead_time_days > 30:
+            risk_score += 20
+            risk_factors.append("Long lead time")
+        
+        # Quality risk
+        if supplier.quality_score < 0.8:
+            risk_score += 25
+            risk_factors.append("Quality concerns")
+        
+        # Geographic risk (simplified)
+        high_risk_locations = ["Region_A", "Region_B"]
+        if supplier.location in high_risk_locations:
+            risk_score += 15
+            risk_factors.append("High-risk geographic location")
+        
+        supplier.risk_factors = risk_factors
+        
+        # Create risk record
+        if risk_score > 0:
+            severity = RiskLevel.CRITICAL if risk_score >= 70 else RiskLevel.HIGH if risk_score >= 50 else RiskLevel.MEDIUM
+            self.risks.append(SupplyChainRisk(
+                risk_id=f"RISK_{supplier.supplier_id}",
+                risk_type="supplier_risk",
+                severity=severity,
+                probability=risk_score / 100.0,
+                impact=risk_score / 100.0,
+                mitigation_strategy=self._generate_mitigation_strategy(supplier, risk_factors)
+            ))
+    
+    def _generate_mitigation_strategy(self, supplier: Supplier, risk_factors: List[str]) -> str:
+        """Generate mitigation strategy"""
+        strategies = []
+        
+        if "Low reliability" in risk_factors:
+            strategies.append("Identify backup suppliers")
+        
+        if "Long lead time" in risk_factors:
+            strategies.append("Increase safety stock or find alternative suppliers")
+        
+        if "Quality concerns" in risk_factors:
+            strategies.append("Implement quality audits and supplier development program")
+        
+        if "High-risk geographic location" in risk_factors:
+            strategies.append("Diversify supplier base across regions")
+        
+        return "; ".join(strategies) if strategies else "Monitor closely"
+    
+    def optimize_supplier_selection(self, product_id: str, 
+                                   required_quantity: int,
+                                   priority: str = "cost") -> Dict:
+        """Select optimal supplier(s) for a product"""
+        # Filter suppliers (in real system, would filter by product capability)
+        candidates = list(self.suppliers.values())
+        
+        if not candidates:
+            return {"error": "No suppliers available"}
+        
+        # Score suppliers based on priority
+        scored_suppliers = []
+        for supplier in candidates:
+            if priority == "cost":
+                score = supplier.cost_score * 0.5 + supplier.reliability_score * 0.3 + supplier.quality_score * 0.2
+            elif priority == "reliability":
+                score = supplier.reliability_score * 0.5 + supplier.quality_score * 0.3 + supplier.cost_score * 0.2
+            else:  # balanced
+                score = (supplier.cost_score + supplier.reliability_score + supplier.quality_score) / 3
+            
+            # Penalize for risk factors
+            risk_penalty = len(supplier.risk_factors) * 0.1
+            final_score = score * (1 - risk_penalty)
+            
+            scored_suppliers.append({
+                "supplier": supplier,
+                "score": final_score
+            })
+        
+        # Sort by score
+        scored_suppliers.sort(key=lambda x: x["score"], reverse=True)
+        
+        # Select best supplier(s)
+        selected = scored_suppliers[0]
+        
+        return {
+            "product_id": product_id,
+            "selected_supplier": selected["supplier"].supplier_id,
+            "supplier_name": selected["supplier"].name,
+            "score": round(selected["score"], 2),
+            "estimated_lead_time": selected["supplier"].lead_time_days,
+            "risk_level": "high" if len(selected["supplier"].risk_factors) >= 2 else "medium" if len(selected["supplier"].risk_factors) >= 1 else "low",
+            "alternative_suppliers": [
+                {
+                    "supplier_id": s["supplier"].supplier_id,
+                    "score": round(s["score"], 2)
+                }
+                for s in scored_suppliers[1:3]
+            ]
+        }
+    
+    def assess_supply_chain_health(self) -> Dict:
+        """Assess overall supply chain health"""
+        if not self.suppliers:
+            return {"error": "No suppliers in system"}
+        
+        total_suppliers = len(self.suppliers)
+        high_risk_suppliers = sum(1 for s in self.suppliers.values() if len(s.risk_factors) >= 2)
+        
+        avg_reliability = sum(s.reliability_score for s in self.suppliers.values()) / total_suppliers
+        avg_quality = sum(s.quality_score for s in self.suppliers.values()) / total_suppliers
+        
+        health_score = (avg_reliability + avg_quality) / 2.0
+        health_score -= (high_risk_suppliers / total_suppliers) * 0.2
+        
+        health_status = "excellent" if health_score >= 0.8 else "good" if health_score >= 0.6 else "fair" if health_score >= 0.4 else "poor"
+        
+        return {
+            "health_score": round(health_score, 2),
+            "health_status": health_status,
+            "total_suppliers": total_suppliers,
+            "high_risk_suppliers": high_risk_suppliers,
+            "average_reliability": round(avg_reliability, 2),
+            "average_quality": round(avg_quality, 2),
+            "recommendations": self._get_supply_chain_recommendations(health_score, high_risk_suppliers)
+        }
+    
+    def _get_supply_chain_recommendations(self, health_score: float, high_risk_count: int) -> List[str]:
+        """Get recommendations for supply chain improvement"""
+        recommendations = []
+        
+        if health_score < 0.6:
+            recommendations.append("Urgent: Review and improve supplier relationships")
+        
+        if high_risk_count > 0:
+            recommendations.append(f"Address risks in {high_risk_count} high-risk suppliers")
+        
+        if health_score < 0.8:
+            recommendations.append("Diversify supplier base to reduce risk")
+            recommendations.append("Implement supplier development programs")
+        
+        return recommendations
+
+# Usage
+optimizer = SupplyChainOptimizer()
+
+# Add suppliers
+supplier1 = Supplier(
+    supplier_id="SUP001",
+    name="Supplier A",
+    location="Region_A",
+    reliability_score=0.9,
+    lead_time_days=14,
+    quality_score=0.85,
+    cost_score=0.7,
+    risk_factors=[]
+)
+optimizer.add_supplier(supplier1)
+
+supplier2 = Supplier(
+    supplier_id="SUP002",
+    name="Supplier B",
+    location="Region_B",
+    reliability_score=0.6,  # Low reliability
+    lead_time_days=45,  # Long lead time
+    quality_score=0.75,
+    cost_score=0.9,
+    risk_factors=[]
+)
+optimizer.add_supplier(supplier2)
+
+# Optimize supplier selection
+selection = optimizer.optimize_supplier_selection("PROD001", 1000, priority="reliability")
+print(f"Selected Supplier: {selection['selected_supplier']}")
+print(f"Risk Level: {selection['risk_level']}")
+
+# Assess supply chain health
+health = optimizer.assess_supply_chain_health()
+print(f"Supply Chain Health: {health['health_status']} ({health['health_score']})")`}
+  typescript={`// Supply Chain Risk Management System
+enum RiskLevel {
+  LOW = "low",
+  MEDIUM = "medium",
+  HIGH = "high",
+  CRITICAL = "critical"
+}
+
+interface Supplier {
+  supplierId: string;
+  name: string;
+  location: string;
+  reliabilityScore: number;
+  leadTimeDays: number;
+  qualityScore: number;
+  costScore: number;
+  riskFactors: string[];
+}
+
+class SupplyChainOptimizer {
+  private suppliers: Map<string, Supplier> = new Map();
+  private risks: Array<{
+    riskId: string;
+    riskType: string;
+    severity: RiskLevel;
+    probability: number;
+    impact: number;
+    mitigationStrategy: string;
+  }> = [];
+  
+  addSupplier(supplier: Supplier): void {
+    this.suppliers.set(supplier.supplierId, supplier);
+    this.assessSupplierRisks(supplier);
+  }
+  
+  private assessSupplierRisks(supplier: Supplier): void {
+    let riskScore = 0.0;
+    const riskFactors: string[] = [];
+    
+    if (supplier.reliabilityScore < 0.7) {
+      riskScore += 30;
+      riskFactors.push("Low reliability");
+    }
+    
+    if (supplier.leadTimeDays > 30) {
+      riskScore += 20;
+      riskFactors.push("Long lead time");
+    }
+    
+    if (supplier.qualityScore < 0.8) {
+      riskScore += 25;
+      riskFactors.push("Quality concerns");
+    }
+    
+    supplier.riskFactors = riskFactors;
+    
+    if (riskScore > 0) {
+      const severity = riskScore >= 70 ? RiskLevel.CRITICAL :
+                      riskScore >= 50 ? RiskLevel.HIGH :
+                      RiskLevel.MEDIUM;
+      
+      this.risks.push({
+        riskId: \`RISK_\${supplier.supplierId}\`,
+        riskType: "supplier_risk",
+        severity,
+        probability: riskScore / 100.0,
+        impact: riskScore / 100.0,
+        mitigationStrategy: this.generateMitigationStrategy(supplier, riskFactors)
+      });
+    }
+  }
+  
+  private generateMitigationStrategy(supplier: Supplier, riskFactors: string[]): string {
+    const strategies: string[] = [];
+    
+    if (riskFactors.includes("Low reliability")) {
+      strategies.push("Identify backup suppliers");
+    }
+    if (riskFactors.includes("Long lead time")) {
+      strategies.push("Increase safety stock or find alternative suppliers");
+    }
+    
+    return strategies.length > 0 ? strategies.join("; ") : "Monitor closely";
+  }
+  
+  optimizeSupplierSelection(
+    productId: string,
+    requiredQuantity: number,
+    priority: string = "cost"
+  ): {
+    productId: string;
+    selectedSupplier: string;
+    supplierName: string;
+    score: number;
+    estimatedLeadTime: number;
+    riskLevel: string;
+    alternativeSuppliers: Array<{ supplierId: string; score: number }>;
+  } {
+    const candidates = Array.from(this.suppliers.values());
+    
+    const scoredSuppliers = candidates.map(supplier => {
+      let score: number;
+      if (priority === "cost") {
+        score = supplier.costScore * 0.5 + supplier.reliabilityScore * 0.3 + supplier.qualityScore * 0.2;
+      } else if (priority === "reliability") {
+        score = supplier.reliabilityScore * 0.5 + supplier.qualityScore * 0.3 + supplier.costScore * 0.2;
+      } else {
+        score = (supplier.costScore + supplier.reliabilityScore + supplier.qualityScore) / 3;
+      }
+      
+      const riskPenalty = supplier.riskFactors.length * 0.1;
+      const finalScore = score * (1 - riskPenalty);
+      
+      return { supplier, score: finalScore };
+    });
+    
+    scoredSuppliers.sort((a, b) => b.score - a.score);
+    const selected = scoredSuppliers[0];
+    
+    return {
+      productId,
+      selectedSupplier: selected.supplier.supplierId,
+      supplierName: selected.supplier.name,
+      score: Math.round(selected.score * 100) / 100,
+      estimatedLeadTime: selected.supplier.leadTimeDays,
+      riskLevel: selected.supplier.riskFactors.length >= 2 ? "high" :
+                selected.supplier.riskFactors.length >= 1 ? "medium" : "low",
+      alternativeSuppliers: scoredSuppliers.slice(1, 3).map(s => ({
+        supplierId: s.supplier.supplierId,
+        score: Math.round(s.score * 100) / 100
+      }))
+    };
+  }
+  
+  assessSupplyChainHealth(): {
+    healthScore: number;
+    healthStatus: string;
+    totalSuppliers: number;
+    highRiskSuppliers: number;
+    averageReliability: number;
+    averageQuality: number;
+    recommendations: string[];
+  } {
+    const suppliers = Array.from(this.suppliers.values());
+    const totalSuppliers = suppliers.length;
+    const highRiskSuppliers = suppliers.filter(s => s.riskFactors.length >= 2).length;
+    
+    const avgReliability = suppliers.reduce((sum, s) => sum + s.reliabilityScore, 0) / totalSuppliers;
+    const avgQuality = suppliers.reduce((sum, s) => sum + s.qualityScore, 0) / totalSuppliers;
+    
+    let healthScore = (avgReliability + avgQuality) / 2.0;
+    healthScore -= (highRiskSuppliers / totalSuppliers) * 0.2;
+    
+    const healthStatus = healthScore >= 0.8 ? "excellent" :
+                         healthScore >= 0.6 ? "good" :
+                         healthScore >= 0.4 ? "fair" : "poor";
+    
+    const recommendations: string[] = [];
+    if (healthScore < 0.6) {
+      recommendations.push("Urgent: Review and improve supplier relationships");
+    }
+    if (highRiskSuppliers > 0) {
+      recommendations.push(\`Address risks in \${highRiskSuppliers} high-risk suppliers\`);
+    }
+    
+    return {
+      healthScore: Math.round(healthScore * 100) / 100,
+      healthStatus,
+      totalSuppliers,
+      highRiskSuppliers,
+      averageReliability: Math.round(avgReliability * 100) / 100,
+      averageQuality: Math.round(avgQuality * 100) / 100,
+      recommendations
+    };
+  }
+}
+
+// Usage
+const optimizer = new SupplyChainOptimizer();
+optimizer.addSupplier({
+  supplierId: "SUP001",
+  name: "Supplier A",
+  location: "Region_A",
+  reliabilityScore: 0.9,
+  leadTimeDays: 14,
+  qualityScore: 0.85,
+  costScore: 0.7,
+  riskFactors: []
+});
+
+const selection = optimizer.optimizeSupplierSelection("PROD001", 1000, "reliability");
+console.log(\`Selected: \${selection.selectedSupplier}\`);`}
+/>
+
+### Use Cases
+
+1. **Supplier Diversification**: Reduce risk by using multiple suppliers
+2. **Cost Optimization**: Balance cost, quality, and reliability
+3. **Risk Mitigation**: Identify and address supply chain risks
+4. **Resilience Planning**: Build resilient supply chains
+
+## T: Trend Analysis
+
+AI identifies market trends, fashion cycles, and consumer preferences.
+
+### Trend Detection
+
+- **Fashion Trends**: Identify emerging fashion trends
+- **Seasonal Patterns**: Understand seasonal demand patterns
+- **Consumer Preferences**: Track changing consumer tastes
+- **Market Shifts**: Detect major market changes
+
+## U: User Experience Optimization
+
+AI improves website and app UX through A/B testing and personalization.
+
+### UX Optimization Methods
+
+- **A/B Testing**: Test different UX variations
+- **Heatmap Analysis**: Understand user interaction patterns
+- **Conversion Optimization**: Improve conversion rates
+- **Accessibility**: Ensure accessible user experiences
+
+## V: Visual Search
+
+AI enables image-based product search and visual recommendations.
+
+### Visual Search Capabilities
+
+- **Image Recognition**: Identify products from images
+- **Similar Product Search**: Find visually similar products
+- **Style Matching**: Match styles and aesthetics
+- **Visual Recommendations**: Recommend based on visual preferences
+
+## W: Warehouse Automation
+
+AI powers automated warehouses with robots and intelligent systems.
+
+### Automation Features
+
+- **Robotic Picking**: Automated order picking
+- **Inventory Tracking**: Real-time inventory visibility
+- **Optimized Layout**: AI-optimized warehouse layout
+- **Predictive Maintenance**: Prevent equipment failures
+
+## X: eXperience Analytics
+
+AI analyzes customer experiences across all touchpoints.
+
+### Analytics Dimensions
+
+- **Journey Analysis**: Complete customer journey mapping
+- **Touchpoint Performance**: Measure each touchpoint effectiveness
+- **Experience Scoring**: Quantify customer experience
+- **Improvement Opportunities**: Identify areas for enhancement
+
+## Y: Yield Management
+
+AI optimizes pricing and inventory to maximize revenue.
+
+### Yield Optimization
+
+- **Dynamic Pricing**: Adjust prices to maximize yield
+- **Inventory Allocation**: Optimize inventory distribution
+- **Demand Shaping**: Influence demand through pricing
+- **Revenue Optimization**: Maximize total revenue
+
+## Z: Zero-Touch Commerce
+
+AI enables fully automated commerce experiences with minimal human intervention.
+
+### Zero-Touch Features
+
+- **Automated Ordering**: AI handles entire ordering process
+- **Smart Replenishment**: Automatic inventory replenishment
+- **Self-Service**: Complete self-service experiences
+- **Autonomous Operations**: Fully autonomous commerce operations
+
+## Study Cases: Real-World AI Commerce Applications
+
+### Case Study 1: Amazon's Recommendation Engine
+
+Amazon's recommendation system accounts for 35% of total sales. The system uses collaborative filtering, content-based filtering, and deep learning to personalize product recommendations.
+
+**Key Technologies:**
+- Item-to-item collaborative filtering
+- Deep learning for feature extraction
+- Real-time personalization
+- Multi-armed bandit algorithms
+
+**Implementation Example:**
+
+<MultiLanguageCode
+  python={`# Simplified Amazon-style Recommendation System
+from typing import List, Dict, Set
+from collections import defaultdict
+import math
+
+class RecommendationEngine:
+    def __init__(self):
+        self.user_items: Dict[str, Set[str]] = defaultdict(set)
+        self.item_users: Dict[str, Set[str]] = defaultdict(set)
+        self.item_similarity: Dict[str, Dict[str, float]] = {}
+    
+    def add_interaction(self, user_id: str, item_id: str):
+        """Record user-item interaction"""
+        self.user_items[user_id].add(item_id)
+        self.item_users[item_id].add(user_id)
+    
+    def calculate_item_similarity(self, item1: str, item2: str) -> float:
+        """Calculate cosine similarity between items"""
+        users1 = self.item_users[item1]
+        users2 = self.item_users[item2]
+        
+        if not users1 or not users2:
+            return 0.0
+        
+        # Jaccard similarity
+        intersection = len(users1 & users2)
+        union = len(users1 | users2)
+        
+        return intersection / union if union > 0 else 0.0
+    
+    def get_recommendations(self, user_id: str, top_n: int = 10) -> List[tuple]:
+        """Get personalized recommendations for user"""
+        user_items = self.user_items[user_id]
+        candidate_scores: Dict[str, float] = defaultdict(float)
+        
+        # Item-to-item collaborative filtering
+        for item in user_items:
+            for other_item in self.item_users:
+                if other_item not in user_items:
+                    similarity = self.calculate_item_similarity(item, other_item)
+                    candidate_scores[other_item] += similarity
+        
+        # Sort by score and return top N
+        recommendations = sorted(
+            candidate_scores.items(),
+            key=lambda x: x[1],
+            reverse=True
+        )[:top_n]
+        
+        return recommendations
+    
+    def get_trending_items(self, min_interactions: int = 10) -> List[str]:
+        """Get trending items based on recent interactions"""
+        # Simple trending: items with most users
+        item_counts = {
+            item: len(users)
+            for item, users in self.item_users.items()
+            if len(users) >= min_interactions
+        }
+        
+        return sorted(item_counts.items(), key=lambda x: x[1], reverse=True)
+
+# Usage
+engine = RecommendationEngine()
+
+# Simulate user interactions
+engine.add_interaction("user1", "laptop")
+engine.add_interaction("user1", "mouse")
+engine.add_interaction("user2", "laptop")
+engine.add_interaction("user2", "keyboard")
+engine.add_interaction("user3", "mouse")
+engine.add_interaction("user3", "keyboard")
+
+# Get recommendations
+recommendations = engine.get_recommendations("user1")
+print(f"Recommendations for user1: {recommendations}")
+
+# Get trending items
+trending = engine.get_trending_items()
+print(f"Trending items: {trending}")`}
+  typescript={`// Simplified Amazon-style Recommendation System
+class RecommendationEngine {
+  private userItems: Map<string, Set<string>> = new Map();
+  private itemUsers: Map<string, Set<string>> = new Map();
+  
+  addInteraction(userId: string, itemId: string): void {
+    if (!this.userItems.has(userId)) {
+      this.userItems.set(userId, new Set());
+    }
+    if (!this.itemUsers.has(itemId)) {
+      this.itemUsers.set(itemId, new Set());
+    }
+    
+    this.userItems.get(userId)!.add(itemId);
+    this.itemUsers.get(itemId)!.add(userId);
+  }
+  
+  calculateItemSimilarity(item1: string, item2: string): number {
+    const users1 = this.itemUsers.get(item1);
+    const users2 = this.itemUsers.get(item2);
+    
+    if (!users1 || !users2 || users1.size === 0 || users2.size === 0) {
+      return 0.0;
+    }
+    
+    // Jaccard similarity
+    const intersection = new Set([...users1].filter(u => users2.has(u)));
+    const union = new Set([...users1, ...users2]);
+    
+    return intersection.size / union.size;
+  }
+  
+  getRecommendations(userId: string, topN: number = 10): Array<[string, number]> {
+    const userItems = this.userItems.get(userId) || new Set();
+    const candidateScores: Map<string, number> = new Map();
+    
+    // Item-to-item collaborative filtering
+    for (const item of userItems) {
+      for (const [otherItem, users] of this.itemUsers.entries()) {
+        if (!userItems.has(otherItem)) {
+          const similarity = this.calculateItemSimilarity(item, otherItem);
+          const currentScore = candidateScores.get(otherItem) || 0;
+          candidateScores.set(otherItem, currentScore + similarity);
+        }
+      }
+    }
+    
+    return Array.from(candidateScores.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, topN);
+  }
+  
+  getTrendingItems(minInteractions: number = 10): Array<[string, number]> {
+    const itemCounts: Array<[string, number]> = [];
+    
+    for (const [item, users] of this.itemUsers.entries()) {
+      if (users.size >= minInteractions) {
+        itemCounts.push([item, users.size]);
+      }
+    }
+    
+    return itemCounts.sort((a, b) => b[1] - a[1]);
+  }
+}
+
+// Usage
+const engine = new RecommendationEngine();
+engine.addInteraction("user1", "laptop");
+engine.addInteraction("user1", "mouse");
+engine.addInteraction("user2", "laptop");
+engine.addInteraction("user2", "keyboard");
+engine.addInteraction("user3", "mouse");
+engine.addInteraction("user3", "keyboard");
+
+const recommendations = engine.getRecommendations("user1");
+console.log(\`Recommendations for user1: \${JSON.stringify(recommendations)}\`);
+
+const trending = engine.getTrendingItems();
+console.log(\`Trending items: \${JSON.stringify(trending)}\`);`}
+/>
+
+**Results:**
+- 35% of Amazon sales from recommendations
+- Improved customer engagement
+- Increased average order value
+
+### Case Study 2: Uber's Dynamic Pricing System
+
+Uber uses AI to adjust prices in real-time based on demand, supply, and market conditions, optimizing both driver earnings and rider experience.
+
+**Key Features:**
+- Real-time demand prediction
+- Surge pricing algorithm
+- Supply-demand balancing
+- Market condition analysis
+
+### Case Study 3: Netflix's Content Recommendation
+
+Netflix's recommendation system saves $1 billion annually by reducing churn. The system uses deep learning to understand user preferences and recommend content.
+
+**Key Technologies:**
+- Deep neural networks
+- Matrix factorization
+- A/B testing framework
+- Real-time personalization
+
+## Implementation Best Practices
+
+### 1. Start with Clear Business Objectives
+
+Define specific goals before implementing AI solutions.
+
+### 2. Ensure Data Quality
+
+High-quality data is essential for effective AI systems.
+
+### 3. Maintain Customer Privacy
+
+Protect customer data and comply with regulations.
+
+### 4. Test and Iterate
+
+Continuously test and improve AI implementations.
+
+### 5. Monitor Performance
+
+Track KPIs and adjust strategies based on results.
+
+## Challenges and Considerations
+
+### Technical Challenges
+
+- **Data Integration**: Combining data from multiple sources
+- **Scalability**: Handling peak loads and growth
+- **Real-time Processing**: Low-latency requirements
+
+### Business Challenges
+
+- **ROI Measurement**: Quantifying AI impact
+- **Change Management**: Adapting to AI-driven processes
+- **Competition**: Staying ahead in AI adoption
+
+### Ethical Considerations
+
+- **Privacy**: Protecting customer data
+- **Bias**: Ensuring fair AI decisions
+- **Transparency**: Explaining AI recommendations
+
+## Future Trends
+
+1. **Voice Commerce**: AI-powered voice shopping
+2. **AR/VR Shopping**: Immersive shopping experiences
+3. **Autonomous Stores**: Fully automated retail
+4. **Hyper-Personalization**: Even more tailored experiences
+5. **Sustainability**: AI optimizing for environmental impact
+
+## Conclusion
+
+AI applications in commerce are transforming how businesses operate and interact with customers. From inventory management to personalized experiences, AI offers tremendous opportunities for growth and efficiency. Successful implementation requires careful planning, quality data, and continuous optimization.
+
+The future of commerce is intelligent, personalized, and automated—powered by artificial intelligence.

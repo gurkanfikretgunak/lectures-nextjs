@@ -7,6 +7,7 @@ import { LectureLayout } from "./lecture-layout";
 import remarkGfm from "remark-gfm";
 import rehypeSlug from "rehype-slug";
 import rehypePrettyCode from "rehype-pretty-code";
+import React from "react";
 
 // Make this route dynamic to support language switching
 export const dynamic = "force-dynamic";
@@ -56,49 +57,98 @@ export async function generateMetadata({ params }: PageProps) {
 }
 
 export default async function LecturePage({ params }: PageProps) {
-  const { category, slug } = await params;
+  let category: string, slug: string;
   
-  // Get language from cookie, default to "en"
-  const cookieStore = await cookies();
-  const language = (cookieStore.get("language")?.value || "en") as "en" | "tr";
-  
-  const lecture = getLecture(category, slug, language);
+  try {
+    const resolvedParams = await params;
+    category = resolvedParams.category;
+    slug = resolvedParams.slug;
+    
+    if (!category || !slug) {
+      notFound();
+    }
+    
+    // Get language from cookie, default to "en"
+    const cookieStore = await cookies();
+    const language = (cookieStore.get("language")?.value || "en") as "en" | "tr";
+    
+    const lecture = getLecture(category, slug, language);
 
-  if (!lecture) {
+    if (!lecture || !lecture.content) {
+      notFound();
+    }
+
+    const navigation = getNavigation(language);
+    const headings = extractHeadings(lecture.content);
+
+    const rehypePrettyCodeOptions = {
+      theme: {
+        dark: "github-dark",
+        light: "github-light",
+      },
+      keepBackground: true,
+      defaultLang: "plaintext",
+    };
+
+    // Create MDX components with lecture title to skip duplicate H1
+    // Use an object to track state across component renders
+    const h1State = { firstH1Seen: false };
+    const componentsWithTitle = {
+      ...mdxComponents,
+      h1: ({ children }: { children?: React.ReactNode }) => {
+        // Extract text content from children
+        const extractText = (node: React.ReactNode): string => {
+          if (typeof node === 'string') return node;
+          if (typeof node === 'number') return String(node);
+          if (Array.isArray(node)) return node.map(extractText).join('');
+          if (React.isValidElement(node) && node.props.children) {
+            return extractText(node.props.children);
+          }
+          return '';
+        };
+        
+        const h1Text = extractText(children).trim();
+        
+        // Skip the first H1 if it matches the lecture title
+        if (!h1State.firstH1Seen && h1Text === lecture.title.trim()) {
+          h1State.firstH1Seen = true;
+          return null;
+        }
+        
+        h1State.firstH1Seen = true;
+        return mdxComponents.h1({ children });
+      },
+    };
+
+    try {
+      return (
+        <LectureLayout
+          navigation={navigation}
+          headings={headings}
+          lecture={lecture}
+        >
+          <MDXRemote
+            source={lecture.content}
+            components={componentsWithTitle}
+            options={{
+              mdxOptions: {
+                remarkPlugins: [remarkGfm],
+                rehypePlugins: [
+                  rehypeSlug,
+                  [rehypePrettyCode, rehypePrettyCodeOptions],
+                ],
+              },
+              parseFrontmatter: false, // Already parsed by gray-matter
+            }}
+          />
+        </LectureLayout>
+      );
+    } catch (mdxError) {
+      console.error("MDX compilation error:", mdxError);
+      throw mdxError; // Re-throw to be caught by outer catch
+    }
+  } catch (error) {
+    console.error("Error rendering lecture page:", error);
     notFound();
   }
-
-  const navigation = getNavigation(language);
-  const headings = extractHeadings(lecture.content);
-
-  const rehypePrettyCodeOptions = {
-    theme: {
-      dark: "github-dark",
-      light: "github-light",
-    },
-    keepBackground: true,
-    defaultLang: "plaintext",
-  };
-
-  return (
-    <LectureLayout
-      navigation={navigation}
-      headings={headings}
-      lecture={lecture}
-    >
-      <MDXRemote
-        source={lecture.content}
-        components={mdxComponents}
-        options={{
-          mdxOptions: {
-            remarkPlugins: [remarkGfm],
-            rehypePlugins: [
-              rehypeSlug,
-              [rehypePrettyCode, rehypePrettyCodeOptions],
-            ],
-          },
-        }}
-      />
-    </LectureLayout>
-  );
 }

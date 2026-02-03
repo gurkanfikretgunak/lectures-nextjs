@@ -12,11 +12,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useLanguage } from "@/contexts/language-context";
+import { ErrorBoundary } from "@/components/error-boundary";
 
 interface NavItem {
   title: string;
   href: string;
   level?: number;
+  description?: string;
+  slug?: string;
 }
 
 interface NavSection {
@@ -64,6 +67,8 @@ export function LectureLayout({
       title: item.title,
       href: item.href,
       category: section.slug,
+      description: item.description || "",
+      slug: item.slug || "",
     }))
   );
 
@@ -147,9 +152,11 @@ export function LectureLayout({
               <Separator className="mb-8" />
 
               {/* Content */}
-              <div className="prose prose-slate dark:prose-invert max-w-none">
-                {children}
-              </div>
+              <ErrorBoundary>
+                <div className="prose prose-slate dark:prose-invert max-w-none">
+                  {children}
+                </div>
+              </ErrorBoundary>
 
               {/* Navigation */}
               <Separator className="my-8" />
