@@ -15,7 +15,6 @@ interface CodeExample {
 
 interface MultiLanguageCodeProps {
   python: string;
-  turkish: string;
   typescript: string;
   csharp: string;
   dart: string;
@@ -24,7 +23,6 @@ interface MultiLanguageCodeProps {
 
 const languageConfig: Record<string, { label: string; extension: string; highlightLang: string }> = {
   python: { label: "Python", extension: "py", highlightLang: "python" },
-  turkish: { label: "Türkçe", extension: "tr", highlightLang: "python" },
   typescript: { label: "TypeScript", extension: "ts", highlightLang: "typescript" },
   csharp: { label: "C#", extension: "cs", highlightLang: "csharp" },
   dart: { label: "Dart", extension: "dart", highlightLang: "dart" },
@@ -32,7 +30,6 @@ const languageConfig: Record<string, { label: string; extension: string; highlig
 
 export function MultiLanguageCode({
   python,
-  turkish,
   typescript,
   csharp,
   dart,
@@ -44,7 +41,6 @@ export function MultiLanguageCode({
 
   const codeExamples: CodeExample[] = [
     { language: "python", code: python, label: languageConfig.python.label },
-    { language: "turkish", code: turkish, label: languageConfig.turkish.label },
     { language: "typescript", code: typescript, label: languageConfig.typescript.label },
     { language: "csharp", code: csharp, label: languageConfig.csharp.label },
     { language: "dart", code: dart, label: languageConfig.dart.label },
