@@ -59,6 +59,30 @@ Provide your review in this format:
 ## Performance Suggestions
 ## Improved Code
 """`}
+  turkish={`code_review_prompt = """
+Kıdemli bir Python geliştiricisi olarak kod incelemesi yapıyorsunuz.
+
+İnceleme Kılavuzu:
+1. Potansiyel hataları ve uç durumları kontrol edin
+2. Kod stilini değerlendirin (PEP 8 uyumluluğu)
+3. Performans etkilerini değerlendirin
+4. Örneklerle iyileştirme önerileri sunun
+
+İncelenecek Kod:
+\`\`\`python
+def calculate_average(numbers):
+    total = 0
+    for n in numbers:
+        total = total + n
+    return total / len(numbers)
+\`\`\`
+
+İncelemenizi bu formatta sağlayın:
+## Hatalar/Sorunlar
+## Stil Önerileri
+## Performans Önerileri
+## İyileştirilmiş Kod
+"""`}
   typescript={`const codeReviewPrompt = \`
 You are a senior TypeScript developer conducting a code review.
 
@@ -287,6 +311,12 @@ Quickly review this code for obvious bugs:
 
 Respond with: "OK" or list critical issues.
 """`}
+  turkish={`quick_review = """
+Bu kodu bariz hatalar için hızlıca inceleyin:
+{code}
+
+"Tamam" yanıtı verin veya kritik sorunları listeleyin.
+"""`}
   typescript={`const quickReview = \`
 Quickly review this code for obvious bugs:
 \${code}
@@ -318,6 +348,16 @@ Conduct a comprehensive code review including:
 - Refactoring opportunities
 
 Code:
+{code}
+"""`}
+  turkish={`detailed_review = """
+Kapsamlı bir kod incelemesi yapın:
+- Birim test önerileri
+- Entegrasyon değerlendirmeleri
+- Dokümantasyon gereksinimleri
+- Yeniden düzenleme fırsatları
+
+Kod:
 {code}
 """`}
   typescript={`const detailedReview = \`
@@ -759,6 +799,16 @@ Question: {question}
 
 Answer:
 """`}
+  turkish={`qa_prompt = """
+Sağlanan bağlama göre soruyu yanıtlayın.
+
+Bağlam:
+{context}
+
+Soru: {question}
+
+Yanıt:
+"""`}
   typescript={`const qaPrompt = \`
 Answer the question based on the provided context.
 
@@ -810,6 +860,22 @@ Think through this step by step:
 4. What is the final answer?
 
 Answer:
+"""`}
+  turkish={`reasoning_qa = """
+Sağlanan bağlamı kullanarak soruyu adım adım yanıtlayın.
+
+Bağlam:
+{context}
+
+Soru: {question}
+
+Adım adım düşünün:
+1. Bu soruyu yanıtlamak için hangi bilgilere ihtiyaç var?
+2. Bağlamda hangi ilgili bilgiler var?
+3. Bu bilgileri nasıl birleştirebilirim?
+4. Son cevap nedir?
+
+Yanıt:
 """`}
   typescript={`const reasoningQA = \`
 Answer the question step by step using the provided context.

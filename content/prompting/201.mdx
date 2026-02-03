@@ -80,6 +80,24 @@ prompt = create_prompt(PromptConfig(
 ))
 
 print(prompt)`}
+  turkish={`# Türkçe örnek
+from dataclasses import dataclass
+
+@dataclass
+class PromptConfig:
+    question: str
+    use_cot: bool
+
+def create_prompt(config: PromptConfig) -> str:
+    cot_suffix = "\\n\\nAdım adım düşünelim." if config.use_cot else ""
+    return f"{config.question}{cot_suffix}"
+
+prompt = create_prompt(PromptConfig(
+    question="Bir mağazada 45 elma var. Sabah 12 tanesini satıyorlar ve öğleden sonra 30 elmalık bir sevkiyat alıyorlar. Sonra 18 tane daha satıyorlar. Kaç elma kaldı?",
+    use_cot=True
+))
+
+print(prompt)`}
   typescript={`// TypeScript example
 interface PromptConfig {
   question: string;

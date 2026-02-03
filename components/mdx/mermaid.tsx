@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/contexts/language-context";
 
 interface MermaidProps {
   chart: string;
@@ -31,6 +32,7 @@ export function Mermaid({ chart }: MermaidProps) {
   const [isFullscreenOpen, setIsFullscreenOpen] = useState(false);
   const [svgContent, setSvgContent] = useState<string | null>(null);
   const { resolvedTheme } = useTheme();
+  const { t } = useLanguage();
 
   // Wait for component to mount to avoid hydration issues
   useEffect(() => {
@@ -163,7 +165,7 @@ export function Mermaid({ chart }: MermaidProps) {
   if (!mounted) {
     return (
       <div className="my-6 flex justify-center">
-        <div className="text-sm text-muted-foreground">Loading diagram...</div>
+        <div className="text-sm text-muted-foreground">{t("loading")}</div>
       </div>
     );
   }
@@ -171,10 +173,10 @@ export function Mermaid({ chart }: MermaidProps) {
   if (error) {
     return (
       <div className="my-6 p-4 border border-destructive/50 bg-destructive/10 rounded-lg text-destructive text-sm">
-        <p className="font-medium">Mermaid Diagram Error</p>
+        <p className="font-medium">{t("mermaidDiagramError")}</p>
         <p className="mt-1 text-xs">{error}</p>
         <details className="mt-2">
-          <summary className="cursor-pointer text-xs">Show chart definition</summary>
+          <summary className="cursor-pointer text-xs">{t("showChartDefinition")}</summary>
           <pre className="mt-2 text-xs overflow-x-auto bg-muted p-2 rounded">{chart}</pre>
         </details>
       </div>
@@ -200,7 +202,7 @@ export function Mermaid({ chart }: MermaidProps) {
                 handleZoomOut();
               }}
               disabled={zoom <= MIN_ZOOM}
-              title="Zoom out"
+              title={t("zoomOut")}
             >
               <ZoomOut className="h-4 w-4" />
             </Button>
@@ -213,7 +215,7 @@ export function Mermaid({ chart }: MermaidProps) {
                 handleZoomReset();
               }}
               disabled={zoom === 1.15}
-              title="Reset zoom"
+              title={t("resetZoom")}
             >
               <RotateCcw className="h-4 w-4" />
             </Button>
@@ -226,7 +228,7 @@ export function Mermaid({ chart }: MermaidProps) {
                 handleZoomIn();
               }}
               disabled={zoom >= MAX_ZOOM}
-              title="Zoom in"
+              title={t("zoomIn")}
             >
               <ZoomIn className="h-4 w-4" />
             </Button>
@@ -238,7 +240,7 @@ export function Mermaid({ chart }: MermaidProps) {
                 e.stopPropagation();
                 handleOpenFullscreen();
               }}
-              title="Open in fullscreen"
+              title={t("openFullscreen")}
             >
               <Maximize2 className="h-4 w-4" />
             </Button>
@@ -272,7 +274,7 @@ export function Mermaid({ chart }: MermaidProps) {
       <Dialog open={isFullscreenOpen} onOpenChange={setIsFullscreenOpen}>
         <DialogContent className="max-w-[95vw] max-h-[95vh] w-full h-full flex flex-col p-0">
           <DialogHeader className="px-6 pt-6 pb-4 border-b flex flex-row items-center justify-between">
-            <DialogTitle>Diagram</DialogTitle>
+            <DialogTitle>{t("diagram")}</DialogTitle>
             <div className="flex gap-1">
               <Button
                 variant="secondary"
@@ -280,7 +282,7 @@ export function Mermaid({ chart }: MermaidProps) {
                 className="h-8 w-8"
                 onClick={handleFullscreenZoomOut}
                 disabled={fullscreenZoom <= MIN_ZOOM}
-                title="Zoom out"
+                title={t("zoomOut")}
               >
                 <ZoomOut className="h-4 w-4" />
               </Button>
@@ -290,7 +292,7 @@ export function Mermaid({ chart }: MermaidProps) {
                 className="h-8 w-8"
                 onClick={handleFullscreenZoomReset}
                 disabled={fullscreenZoom === 1}
-                title="Reset zoom"
+                title={t("resetZoom")}
               >
                 <RotateCcw className="h-4 w-4" />
               </Button>
@@ -300,7 +302,7 @@ export function Mermaid({ chart }: MermaidProps) {
                 className="h-8 w-8"
                 onClick={handleFullscreenZoomIn}
                 disabled={fullscreenZoom >= MAX_ZOOM}
-                title="Zoom in"
+                title={t("zoomIn")}
               >
                 <ZoomIn className="h-4 w-4" />
               </Button>

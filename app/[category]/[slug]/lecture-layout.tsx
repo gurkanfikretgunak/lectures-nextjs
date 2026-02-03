@@ -11,6 +11,7 @@ import { SearchCommand } from "@/components/search-command";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { useLanguage } from "@/contexts/language-context";
 
 interface NavItem {
   title: string;
@@ -55,6 +56,7 @@ export function LectureLayout({
   const pathname = usePathname();
   const mainContentRef = useRef<HTMLElement>(null);
   const articleRef = useRef<HTMLElement>(null);
+  const { t } = useLanguage();
 
   // Get all lectures for search and navigation
   const allLectures = navigation.flatMap((section) =>
@@ -126,7 +128,7 @@ export function LectureLayout({
                     href="/"
                     className="hover:text-foreground transition-colors"
                   >
-                    Home
+                    {t("home")}
                   </Link>
                   <span>/</span>
                   <span className="capitalize">

@@ -1,0 +1,119 @@
+export const translations = {
+  en: {
+    // Header
+    siteTitle: "AI & LLM Lectures",
+    search: "Search...",
+    toggleLanguage: "Switch to Turkish",
+    
+    // Sidebar
+    selectLanguage: "Select Language",
+    
+    // Common
+    loading: "Loading...",
+    error: "Error",
+    close: "Close",
+    copy: "Copy",
+    copied: "Copied!",
+    
+    // Diagram
+    openFullscreen: "Open in fullscreen",
+    zoomIn: "Zoom in",
+    zoomOut: "Zoom out",
+    resetZoom: "Reset zoom",
+    diagram: "Diagram",
+    
+    // Code blocks
+    showChartDefinition: "Show chart definition",
+    mermaidDiagramError: "Mermaid Diagram Error",
+    
+    // Search
+    searchPlaceholder: "Search lectures...",
+    noResultsFound: "No results found.",
+    
+    // Navigation
+    home: "Home",
+    
+    // Home page
+    heroTitle: "AI & LLM Lectures",
+    heroDescription: "Comprehensive lecture resources for learning about Prompting, Large Language Models, and AI Tooling.",
+    beginnerLectures: "Beginner Lectures",
+    advancedLectures: "Advanced Lectures",
+    getStarted: "Get Started",
+    viewAll: "View All",
+    startWith: "Begin with",
+    toBuild: "to build a strong foundation.",
+    readyToStart: "Ready to Start Learning?",
+    
+    // Category descriptions
+    promptingDesc: "Learn the art of crafting effective prompts for AI models",
+    llmDesc: "Deep dive into Large Language Models and their architecture",
+    aiToolingDesc: "Explore tools and frameworks for AI development",
+    reasoningDesc: "Advanced reasoning patterns to enhance AI thinking capabilities",
+    resourcesDesc: "Additional learning materials and references",
+    beginner: "Beginner",
+    advanced: "Advanced",
+    viewAllLectures: "View all {count} lectures",
+  },
+  tr: {
+    // Header
+    siteTitle: "AI & LLM Dersleri",
+    search: "Ara...",
+    toggleLanguage: "İngilizce'ye geç",
+    
+    // Sidebar
+    selectLanguage: "Dil Seçin",
+    
+    // Common
+    loading: "Yükleniyor...",
+    error: "Hata",
+    close: "Kapat",
+    copy: "Kopyala",
+    copied: "Kopyalandı!",
+    
+    // Diagram
+    openFullscreen: "Tam ekranda aç",
+    zoomIn: "Yakınlaştır",
+    zoomOut: "Uzaklaştır",
+    resetZoom: "Yakınlaştırmayı sıfırla",
+    diagram: "Diyagram",
+    
+    // Code blocks
+    showChartDefinition: "Grafik tanımını göster",
+    mermaidDiagramError: "Mermaid Diyagram Hatası",
+    
+    // Search
+    searchPlaceholder: "Dersleri ara...",
+    noResultsFound: "Sonuç bulunamadı.",
+    
+    // Navigation
+    home: "Ana Sayfa",
+    
+    // Home page
+    heroTitle: "AI & LLM Dersleri",
+    heroDescription: "Prompting, Büyük Dil Modelleri ve AI Araçları hakkında öğrenmek için kapsamlı ders kaynakları.",
+    beginnerLectures: "Başlangıç Dersleri",
+    advancedLectures: "İleri Düzey Dersler",
+    getStarted: "Başlayın",
+    viewAll: "Tümünü Gör",
+    startWith: "Güçlü bir temel oluşturmak için",
+    toBuild: "ile başlayın.",
+    readyToStart: "Öğrenmeye Hazır mısınız?",
+    
+    // Category descriptions
+    promptingDesc: "AI modelleri için etkili promptlar oluşturma sanatını öğrenin",
+    llmDesc: "Büyük Dil Modelleri ve mimarilerine derinlemesine dalış",
+    aiToolingDesc: "AI geliştirme için araçlar ve çerçeveleri keşfedin",
+    reasoningDesc: "AI düşünme yeteneklerini geliştirmek için gelişmiş akıl yürütme kalıpları",
+    resourcesDesc: "Ek öğrenme materyalleri ve referanslar",
+    beginner: "Başlangıç",
+    advanced: "İleri",
+    viewAllLectures: "Tüm {count} dersi görüntüle",
+  },
+} as const;
+
+export type Language = keyof typeof translations;
+export type TranslationKey = keyof typeof translations.en;
+
+export function getTranslation(lang: Language, key: TranslationKey): string {
+  return translations[lang][key] || translations.en[key];
+}

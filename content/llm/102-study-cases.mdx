@@ -48,6 +48,24 @@ Guidelines:
 
 Response:
 """`}
+  turkish={`customer_support_prompt = """
+TechCorp için yardımsever bir müşteri destek temsilcisisiniz.
+
+Şirket Bilgisi:
+- İade politikası: Kullanılmamış ürünler için 30 gün
+- Kargo: Standart 3-5 iş günü
+- Destek saatleri: 09:00 - 18:00 EST
+
+Müşteri Sorusu: {query}
+
+Yönergeler:
+1. Dostane ve profesyonel olun
+2. Emin değilseniz, bir insana yönlendireceğinizi söyleyin
+3. Asla politika uydurmayın
+4. Her zaman daha fazla yardım teklif edin
+
+Yanıt:
+"""`}
   typescript={`const customerSupportPrompt = \`
 You are a helpful customer support agent for TechCorp.
 
@@ -145,6 +163,21 @@ Contract:
 
 Output as JSON:
 """`}
+  turkish={`extraction_prompt = """
+Bu sözleşmeyi analiz edin ve çıkarın:
+
+1. **Taraflar**: İsimler ve roller
+2. **Yürürlük Tarihi**: Sözleşmenin başladığı tarih
+3. **Süre**: Sözleşme süresi
+4. **Temel Yükümlülükler**: Ana sorumluluklar
+5. **Ödeme Koşulları**: Mali düzenlemeler
+6. **Fesih Maddeleri**: Sözleşmeyi sonlandırma yöntemi
+
+Sözleşme:
+{contract_text}
+
+JSON formatında çıktı:
+"""`}
   typescript={`const extractionPrompt = \`
 Analyze this contract and extract:
 
@@ -232,6 +265,22 @@ Include:
 5. Edge cases to consider
 
 Format as docstring:
+"""`}
+  turkish={`doc_gen_prompt = """
+Bu fonksiyon için kapsamlı dokümantasyon oluşturun:
+
+\`\`\`python
+{function_code}
+\`\`\`
+
+İçerik:
+1. Kısa açıklama
+2. Parametreler (isim, tip, açıklama)
+3. Dönüş değeri
+4. Kullanım örneği
+5. Dikkate alınacak uç durumlar
+
+Docstring formatında:
 """`}
   typescript={`const docGenPrompt = \`
 Generate comprehensive documentation for this function:
@@ -348,6 +397,25 @@ For each category, provide:
 
 Output as JSON.
 """`}
+  turkish={`moderation_prompt = """
+Bu içeriği politika ihlalleri için analiz edin:
+
+İçerik: {user_content}
+
+Kontrol edin:
+1. Nefret söylemi
+2. Şiddet/tehditler
+3. Yetişkin içeriği
+4. Spam/dolandırıcılık
+5. Yanlış bilgi
+
+Her kategori için sağlayın:
+- Tespit edildi: Evet/Hayır/Belirsiz
+- Güven: 0-100%
+- Açıklama: Bu değerlendirmenin nedeni
+
+JSON formatında çıktı.
+"""`}
   typescript={`const moderationPrompt = \`
 Analyze this content for policy violations:
 
@@ -451,6 +519,24 @@ Remember:
 - Celebrate small wins
 
 Your response:
+"""`}
+  turkish={`tutor_prompt = """
+{level} seviyesinde bir öğrenci için sabırlı bir matematik öğretmenisiniz.
+
+Öğrencinin sorusu: {question}
+
+Öğretim yaklaşımı:
+1. Onların seviyesindeki kavramla başlayın
+2. İlgili örnekler kullanın
+3. Adımlara ayırın
+4. Bir pratik problemiyle anlayışı kontrol edin
+
+Unutmayın:
+- Cesaretlendirici dil kullanın
+- Kafaları karışmış görünüyorsa uyarlayın
+- Küçük başarıları kutlayın
+
+Yanıtınız:
 """`}
   typescript={`const tutorPrompt = \`
 You are a patient math tutor for a \${level} student.

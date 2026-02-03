@@ -5,6 +5,7 @@ import { Check, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/contexts/language-context";
 
 interface CodeExample {
   language: string;
@@ -14,6 +15,7 @@ interface CodeExample {
 
 interface MultiLanguageCodeProps {
   python: string;
+  turkish: string;
   typescript: string;
   csharp: string;
   dart: string;
@@ -22,6 +24,7 @@ interface MultiLanguageCodeProps {
 
 const languageConfig: Record<string, { label: string; extension: string; highlightLang: string }> = {
   python: { label: "Python", extension: "py", highlightLang: "python" },
+  turkish: { label: "Türkçe", extension: "tr", highlightLang: "python" },
   typescript: { label: "TypeScript", extension: "ts", highlightLang: "typescript" },
   csharp: { label: "C#", extension: "cs", highlightLang: "csharp" },
   dart: { label: "Dart", extension: "dart", highlightLang: "dart" },
@@ -29,6 +32,7 @@ const languageConfig: Record<string, { label: string; extension: string; highlig
 
 export function MultiLanguageCode({
   python,
+  turkish,
   typescript,
   csharp,
   dart,
@@ -36,9 +40,11 @@ export function MultiLanguageCode({
 }: MultiLanguageCodeProps) {
   const [selectedLanguage, setSelectedLanguage] = useState<keyof typeof languageConfig>("python");
   const [copied, setCopied] = useState(false);
+  const { t } = useLanguage();
 
   const codeExamples: CodeExample[] = [
     { language: "python", code: python, label: languageConfig.python.label },
+    { language: "turkish", code: turkish, label: languageConfig.turkish.label },
     { language: "typescript", code: typescript, label: languageConfig.typescript.label },
     { language: "csharp", code: csharp, label: languageConfig.csharp.label },
     { language: "dart", code: dart, label: languageConfig.dart.label },
@@ -60,8 +66,10 @@ export function MultiLanguageCode({
     <div className="my-6">
       {/* Language selector badges */}
       <div className="mb-2 flex items-center gap-2 flex-wrap">
-        {title && (
+        {title ? (
           <span className="text-xs text-muted-foreground font-medium">{title}:</span>
+        ) : (
+          <span className="text-xs text-muted-foreground font-medium">{t("selectLanguage")}:</span>
         )}
         {codeExamples.map((example) => (
           <Badge

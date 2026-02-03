@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Fira_Code } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
+import { LanguageProvider } from "@/contexts/language-context";
 import { PasswordGateWrapper } from "@/components/password-gate-wrapper";
 import { getPasswordConfig } from "@/lib/config";
 import "./globals.css";
@@ -38,13 +39,15 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <PasswordGateWrapper
-            enabled={passwordConfig.enabled}
-            password={passwordConfig.value}
-            message={passwordConfig.message}
-          >
-            {children}
-          </PasswordGateWrapper>
+          <LanguageProvider>
+            <PasswordGateWrapper
+              enabled={passwordConfig.enabled}
+              password={passwordConfig.value}
+              message={passwordConfig.message}
+            >
+              {children}
+            </PasswordGateWrapper>
+          </LanguageProvider>
         </ThemeProvider>
       </body>
     </html>

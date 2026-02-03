@@ -23,20 +23,47 @@ export function getAllCategories(): string[] {
   });
 }
 
-export function getLecturesByCategory(category: string): LectureMeta[] {
+export function getLecturesByCategory(category: string, language: "en" | "tr" = "en"): LectureMeta[] {
   const categoryPath = path.join(contentDirectory, category);
   
   if (!fs.existsSync(categoryPath)) {
     return [];
   }
 
-  const files = fs.readdirSync(categoryPath).filter((file) => file.endsWith(".mdx"));
+  // Get all .mdx files
+  const allFiles = fs.readdirSync(categoryPath).filter((file) => file.endsWith(".mdx"));
+  
+  // Extract unique slugs (remove language suffix)
+  const slugMap = new Map<string, { file: string; priority: number }>();
+  
+  allFiles.forEach((file) => {
+    let slug = file.replace(/\.mdx$/, "");
+    let priority = 0;
+    
+    // Check if it's a language-specific file
+    if (file.endsWith(`.${language}.mdx`)) {
+      // Language-specific file gets highest priority
+      slug = slug.replace(`.${language}`, "");
+      priority = 2;
+    } else if (file.endsWith(`.en.mdx`) || file.endsWith(`.tr.mdx`)) {
+      // Other language file - skip for this language
+      return;
+    } else {
+      // Default file (no language suffix) - lower priority
+      priority = 1;
+    }
+    
+    // Use this file if we don't have one yet, or if it has higher priority
+    const existing = slugMap.get(slug);
+    if (!existing || priority > existing.priority) {
+      slugMap.set(slug, { file, priority });
+    }
+  });
 
-  const lectures = files.map((file) => {
+  const lectures = Array.from(slugMap.entries()).map(([slug, { file }]) => {
     const filePath = path.join(categoryPath, file);
     const fileContents = fs.readFileSync(filePath, "utf8");
     const { data } = matter(fileContents);
-    const slug = file.replace(/\.mdx$/, "");
 
     return {
       title: data.title || slug,
@@ -51,20 +78,31 @@ export function getLecturesByCategory(category: string): LectureMeta[] {
   return lectures.sort((a, b) => a.order - b.order);
 }
 
-export function getAllLectures(): LectureMeta[] {
+export function getAllLectures(language: "en" | "tr" = "en"): LectureMeta[] {
   const categories = getAllCategories();
   const allLectures: LectureMeta[] = [];
 
   categories.forEach((category) => {
-    const lectures = getLecturesByCategory(category);
+    const lectures = getLecturesByCategory(category, language);
     allLectures.push(...lectures);
   });
 
   return allLectures;
 }
 
-export function getLecture(category: string, slug: string): LectureWithContent | null {
-  const filePath = path.join(contentDirectory, category, `${slug}.mdx`);
+export function getLecture(category: string, slug: string, language: "en" | "tr" = "en"): LectureWithContent | null {
+  // Try language-specific file first (e.g., 101.tr.mdx)
+  let filePath = path.join(contentDirectory, category, `${slug}.${language}.mdx`);
+  
+  // If language-specific file doesn't exist and language is Turkish, fall back to English
+  if (!fs.existsSync(filePath) && language === "tr") {
+    filePath = path.join(contentDirectory, category, `${slug}.mdx`);
+  }
+  
+  // If still doesn't exist, try default (English) file
+  if (!fs.existsSync(filePath)) {
+    filePath = path.join(contentDirectory, category, `${slug}.mdx`);
+  }
 
   if (!fs.existsSync(filePath)) {
     return null;
@@ -93,11 +131,11 @@ const categoryTitles: Record<string, string> = {
   resources: "Resources",
 };
 
-export function getNavigation() {
+export function getNavigation(language: "en" | "tr" = "en") {
   const categories = getAllCategories();
 
   const navigation = categories.map((category) => {
-    const lectures = getLecturesByCategory(category);
+    const lectures = getLecturesByCategory(category, language);
     // Use predefined title or format automatically
     const formattedCategory = categoryTitles[category] || category
       .split("-")

@@ -11,6 +11,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import { useLanguage } from "@/contexts/language-context";
 
 interface SearchItem {
   title: string;
@@ -34,6 +35,7 @@ const categoryIcons: Record<string, React.ComponentType<{ className?: string }>>
 
 export function SearchCommand({ items, open, onOpenChange }: SearchCommandProps) {
   const router = useRouter();
+  const { t } = useLanguage();
 
   React.useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -64,9 +66,9 @@ export function SearchCommand({ items, open, onOpenChange }: SearchCommandProps)
 
   return (
     <CommandDialog open={open} onOpenChange={onOpenChange}>
-      <CommandInput placeholder="Search lectures..." />
+      <CommandInput placeholder={t("searchPlaceholder")} />
       <CommandList>
-        <CommandEmpty>No results found.</CommandEmpty>
+        <CommandEmpty>{t("noResultsFound")}</CommandEmpty>
         {Object.entries(groupedItems).map(([category, categoryItems]) => {
           const Icon = categoryIcons[category] || FileText;
           const formattedCategory = category

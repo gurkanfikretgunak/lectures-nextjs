@@ -35,6 +35,11 @@ prompt = "Summarize the following article in 3 bullet points:"
 
 # Vague instruction (avoid this)
 vague_prompt = "Do something with this text:"`}
+  turkish={`# İyi talimat
+prompt = "Aşağıdaki makaleyi 3 madde halinde özetle:"
+
+# Belirsiz talimat (bundan kaçının)
+belirsiz_prompt = "Bu metinle bir şeyler yap:"`}
   typescript={`// Good instruction
 const prompt = "Summarize the following article in 3 bullet points:";
 
@@ -62,6 +67,12 @@ You are a technical writer specializing in software documentation.
 Your audience is beginner developers.
 
 Task: Explain what an API is in simple terms.
+"""`}
+  turkish={`prompt = """
+Yazılım dokümantasyonu konusunda uzman bir teknik yazarsınız.
+Hedef kitleniz yeni başlayan geliştiricilerdir.
+
+Görev: API'nin ne olduğunu basit terimlerle açıklayın.
 """`}
   typescript={`const prompt = \`
 You are a technical writer specializing in software documentation.
@@ -95,6 +106,10 @@ Specify how you want the response structured.
   python={`prompt = """
 List the main programming paradigms.
 Format: Return as a numbered list with a brief description for each.
+"""`}
+  turkish={`prompt = """
+Ana programlama paradigmalarını listeleyin.
+Format: Her biri için kısa bir açıklama ile numaralı liste olarak döndürün.
 """`}
   typescript={`const prompt = \`
 List the main programming paradigms.
@@ -145,6 +160,10 @@ flowchart TB
 Convert the following text to uppercase:
 Text: hello world
 """`}
+  turkish={`instruction = """
+Aşağıdaki metni büyük harfe dönüştür:
+Metin: merhaba dünya
+"""`}
   typescript={`const instruction = \`
 Convert the following text to uppercase:
 Text: hello world
@@ -165,6 +184,10 @@ Text: hello world
   python={`role_prompt = """
 You are an expert Python developer with 10 years of experience.
 Review the following code and suggest improvements:
+"""`}
+  turkish={`role_prompt = """
+10 yıllık deneyime sahip uzman bir Python geliştiricisisiniz.
+Aşağıdaki kodu inceleyin ve iyileştirme önerileri sunun:
 """`}
   typescript={`const rolePrompt = \`
 You are an expert TypeScript developer with 10 years of experience.
@@ -192,6 +215,16 @@ Examples:
 - 25°C → 77°F
 
 Now convert: 37°C → ?
+"""`}
+  turkish={`few_shot = """
+Sıcaklıkları Celsius'tan Fahrenheit'a dönüştür.
+
+Örnekler:
+- 0°C → 32°F
+- 100°C → 212°F
+- 25°C → 77°F
+
+Şimdi dönüştür: 37°C → ?
 """`}
   typescript={`const fewShot = \`
 Convert temperatures from Celsius to Fahrenheit.

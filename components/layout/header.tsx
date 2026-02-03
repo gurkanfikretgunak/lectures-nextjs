@@ -3,8 +3,10 @@
 import Link from "next/link";
 import { GraduationCap, Search } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { LanguageToggle } from "@/components/language-toggle";
 import { MobileSidebar } from "@/components/layout/mobile-sidebar";
 import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/contexts/language-context";
 
 interface NavItem {
   title: string;
@@ -24,6 +26,8 @@ interface HeaderProps {
 }
 
 export function Header({ navigation, onSearchOpen }: HeaderProps) {
+  const { t } = useLanguage();
+
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex h-16 items-center px-4 lg:px-6">
@@ -32,7 +36,7 @@ export function Header({ navigation, onSearchOpen }: HeaderProps) {
         <Link href="/" className="flex items-center gap-2 ml-2 lg:ml-0">
           <GraduationCap className="h-6 w-6" />
           <span className="font-semibold text-lg hidden sm:inline-block">
-            AI & LLM Lectures
+            {t("siteTitle")}
           </span>
         </Link>
 
@@ -45,7 +49,7 @@ export function Header({ navigation, onSearchOpen }: HeaderProps) {
             onClick={onSearchOpen}
           >
             <Search className="h-4 w-4" />
-            <span className="text-sm">Search...</span>
+            <span className="text-sm">{t("search")}</span>
             <kbd className="pointer-events-none hidden h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground sm:flex">
               <span className="text-xs">⌘</span>K
             </kbd>
@@ -58,6 +62,7 @@ export function Header({ navigation, onSearchOpen }: HeaderProps) {
           >
             <Search className="h-5 w-5" />
           </Button>
+          <LanguageToggle />
           <ThemeToggle />
         </div>
       </div>
