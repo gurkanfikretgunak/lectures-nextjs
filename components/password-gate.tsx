@@ -22,7 +22,6 @@ export function PasswordGate({ password, message, onAuthenticated }: PasswordGat
   const [isOpen, setIsOpen] = useState(false);
   const [inputPassword, setInputPassword] = useState("");
   const [error, setError] = useState("");
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -31,7 +30,6 @@ export function PasswordGate({ password, message, onAuthenticated }: PasswordGat
     // Check if already authenticated in this session
     const authStatus = sessionStorage.getItem("lecture_auth");
     if (authStatus === "authenticated") {
-      setIsAuthenticated(true);
       setIsOpen(false);
       return;
     }
@@ -46,7 +44,6 @@ export function PasswordGate({ password, message, onAuthenticated }: PasswordGat
 
     if (inputPassword === password) {
       sessionStorage.setItem("lecture_auth", "authenticated");
-      setIsAuthenticated(true);
       setIsOpen(false);
       onAuthenticated?.();
       // Trigger storage event for other components
@@ -94,7 +91,7 @@ export function PasswordGate({ password, message, onAuthenticated }: PasswordGat
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
                     e.preventDefault();
-                    handleSubmit(e as any);
+                    handleSubmit(e as React.FormEvent);
                   }
                 }}
                 autoFocus

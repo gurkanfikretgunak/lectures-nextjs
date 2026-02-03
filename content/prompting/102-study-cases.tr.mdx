@@ -1,0 +1,1322 @@
+---
+title: "Prompting 102 - Çalışma Örnekleri"
+description: "Prompt mühendisliği için pratik çalışma örnekleri"
+category: "prompting"
+level: 102
+order: 2
+---
+
+# Prompting Çalışma Örnekleri
+
+Bu ders, etkili prompt mühendisliği tekniklerini gösteren gerçek dünya çalışma örneklerini sunar.
+
+## Çalışma Örneği 1: Kod İnceleme Asistanı
+
+### Zorluk
+
+En iyi uygulamalar, hatalar ve iyileştirmeler için Python kodunu inceleyen ve uygulanabilir geri bildirim sağlayan bir prompt oluşturun.
+
+### Çözüm
+
+<Mermaid chart={`
+flowchart TB
+    Code[Girdi Kodu] --> Prompt[İnceleme Promptu]
+    Prompt --> Analysis[Kod Analizi]
+    Analysis --> Bugs[Hata Tespiti]
+    Analysis --> Style[Stil Sorunları]
+    Analysis --> Perf[Performans]
+    Analysis --> Security[Güvenlik Sorunları]
+    Bugs --> Report[İnceleme Raporu]
+    Style --> Report
+    Perf --> Report
+    Security --> Report
+`} />
+
+### Temel Prompt
+
+<MultiLanguageCode
+  python={`code_review_prompt = """
+Kıdemli bir Python geliştiricisi olarak kod incelemesi yapıyorsunuz.
+
+İnceleme Kılavuzu:
+1. Potansiyel hataları ve uç durumları kontrol edin
+2. Kod stilini değerlendirin (PEP 8 uyumluluğu)
+3. Performans etkilerini değerlendirin
+4. Örneklerle iyileştirme önerileri sunun
+
+İncelenecek Kod:
+\`\`\`python
+def calculate_average(numbers):
+    total = 0
+    for n in numbers:
+        total = total + n
+    return total / len(numbers)
+\`\`\`
+
+İncelemenizi bu formatta sağlayın:
+## Hatalar/Sorunlar
+## Stil Önerileri
+## Performans Önerileri
+## İyileştirilmiş Kod
+"""`}
+  turkish={`code_review_prompt = """
+Kıdemli bir Python geliştiricisi olarak kod incelemesi yapıyorsunuz.
+
+İnceleme Kılavuzu:
+1. Potansiyel hataları ve uç durumları kontrol edin
+2. Kod stilini değerlendirin (PEP 8 uyumluluğu)
+3. Performans etkilerini değerlendirin
+4. Örneklerle iyileştirme önerileri sunun
+
+İncelenecek Kod:
+\`\`\`python
+def calculate_average(numbers):
+    total = 0
+    for n in numbers:
+        total = total + n
+    return total / len(numbers)
+\`\`\`
+
+İncelemenizi bu formatta sağlayın:
+## Hatalar/Sorunlar
+## Stil Önerileri
+## Performans Önerileri
+## İyileştirilmiş Kod
+"""`}
+  typescript={`const codeReviewPrompt = \`
+Kıdemli bir TypeScript geliştiricisi olarak kod incelemesi yapıyorsunuz.
+
+İnceleme Kılavuzu:
+1. Potansiyel hataları ve uç durumları kontrol edin
+2. Kod stilini değerlendirin (TypeScript en iyi uygulamaları)
+3. Performans etkilerini değerlendirin
+4. Örneklerle iyileştirme önerileri sunun
+
+İncelenecek Kod:
+\`\`\`typescript
+function calculateAverage(numbers: number[]): number {
+    let total = 0;
+    for (const n of numbers) {
+        total = total + n;
+    }
+    return total / numbers.length;
+}
+\`\`\`
+
+İncelemenizi bu formatta sağlayın:
+## Hatalar/Sorunlar
+## Stil Önerileri
+## Performans Önerileri
+## İyileştirilmiş Kod
+\`;`}
+  csharp={`var codeReviewPrompt = @"
+Kıdemli bir C# geliştiricisi olarak kod incelemesi yapıyorsunuz.
+
+İnceleme Kılavuzu:
+1. Potansiyel hataları ve uç durumları kontrol edin
+2. Kod stilini değerlendirin (C# kuralları)
+3. Performans etkilerini değerlendirin
+4. Örneklerle iyileştirme önerileri sunun
+
+İncelenecek Kod:
+\`\`\`csharp
+public static double CalculateAverage(List<int> numbers)
+{
+    int total = 0;
+    foreach (var n in numbers)
+    {
+        total = total + n;
+    }
+    return total / numbers.Count;
+}
+\`\`\`
+
+İncelemenizi bu formatta sağlayın:
+## Hatalar/Sorunlar
+## Stil Önerileri
+## Performans Önerileri
+## İyileştirilmiş Kod
+";`}
+  dart={`final codeReviewPrompt = """
+Kıdemli bir Dart geliştiricisi olarak kod incelemesi yapıyorsunuz.
+
+İnceleme Kılavuzu:
+1. Potansiyel hataları ve uç durumları kontrol edin
+2. Kod stilini değerlendirin (Dart stil kılavuzu)
+3. Performans etkilerini değerlendirin
+4. Örneklerle iyileştirme önerileri sunun
+
+İncelenecek Kod:
+\`\`\`dart
+double calculateAverage(List<int> numbers) {
+    int total = 0;
+    for (var n in numbers) {
+        total = total + n;
+    }
+    return total / numbers.length;
+}
+\`\`\`
+
+İncelemenizi bu formatta sağlayın:
+## Hatalar/Sorunlar
+## Stil Önerileri
+## Performans Önerileri
+## İyileştirilmiş Kod
+""";`}
+/>
+
+### Örneklerle Gelişmiş Prompt
+
+```python
+advanced_code_review_prompt = """
+10+ yıl deneyime sahip kıdemli bir Python geliştiricisi olarak kapsamlı bir kod incelemesi yapıyorsunuz.
+
+İncelenecek Kod:
+\`\`\`python
+{code}
+\`\`\`
+
+Kodu sistematik olarak inceleyin:
+
+1. **Hata Tespiti**
+   - Mantık hatalarını kontrol edin
+   - Uç durumları belirleyin (boş girdiler, None değerleri, tip uyumsuzlukları)
+   - Potansiyel çalışma zamanı istisnalarını arayın
+   - Sınır koşullarını doğrulayın
+
+2. **Kod Stili ve En İyi Uygulamalar**
+   - PEP 8 uyumluluğu
+   - Pythonic deyimler (list comprehensions, generator expressions)
+   - İsimlendirme kuralları
+   - Fonksiyon uzunluğu ve karmaşıklığı
+   - Dokümantasyon (docstrings)
+
+3. **Performans Analizi**
+   - Zaman karmaşıklığı (Big O)
+   - Uzay karmaşıklığı
+   - Gereksiz işlemler
+   - Optimizasyon fırsatları
+
+4. **Güvenlik Endişeleri**
+   - Girdi doğrulama
+   - SQL injection riskleri (varsa)
+   - XSS güvenlik açıkları (varsa)
+   - Hassas veri maruziyeti
+
+5. **Bakım Kolaylığı**
+   - Kod okunabilirliği
+   - Modülerlik
+   - Hata yönetimi
+   - Test edilebilirlik
+
+İncelemenizi bu yapılandırılmış formatta sağlayın:
+
+## Kritik Sorunlar
+[Herhangi bir hata veya kritik sorunu listeleyin]
+
+## Stil ve En İyi Uygulamalar
+[Örneklerle stil önerileri]
+
+## Performans
+[Performans analizi ve öneriler]
+
+## Güvenlik
+[Varsa güvenlik endişeleri]
+
+## Önerilen İyileştirmeler
+[Açıklamalarla yeniden düzenlenmiş kod]
+"""
+```
+
+### Örnek Çıktı
+
+Yukarıdaki promptu kullanırken, örnek bir inceleme çıktısı:
+
+**İncelenecek Kod:**
+```python
+def calculate_average(numbers):
+    total = 0
+    for n in numbers:
+        total = total + n
+    return total / len(numbers)
+```
+
+**İnceleme Çıktısı:**
+
+#### Kritik Sorunlar
+
+1. **Sıfıra bölme**: `numbers` boşsa, `len(numbers)` 0 olur ve `ZeroDivisionError` oluşturur
+2. **Tip işleme**: `numbers`'ın yinelenebilir olduğu veya sayısal değerler içerdiği doğrulanmıyor
+
+#### Stil ve En İyi Uygulamalar
+
+1. Manuel döngü yerine yerleşik `sum()` fonksiyonunu kullanın
+2. Tip ipuçları ve docstring eksik
+3. `n` değişken adı açıklayıcı değil
+
+#### Performans
+
+1. Mevcut: O(n) zaman, O(1) uzay - kabul edilebilir
+2. Büyük veri setleriyle çalışıyorsanız generator kullanılabilir
+
+#### Güvenlik
+
+1. Girdi doğrulama yok - beklenmeyen istisnalar oluşturabilir
+
+## Önerilen İyileştirmeler
+```python
+from typing import List, Union
+
+def calculate_average(numbers: List[Union[int, float]]) -> float:
+    """
+    Bir sayı listesinin ortalamasını hesaplar.
+    
+    Args:
+        numbers: Sayısal değerlerin listesi
+        
+    Returns:
+        Sayıların ortalaması
+        
+    Raises:
+        ValueError: Liste boşsa
+        TypeError: Liste sayısal olmayan değerler içeriyorsa
+    """
+    if not numbers:
+        raise ValueError("Boş listenin ortalaması hesaplanamaz")
+    
+    if not all(isinstance(n, (int, float)) for n in numbers):
+        raise TypeError("Tüm öğeler sayısal olmalıdır")
+    
+    return sum(numbers) / len(numbers)
+```
+
+### Sonuçlar
+
+Yapılandırılmış prompt şunları içeren kapsamlı kod incelemeleri üretir:
+
+1. **Belirlenen uç durumlar**: Boş liste işleme, tip doğrulama
+2. **Stil iyileştirmeleri**: `sum()` kullanımı, tip ipuçları, docstrings
+3. **Performans optimizasyonları**: Algoritma verimliliği analizi
+4. **Güvenlik değerlendirmeleri**: Girdi doğrulama ve hata yönetimi
+5. **Yeniden düzenlenmiş kod örnekleri**: Açıklamalarla tam çözümler
+
+### Prompt Varyasyonları
+
+**Hızlı İnceleme (basit kod için):**
+
+<MultiLanguageCode
+  python={`quick_review = """
+Bu kodu bariz hatalar için hızlıca inceleyin:
+{code}
+
+"Tamam" yanıtı verin veya kritik sorunları listeleyin.
+"""`}
+  turkish={`quick_review = """
+Bu kodu bariz hatalar için hızlıca inceleyin:
+{code}
+
+"Tamam" yanıtı verin veya kritik sorunları listeleyin.
+"""`}
+  typescript={`const quickReview = \`
+Bu kodu bariz hatalar için hızlıca inceleyin:
+\${code}
+
+"Tamam" yanıtı verin veya kritik sorunları listeleyin.
+\`;`}
+  csharp={`var quickReview = @"
+Bu kodu bariz hatalar için hızlıca inceleyin:
+{code}
+
+""Tamam"" yanıtı verin veya kritik sorunları listeleyin.
+";`}
+  dart={`final quickReview = """
+Bu kodu bariz hatalar için hızlıca inceleyin:
+\$code
+
+"Tamam" yanıtı verin veya kritik sorunları listeleyin.
+""";`}
+/>
+
+**Detaylı İnceleme (üretim kodu için):**
+
+<MultiLanguageCode
+  python={`detailed_review = """
+Kapsamlı bir kod incelemesi yapın:
+- Birim test önerileri
+- Entegrasyon değerlendirmeleri
+- Dokümantasyon gereksinimleri
+- Yeniden düzenleme fırsatları
+
+Kod:
+{code}
+"""`}
+  turkish={`detailed_review = """
+Kapsamlı bir kod incelemesi yapın:
+- Birim test önerileri
+- Entegrasyon değerlendirmeleri
+- Dokümantasyon gereksinimleri
+- Yeniden düzenleme fırsatları
+
+Kod:
+{code}
+"""`}
+  typescript={`const detailedReview = \`
+Kapsamlı bir kod incelemesi yapın:
+- Birim test önerileri
+- Entegrasyon değerlendirmeleri
+- Dokümantasyon gereksinimleri
+- Yeniden düzenleme fırsatları
+
+Kod:
+\${code}
+\`;`}
+  csharp={`var detailedReview = @"
+Kapsamlı bir kod incelemesi yapın:
+- Birim test önerileri
+- Entegrasyon değerlendirmeleri
+- Dokümantasyon gereksinimleri
+- Yeniden düzenleme fırsatları
+
+Kod:
+{code}
+";`}
+  dart={`final detailedReview = """
+Kapsamlı bir kod incelemesi yapın:
+- Birim test önerileri
+- Entegrasyon değerlendirmeleri
+- Dokümantasyon gereksinimleri
+- Yeniden düzenleme fırsatları
+
+Kod:
+\$code
+""";`}
+/>
+
+## Çalışma Örneği 2: İçerik Özetleme
+
+### Zorluk
+
+Anahtar bilgileri korurken ve okunabilirliği sürdürürken uzun teknik belgeleri özetleyin.
+
+<Mermaid chart={`
+flowchart LR
+    Doc[Uzun Belge] --> Extract[Anahtar Noktalar Çıkarma]
+    Extract --> Compress[Bilgi Sıkıştırma]
+    Compress --> Format[Çıktı Formatlama]
+    Format --> Summary[Özlü Özet]
+`} />
+
+### Temel Prompt Şablonu
+
+```python
+summarization_prompt = """
+Aşağıdaki teknik belgeyi özetleyin.
+
+Gereksinimler:
+- Teknik doğruluğu koruyun
+- Anahtar kavramları vurgulayın
+- Ana fikirler için madde işaretleri kullanın
+- Önemli sayıları/istatistikleri dahil edin
+- Maksimum 200 kelime
+
+Belge:
+{document_text}
+
+Özet:
+"""
+```
+
+### Gelişmiş Özetleme Promptları
+
+**Yönetici Özeti:**
+```python
+executive_summary_prompt = """
+Bu belge için C-seviyesi yöneticiler için bir yönetici özeti oluşturun.
+
+Odaklanın:
+- Gerekli ana kararlar
+- Mali etkiler
+- Riskler ve fırsatlar
+- Eylem maddeleri
+
+Belge:
+{document}
+
+Yönetici Özeti (maksimum 150 kelime):
+"""
+```
+
+**Teknik Özet:**
+```python
+technical_summary_prompt = """
+Bu teknik belgeyi yazılım mühendisleri için özetleyin.
+
+Dahil edin:
+- Temel kavramlar ve mimari
+- Uygulama detayları
+- Kod örnekleri (varsa)
+- Bağımlılıklar ve gereksinimler
+- Anahtar çıkarımlar
+
+Belge:
+{document}
+
+Teknik Özet:
+"""
+```
+
+**Çok Seviyeli Özet:**
+```python
+multi_level_summary = """
+Farklı uzunluklarda üç özet oluşturun:
+
+1. **Tek cümle özeti** (hızlı referans için)
+2. **Paragraf özeti** (genel bakış için)
+3. **Detaylı özet** (kapsamlı anlayış için)
+
+Belge:
+{document}
+
+Özetler:
+"""
+```
+
+### Özetleme Teknikleri
+
+| Teknik | Kullanım Durumu | Örnek |
+|-----------|----------|---------|
+| Çıkarımsal | Kesin gerçekleri koru | "Sistem günde 1M istek işliyor" |
+| Özetleyici | Kavramları yoğunlaştır | "Yüksek verimli işleme sistemi" |
+| Hiyerarşik | Çok seviyeli detay | Tek satır → Paragraf → Tam özet |
+| Soru tabanlı | Belirli sorguları yanıtla | "Ana bulgu nedir?" |
+
+### Örnek Çıktı
+
+**Girdi:** Mikroservisler hakkında 2000 kelimelik teknik makale
+
+**Çıktı:**
+```markdown
+## Tek Cümle Özeti
+Mikroservis mimarisi ölçeklenebilirliği artırır ancak dikkatli servis tasarımı ve izleme gerektirir.
+
+## Paragraf Özeti
+Mikroservisler uygulamaları API'ler aracılığıyla iletişim kuran bağımsız servislere böler. Ana faydalar arasında bağımsız dağıtım, teknoloji çeşitliliği ve geliştirilmiş ölçeklenebilirlik bulunur. Ancak zorluklar arasında dağıtık sistem karmaşıklığı, ağ gecikmesi ve servis koordinasyonu yer alır. En iyi uygulamalar API sürümleme, devre kesiciler ve kapsamlı izlemeyi içerir.
+
+## Detaylı Özet
+[Bölümlerle tam yapılandırılmış özet]
+```
+
+## Çalışma Örneği 3: Çok Dilli Çeviri
+
+### Zorluk
+
+Ton, kültürel bağlam ve teknik doğruluğu korurken içeriği çevirin.
+
+### Temel Çeviri Promptu
+
+```python
+translation_prompt = """
+{source_lang} ile {target_lang} çevirisi konusunda uzman profesyonel bir çevirmensiniz.
+
+Çeviri Kılavuzu:
+- Orijinal tonu koruyun (resmi/gayri resmi)
+- Kültürel referansları uygun şekilde uyarlayın
+- Teknik terminoloji doğruluğunu koruyun
+- Çevrilemez kavramları işaretleyin
+
+Orijinal ({source_lang}):
+{text}
+
+Çeviri ({target_lang}):
+"""
+```
+
+### Gelişmiş Çeviri Promptları
+
+**Bağlam Farkındalıklı Çeviri:**
+```python
+context_translation = """
+Bu metni {source_lang} dilinden {target_lang} diline çevirin.
+
+Bağlam: {context}
+Hedef Kitle: {audience}
+Ton: {tone}
+
+Özel Talimatlar:
+- Teknik terimler: {technical_terms_guidance}
+- Kültürel referanslar: {cultural_guidance}
+- Formatlama: Markdown/HTML yapısını koruyun
+
+Orijinal Metin:
+{text}
+
+Çeviri:
+"""
+```
+
+**Teknik Çeviri:**
+```python
+technical_translation = """
+Bu teknik dokümantasyonu {source_lang} dilinden {target_lang} diline çevirin.
+
+Gereksinimler:
+- Kod parçacıklarını değiştirmeden bırakın
+- Teknik doğruluğu koruyun
+- {domain} alanından standart terminoloji kullanın
+- Formatlama ve yapıyı koruyun
+- Kod içindeki yorumları çevirin
+
+Dokümantasyon:
+{documentation}
+
+Çevrilmiş Dokümantasyon:
+"""
+```
+
+**Yaratıcı Çeviri:**
+```python
+creative_translation = """
+Bu yaratıcı içeriği {source_lang} dilinden {target_lang} diline çevirin.
+
+Koruyun:
+- Edebi stil ve ses
+- Metaforlar ve deyimler (gerekirse uyarlayın)
+- Duygusal ton
+- Ritim ve akış
+
+Orijinal:
+{text}
+
+Çeviri:
+"""
+```
+
+### Çeviri Kalite Kontrol Listesi
+
+```python
+translation_quality_prompt = """
+Bu çeviriyi kalite açısından gözden geçirin:
+
+Orijinal ({source_lang}):
+{original}
+
+Çeviri ({target_lang}):
+{translation}
+
+Kontrol edin:
+1. Doğruluk: Aynı anlamı iletir mi?
+2. Doğallık: {target_lang} dilinde doğal geliyor mu?
+3. Tamlık: Eksik bir şey var mı?
+4. Ton: Ton korunuyor mu?
+5. Terminoloji: Teknik terimler doğru mu?
+
+Geri bildirim sağlayın:
+"""
+```
+
+## Çalışma Örneği 4: Veri Çıkarma
+
+### Zorluk
+
+Yapılandırılmamış metinden yüksek doğrulukla yapılandırılmış veri çıkarın.
+
+<Mermaid chart={`
+flowchart TB
+    Raw[Yapılandırılmamış Metin] --> Parse[İçerik Ayrıştırma]
+    Parse --> Identify[Varlıkları Belirleme]
+    Identify --> Validate[Veri Doğrulama]
+    Validate --> Structure[Veri Yapılandırma]
+    Structure --> JSON[JSON Çıktı]
+`} />
+
+### Temel Çıkarma Promptu
+
+```python
+extraction_prompt = """
+Metinden aşağıdaki bilgileri çıkarın ve JSON olarak döndürün:
+- Şirket adları
+- Bahsedilen tarihler
+- Para birimi değerleri
+- Anahtar kişiler
+
+Metin:
+"15 Mart 2024'te Acme Corp, CEO John Smith liderliğinde 50 milyon dolarlık bir yatırım duyurdu."
+
+Çıktı formatı:
+{
+  "companies": [],
+  "dates": [],
+  "monetary_values": [],
+  "people": []
+}
+"""
+```
+
+### Gelişmiş Çıkarma Promptları
+
+**Doğrulamalı Yapılandırılmış Çıkarma:**
+```python
+structured_extraction = """
+Bu metinden yapılandırılmış veri çıkarın ve geçerli JSON olarak döndürün.
+
+Metin:
+{text}
+
+Çıkarın:
+1. **Varlıklar**
+   - Organizasyonlar (şirketler, kurumlar)
+   - Kişiler (isimler, unvanlar)
+   - Konumlar (şehirler, ülkeler, adresler)
+   - Ürünler/Hizmetler
+
+2. **Zamansal Bilgi**
+   - Tarihler (YYYY-MM-DD formatında)
+   - Saatler
+   - Süreler
+
+3. **Finansal Bilgi**
+   - Tutarlar (para birimi ile)
+   - Yüzdeler
+   - Finansal metrikler
+
+4. **İlişkiler**
+   - Kim hangi organizasyon için çalışıyor
+   - Ne ne zaman oldu
+   - Finansal ilişkiler
+
+Bu yapıyla JSON olarak çıktı:
+{
+  "entities": {
+    "organizations": [],
+    "people": [],
+    "locations": [],
+    "products": []
+  },
+  "temporal": {
+    "dates": [],
+    "times": [],
+    "durations": []
+  },
+  "financial": {
+    "amounts": [],
+    "percentages": [],
+    "metrics": []
+  },
+  "relationships": []
+}
+
+Tüm tarihlerin ISO formatında ve tutarların para birimi kodlarıyla olduğundan emin olun.
+"""
+```
+
+**E-posta Çıkarma:**
+```python
+email_extraction = """
+Bu e-postadan anahtar bilgileri çıkarın:
+
+E-posta:
+{email}
+
+Çıkarın:
+- Gönderen adı ve e-postası
+- Alıcılar
+- Konu
+- Gönderim tarihi
+- Ana eylem maddeleri
+- Bahsedilen ekler
+- Aciliyet seviyesi (belirtilmişse)
+- Anahtar tarihler/son tarihler
+
+JSON olarak çıktı.
+"""
+```
+
+**Fatura Çıkarma:**
+```python
+invoice_extraction = """
+Bu belgeden fatura detaylarını çıkarın:
+
+Belge:
+{document}
+
+Çıkarın:
+- Fatura numarası
+- Düzenleme tarihi
+- Vade tarihi
+- Satıcı bilgileri (ad, adres, vergi kimlik numarası)
+- Müşteri bilgileri
+- Kalemler (açıklama, miktar, birim fiyat, toplam)
+- Ara toplam
+- Vergi tutarı ve oranı
+- Toplam tutar
+- Ödeme koşulları
+- Ödeme yöntemleri
+
+Fatura şemasıyla eşleşen yapılandırılmış JSON olarak çıktı.
+"""
+```
+
+### Hata Yönetimli Çıkarma
+
+```python
+extraction_with_validation = """
+Bu metinden veri çıkarın. Bilgi eksik veya belirsizse, null kullanın veya belirsizliği belirtin.
+
+Metin:
+{text}
+
+Çıkarın:
+{fields}
+
+Her alan için:
+- Bulunduysa: değeri sağlayın
+- Bulunamadıysa: null kullanın
+- Belirsizse: "?" önekiyle değeri kullanın
+
+Her çıkarılan alan için güven skorları (0-1) ile JSON çıktı.
+"""
+```
+
+## Çalışma Örneği 5: Soru-Cevap Sistemi
+
+### Zorluk
+
+Sağlanan bağlamı kullanarak soruları doğru bir şekilde yanıtlayan bir prompt oluşturun.
+
+### Temel QA Promptu
+
+<MultiLanguageCode
+  python={`qa_prompt = """
+Sağlanan bağlama göre soruyu yanıtlayın.
+
+Bağlam:
+{context}
+
+Soru: {question}
+
+Yanıt:
+"""`}
+  turkish={`qa_prompt = """
+Sağlanan bağlama göre soruyu yanıtlayın.
+
+Bağlam:
+{context}
+
+Soru: {question}
+
+Yanıt:
+"""`}
+  typescript={`const qaPrompt = \`
+Sağlanan bağlama göre soruyu yanıtlayın.
+
+Bağlam:
+\${context}
+
+Soru: \${question}
+
+Yanıt:
+\`;`}
+  csharp={`var qaPrompt = @"
+Sağlanan bağlama göre soruyu yanıtlayın.
+
+Bağlam:
+{context}
+
+Soru: {question}
+
+Yanıt:
+";`}
+  dart={`final qaPrompt = """
+Sağlanan bağlama göre soruyu yanıtlayın.
+
+Bağlam:
+\$context
+
+Soru: \$question
+
+Yanıt:
+""";`}
+/>
+
+### Gelişmiş QA Promptları
+
+**Çok Adımlı Akıl Yürütme:**
+<MultiLanguageCode
+  python={`reasoning_qa = """
+Sağlanan bağlamı kullanarak soruyu adım adım yanıtlayın.
+
+Bağlam:
+{context}
+
+Soru: {question}
+
+Adım adım düşünün:
+1. Bu soruyu yanıtlamak için hangi bilgilere ihtiyaç var?
+2. Bağlamda hangi ilgili bilgiler var?
+3. Bu bilgileri nasıl birleştirebilirim?
+4. Son cevap nedir?
+
+Yanıt:
+"""`}
+  turkish={`reasoning_qa = """
+Sağlanan bağlamı kullanarak soruyu adım adım yanıtlayın.
+
+Bağlam:
+{context}
+
+Soru: {question}
+
+Adım adım düşünün:
+1. Bu soruyu yanıtlamak için hangi bilgilere ihtiyaç var?
+2. Bağlamda hangi ilgili bilgiler var?
+3. Bu bilgileri nasıl birleştirebilirim?
+4. Son cevap nedir?
+
+Yanıt:
+"""`}
+  typescript={`const reasoningQA = \`
+Sağlanan bağlamı kullanarak soruyu adım adım yanıtlayın.
+
+Bağlam:
+\${context}
+
+Soru: \${question}
+
+Adım adım düşünün:
+1. Bu soruyu yanıtlamak için hangi bilgilere ihtiyaç var?
+2. Bağlamda hangi ilgili bilgiler var?
+3. Bu bilgileri nasıl birleştirebilirim?
+4. Son cevap nedir?
+
+Yanıt:
+\`;`}
+  csharp={`var reasoningQA = @"
+Sağlanan bağlamı kullanarak soruyu adım adım yanıtlayın.
+
+Bağlam:
+{context}
+
+Soru: {question}
+
+Adım adım düşünün:
+1. Bu soruyu yanıtlamak için hangi bilgilere ihtiyaç var?
+2. Bağlamda hangi ilgili bilgiler var?
+3. Bu bilgileri nasıl birleştirebilirim?
+4. Son cevap nedir?
+
+Yanıt:
+";`}
+  dart={`final reasoningQA = """
+Sağlanan bağlamı kullanarak soruyu adım adım yanıtlayın.
+
+Bağlam:
+\$context
+
+Soru: \$question
+
+Adım adım düşünün:
+1. Bu soruyu yanıtlamak için hangi bilgilere ihtiyaç var?
+2. Bağlamda hangi ilgili bilgiler var?
+3. Bu bilgileri nasıl birleştirebilirim?
+4. Son cevap nedir?
+
+Yanıt:
+""";`}
+/>
+
+**Alıntılarla QA:**
+```python
+qa_with_citations = """
+Sağlanan bağlamı kullanarak soruyu yanıtlayın. Cevabınızı destekleyen belirli bölümleri alıntılayın.
+
+Bağlam:
+{context}
+
+Soru: {question}
+
+Yanıt formatı:
+Yanıt: [Yanıtınız]
+
+Destekleyici Kanıt:
+- [Alıntı 1] (X bölümünden)
+- [Alıntı 2] (Y bölümünden)
+
+Yanıt:
+"""
+```
+
+**Belirsizlik Yönetimi:**
+```python
+qa_with_uncertainty = """
+Bağlama göre soruyu yanıtlayın. Cevap bağlamdan belirlenemiyorsa, bunu belirtin.
+
+Bağlam:
+{context}
+
+Soru: {question}
+
+Sağlayın:
+1. Yanıt (mümkünse)
+2. Güven seviyesi (Yüksek/Orta/Düşük)
+3. Akıl yürütme
+4. Eksik bilgi (varsa)
+
+Yanıt:
+"""
+```
+
+## Çalışma Örneği 6: Metin Sınıflandırma
+
+### Zorluk
+
+Tutarlı ve doğru sonuçlarla metni kategorilere ayırın.
+
+### Temel Sınıflandırma Promptu
+
+```python
+classification_prompt = """
+Bu metni şu kategorilerden birine sınıflandırın:
+- Pozitif
+- Negatif
+- Nötr
+
+Metin: {text}
+
+Kategori:
+"""
+```
+
+### Gelişmiş Sınıflandırma
+
+**Çok Etiketli Sınıflandırma:**
+```python
+multi_label_classification = """
+Bu metni sınıflandırın. Birden fazla kategoriye ait olabilir.
+
+Kategoriler:
+- Teknoloji
+- İş
+- Bilim
+- Sağlık
+- Eğlence
+- Spor
+- Politika
+
+Metin: {text}
+
+Uygulanabilir kategorilerin JSON dizisi olarak çıktı:
+"""
+```
+
+**Açıklamalı Duygu Analizi:**
+```python
+sentiment_analysis = """
+Bu metnin duygusunu analiz edin.
+
+Metin: {text}
+
+Sağlayın:
+1. Genel duygu (Pozitif/Negatif/Nötr)
+2. Duygu skoru (0-1, 1 en pozitif)
+3. Duyguyu gösteren anahtar ifadeler
+4. Duygusal ton (örn. kızgın, mutlu, endişeli)
+
+JSON olarak çıktı.
+"""
+```
+
+## Çalışma Örneği 7: İçerik Üretimi
+
+### Zorluk
+
+Belirli gereksinimleri ve stili takip ederek yüksek kaliteli içerik üretin.
+
+### Blog Yazısı Üretimi
+
+```python
+blog_post_prompt = """
+{topic} hakkında bir blog yazısı yazın.
+
+Gereksinimler:
+- Hedef kitle: {audience}
+- Ton: {tone}
+- Uzunluk: {word_count} kelime
+- Dahil edin: Giriş, 3-5 ana nokta, sonuç
+- Örnekler ve benzetmeler kullanın
+- Bir çağrı eylemi dahil edin
+
+Yapı:
+1. Çekici başlık
+2. İlk paragrafta kanca
+3. Alt başlıklarla ana içerik
+4. Anahtar çıkarımlarla sonuç
+
+Konu: {topic}
+
+Blog Yazısı:
+"""
+```
+
+### E-posta Üretimi
+
+```python
+email_generation = """
+Aşağıdaki detaylarla profesyonel bir e-posta yazın:
+
+Amaç: {purpose}
+Alıcı: {recipient}
+Ton: {tone}
+Dahil edilecek anahtar noktalar:
+{points}
+
+Gereksinimler:
+- Net konu satırı
+- Profesyonel selamlama
+- İyi yapılandırılmış gövde
+- Uygun kapanış
+
+E-posta:
+"""
+```
+
+### Ürün Açıklaması
+
+```python
+product_description = """
+İkna edici bir ürün açıklaması yazın.
+
+Ürün: {product_name}
+Özellikler: {features}
+Hedef müşteriler: {target_audience}
+Ton: {tone}
+
+Dahil edin:
+- Dikkat çekici başlık
+- Anahtar faydalar (sadece özellikler değil)
+- Kullanım durumları
+- Çağrı eylemi
+
+Ürün Açıklaması:
+"""
+```
+
+## Çalışma Örneği 8: Prompt Zincirleme
+
+### Zorluk
+
+Karmaşık görevleri prompt zincirleme kullanarak birden fazla adıma bölün.
+
+### Çok Adımlı Analiz
+
+```python
+# Adım 1: Anahtar bilgileri çıkar
+extraction_step = """
+Bu belgeden anahtar bilgileri çıkarın:
+{document}
+
+Çıkarın:
+- Ana konu
+- Anahtar noktalar
+- Önemli tarihler/sayılar
+- Eylem maddeleri
+
+Yapılandırılmış JSON olarak çıktı.
+"""
+
+# Adım 2: Çıkarılan bilgileri analiz et
+analysis_step = """
+Bu çıkarılan bilgileri analiz edin:
+{extracted_data}
+
+Sağlayın:
+- Özet
+- İçgörüler
+- Öneriler
+- Riskler/fırsatlar
+
+Analiz:
+"""
+
+# Adım 3: Rapor oluştur
+report_step = """
+Şunlara dayalı kapsamlı bir rapor oluşturun:
+- Orijinal belge özeti: {summary}
+- Analiz: {analysis}
+
+Yönetici raporu formatında:
+- Yönetici özeti
+- Anahtar bulgular
+- Öneriler
+- Sonraki adımlar
+
+Rapor:
+"""
+```
+
+### Yinelemeli İyileştirme
+
+```python
+# İlk üretim
+initial_prompt = """
+{topic} hakkında bir ilk taslak yazın:
+"""
+
+# İyileştirme
+refinement_prompt = """
+Bu taslağı iyileştirin:
+{draft}
+
+Odaklanın:
+- Netlik
+- Yapı
+- Örnekler
+- Etkileşim
+
+İyileştirilmiş versiyon:
+"""
+
+# Son rötuş
+polish_prompt = """
+Bu içeriği yayın için düzenleyin:
+{content}
+
+Kontrol edin:
+- Dil bilgisi ve yazım
+- Akış ve geçişler
+- Tutarlılık
+- Formatlama
+
+Son versiyon:
+"""
+```
+
+## Prompt Mühendisliği En İyi Uygulamaları
+
+### 1. Spesifik Olun
+
+**Kötü:**
+```text
+Bu belgeyi özetleyin.
+```
+
+**İyi:**
+```text
+Ana kararlar, mali etkiler ve eylem maddelerine odaklanarak bu belgenin 200 kelimelik bir yönetici özetini oluşturun. Ana fikirler için madde işaretleri kullanın.
+```
+
+### 2. Örnekler Sağlayın
+
+**Kötü:**
+```text
+Metinden tarihleri çıkarın.
+```
+
+**İyi:**
+```text
+Metinden tarihleri çıkarın ve YYYY-MM-DD formatında formatlayın.
+
+Örnek:
+Girdi: "Toplantı 15 Mart 2024'te"
+Çıktı: "2024-03-15"
+
+Metin: {text}
+```
+
+### 3. Yapılandırılmış Çıktı Kullanın
+
+**Kötü:**
+```text
+Bu kodu inceleyin.
+```
+
+**İyi:**
+```text
+Bu kodu inceleyin ve bu formatta geri bildirim sağlayın:
+
+## Hatalar
+[Hataları listeleyin]
+
+## Stil Sorunları
+[Stil sorunlarını listeleyin]
+
+## Öneriler
+[Öneriler sağlayın]
+
+Kod: {code}
+```
+
+### 4. Kısıtlamalar Belirleyin
+
+**Kötü:**
+```text
+Bir özet yazın.
+```
+
+**İyi:**
+```text
+Şunları içeren bir özet yazın:
+- Tam olarak 150 kelime
+- Basit dil kullanın (8. sınıf seviyesi)
+- En az 3 anahtar nokta dahil edin
+- Bir sonuçla bitirin
+
+Belge: {document}
+```
+
+### 5. Rol ve Bağlam Dahil Edin
+
+**Kötü:**
+```text
+Bu metni çevirin.
+```
+
+**İyi:**
+```text
+Teknik dokümantasyon konusunda uzman profesyonel bir çevirmensiniz. Bu metni İngilizce'den İspanyolca'ya çevirin, teknik doğruluğu koruyarak ve kod örneklerini koruyarak.
+
+Metin: {text}
+```
+
+## Yaygın Prompt Kalıpları
+
+| Kalıp | Kullanım Durumu | Örnek |
+|---------|----------|---------|
+| Rol + Görev | Uzman analizi | "Kıdemli bir geliştiricisiniz. Bu kodu inceleyin..." |
+| Few-Shot Öğrenme | Tutarlı format | Görevden önce 2-3 örnek sağlayın |
+| Zincir Düşünce | Karmaşık akıl yürütme | "Adım adım düşünün: 1) ... 2) ..." |
+| Çıktı Formatı | Yapılandırılmış veri | "Alanlarla JSON olarak çıktı: ..." |
+| Kısıtlamalar | Kalite kontrolü | "Maksimum 200 kelime, basit dil kullanın" |
+| Yinelemeli İyileştirme | Kalite iyileştirme | Üret → İncele → İyileştir |
+
+## Anahtar Çıkarımlar
+
+| Teknik | Kullanım Durumu | Fayda |
+|-----------|----------|---------|
+| Rol Atama | Kod İnceleme, Çeviri | Uzman seviyesi analiz |
+| Yapılandırılmış Çıktı | Veri Çıkarma, Sınıflandırma | Tutarlı format |
+| Kılavuzlar ve Kısıtlamalar | Özetleme, Üretim | Kalite kontrolü |
+| Örnekler (Few-Shot) | Karmaşık görevler | Daha iyi doğruluk |
+| Zincir Düşünce | Akıl yürütme görevleri | Şeffaf süreç |
+| Prompt Zincirleme | Çok adımlı görevler | Daha iyi organizasyon |
+| Yinelemeli İyileştirme | İçerik üretimi | Daha yüksek kalite |
+
+## Pratik Alıştırmalar
+
+1. **Test Durumu Üretimi**: Bir fonksiyon için kapsamlı test durumları üreten bir prompt oluşturun
+2. **Kod Açıklama**: Kodu yeni başlayanlara açıklamak için bir prompt tasarlayın
+3. **API Dokümantasyonu**: Koddan API dokümantasyonu üreten bir prompt oluşturun
+4. **Toplantı Notları**: Toplantı transkriptlerini eylem maddelerine özetleyen bir prompt oluşturun
+5. **Kod Yeniden Düzenleme**: Yeniden düzenleme iyileştirmeleri öneren bir prompt tasarlayın
+
+## Özet
+
+Etkili prompt mühendisliği gerektirir:
+
+- **Netlik**: Ne istediğiniz konusunda spesifik olun
+- **Yapı**: Net formatlama ve organizasyon kullanın
+- **Bağlam**: İlgili arka plan bilgileri sağlayın
+- **Örnekler**: İyi çıktının nasıl göründüğünü gösterin
+- **Kısıtlamalar**: Kalite kontrolü için sınırlar belirleyin
+- **Yineleme**: Sonuçlara göre promptları iyileştirin
+
+Bu çalışma örnekleri, net talimatlar, bağlam, çıktı formatları ve örneklerle yapılandırılmış promptların önemli ölçüde daha iyi AI yanıtlarına nasıl yol açtığını gösterir. Anahtar, görevi AI'nın perspektifinden düşünmek ve istenen çıktıyı üretmek için gereken tüm bilgileri sağlamaktır.

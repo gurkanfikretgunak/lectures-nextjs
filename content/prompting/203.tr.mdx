@@ -1,0 +1,588 @@
+---
+title: "Prompting 203 - Mimari-olarak-Kod & Token Ekonomisi"
+description: "Programlanabilir yönetişim, token verimliliği ve bağlam penceresi optimizasyonu"
+category: "prompting"
+level: 203
+order: 5
+---
+
+# Mimari-olarak-Kod & Token Ekonomisi
+
+Bu gelişmiş ders, üretim AI sistemleri için programlanabilir yönetişim kalıplarını, token verimliliği stratejilerini ve bağlam penceresi optimizasyon tekniklerini kapsar.
+
+## 1. Programlanabilir Yönetişim: Mimari-olarak-Kod
+
+Mimari-olarak-Kod, mühendislik standartlarınızı ve mimari kararlarınızı doğrudan kod tabanınıza kodlamanıza olanak tanır, böylece LLM'ler tarafından uygulanabilir hale gelirler.
+
+<Mermaid chart={`
+flowchart TB
+    Standards[Mühendislik Standartları] --> Code[Dokümantasyon olarak Kod]
+    Code --> LLM[LLM Anlayışı]
+    LLM --> Validation[Mimari Doğrulama]
+    Validation --> Enforcement[Otomatik Uygulama]
+    
+    subgraph Patterns [Yönetişim Kalıpları]
+        Copilot[GitHub Copilot Talimatları]
+        ReactLM[React-LM Kalıpları]
+        Boundaries[Mimari Sınırlar]
+    end
+    
+    Patterns --> Standards
+`} />
+
+### 1.1. GitHub Copilot Talimatları
+
+GitHub Copilot Talimatları (`.github/copilot-instructions.md`) LLM'iniz için bir "Anayasa" görevi görür ve kurumsal standartları ve en iyi uygulamaları belirler.
+
+**Uygulama:**
+
+Depo kökünüzde `.github/copilot-instructions.md` oluşturun:
+
+```markdown
+# Proje Mimari Standartları
+
+## Kod Stili
+- Strict mod ile TypeScript kullanın
+- Sınıf bileşenleri yerine fonksiyonel bileşenleri tercih edin
+- Varsayılan exportlar yerine isimli exportlar kullanın
+
+## Dosya Organizasyonu
+- Bileşenler: `src/components/{ComponentName}/index.tsx`
+- Hook'lar: `src/hooks/use{FeatureName}.ts`
+- Yardımcılar: `src/utils/{utilityName}.ts`
+
+## İsimlendirme Kuralları
+- Bileşenler: PascalCase (örn., `UserProfile`)
+- Hook'lar: "use" öneki ile camelCase (örn., `useUserData`)
+- Sabitler: UPPER_SNAKE_CASE (örn., `API_BASE_URL`)
+
+## Mimari Kurallar
+- `../` importlarından 2 seviyeden fazla derinlikte asla import yapmayın
+- Domain katmanı Infrastructure katmanından asla import yapmamalı
+- Harici servisler için bağımlılık enjeksiyonu kullanın
+```
+```
+
+**Faydalar:**
+
+- Ekip genelinde tutarlı kod üretimi
+- Kod inceleme süresi azalması
+- Uygulanan mimari sınırlar
+- Kendi kendini dokümante eden kod tabanı
+
+### 1.2. React Mimari Standardizasyonu (React-LM)
+
+React-LM kalıpları, LLM'lerin React state hiyerarşisini ve bileşen ilişkilerini %100 doğrulukla anlamasını sağlar, böylece AI'nın "prop drilling" veya yanlış context kullanımı gibi hataları tasarım zamanında yakalamasına olanak tanır.
+
+**React-LM Kalıp Örneği:**
+
+```typescript
+// ✅ İyi: React-LM Kalıbı
+// Bileşen yapısı net ve AI dostu
+
+/**
+ * @react-lm-pattern: State Management
+ * - Yerel state: Bileşene özgü veriler için useState
+ * - Paylaşılan state: Bileşenler arası veriler için Context API
+ * - Sunucu state: Async veriler için React Query
+ */
+
+interface UserProfileProps {
+  userId: string;
+  // @react-lm-boundary: Props açık olmalı, prop drilling yok
+}
+
+export function UserProfile({ userId }: UserProfileProps) {
+  // @react-lm-state: Sadece UI endişeleri için yerel state
+  const [isEditing, setIsEditing] = useState(false);
+  
+  // @react-lm-context: Context API ile paylaşılan state
+  const { user } = useUserContext();
+  
+  // @react-lm-query: React Query ile sunucu state
+  const { data: profile } = useUserProfile(userId);
+  
+  return (
+    <div>
+      {/* Bileşen uygulaması */}
+    </div>
+  );
+}
+```
+
+**Anti-Kalıp Tespiti:**
+
+```typescript
+// ❌ Kötü: Prop drilling - AI bunu işaretlemeli
+function ComponentA() {
+  const data = fetchData();
+  return <ComponentB data={data} />;
+}
+
+function ComponentB({ data }) {
+  return <ComponentC data={data} />;
+}
+
+function ComponentC({ data }) {
+  return <div>{data}</div>; // Prop drilling tespit edildi
+}
+
+// ✅ İyi: Context API - AI bunu önermeli
+const DataContext = createContext();
+
+function ComponentA() {
+  const data = fetchData();
+  return (
+    <DataContext.Provider value={data}>
+      <ComponentB />
+    </DataContext.Provider>
+  );
+}
+
+function ComponentC() {
+  const data = useContext(DataContext);
+  return <div>{data}</div>;
+}
+```
+
+### 1.3. Mimari Sınırlar
+
+Mimari ihlalleri önlemek için klasör yapısını ve katmanlar arası bağımlılık kısıtlamalarını tanımlayın.
+
+**Katman Mimarisi:**
+
+```
+src/
+├── domain/           # İş mantığı (harici bağımlılıklar yok)
+│   ├── entities/
+│   ├── use-cases/
+│   └── interfaces/
+├── infrastructure/   # Harici servisler (domain'e bağımlı olabilir)
+│   ├── api/
+│   ├── storage/
+│   └── services/
+└── presentation/     # UI katmanı (domain & infrastructure'a bağımlı olabilir)
+    ├── components/
+    ├── hooks/
+    └── pages/
+```
+
+**Bağımlılık Kuralları:**
+
+```typescript
+// ✅ İzin verilen: Presentation → Domain
+import { UserEntity } from '@/domain/entities';
+
+// ✅ İzin verilen: Infrastructure → Domain
+import { UserRepository } from '@/domain/interfaces';
+
+// ❌ Yasak: Domain → Infrastructure
+import { ApiClient } from '@/infrastructure/api'; // Hata!
+
+// ❌ Yasak: Domain → Presentation
+import { Button } from '@/presentation/components'; // Hata!
+```
+
+**ESLint ile Uygulama:**
+
+```javascript
+// .eslintrc.js
+module.exports = {
+  rules: {
+    'no-restricted-imports': [
+      'error',
+      {
+        patterns: [
+          {
+            group: ['@/infrastructure/*', '@/presentation/*'],
+            message: 'Domain katmanı infrastructure veya presentation katmanlarından import yapamaz',
+            from: '@/domain/**',
+          },
+        ],
+      },
+    ],
+  },
+};
+```
+
+## 2. Token Ekonomisi ve Atomik Yapılar
+
+Token ekonomisini anlamak, LLM uygulamalarında maliyet optimizasyonu ve performans için çok önemlidir.
+
+<Mermaid chart={`
+flowchart LR
+    Text[Kaynak Metin] --> Tokenize[Tokenizasyon]
+    Tokenize --> Tokens[Token Dizisi]
+    Tokens --> Cost[Maliyet Hesaplama]
+    Tokens --> Context[Bağlam Penceresi]
+    
+    subgraph Optimization [Optimizasyon Stratejileri]
+        Naming[Verimli İsimlendirme]
+        Structure[Atomik Yapılar]
+        Comments[Minimal Yorumlar]
+    end
+    
+    Optimization --> Text
+`} />
+
+### 2.1. Tokenizasyon Mantığı
+
+Modeller kelimeleri doğrudan işlemez—"token" parçalarına dönüştürülen sayısal vektörleri işlerler.
+
+**Tokenizasyon Nasıl Çalışır:**
+
+```python
+# Örnek: GPT tokenizasyonu
+text = "calculateAverage"
+# Tokenlar: ["calculate", "Average"] (2 token)
+
+text = "calculate_average"
+# Tokenlar: ["calculate", "_", "average"] (3 token)
+
+text = "calcAvg"
+# Tokenlar: ["calc", "Avg"] (2 token)
+
+# Daha kısa isimler bazen daha az token kullanabilir!
+```
+
+**Token Sayma:**
+
+```python
+import tiktoken
+
+# Farklı isimlendirme stilleri için token say
+encoder = tiktoken.encoding_for_model("gpt-4")
+
+names = [
+    "calculateUserProfileAverage",
+    "calcUserProfileAvg",
+    "calc_user_profile_avg",
+    "calcUserProfAvg"
+]
+
+for name in names:
+    tokens = encoder.encode(name)
+    print(f"{name}: {len(tokens)} token")
+```
+
+### 2.2. Yazma Stratejisi
+
+Gereksiz boilerplate kod ve aşırı uzun yorum satırları semantik gürültü yaratır ve Bağlam Penceresi maliyetlerini artırır.
+
+**Verimsiz Kod:**
+
+```typescript
+// ❌ Kötü: Ayrıntılı, token ağır
+/**
+ * Bu fonksiyon bir sayı dizisinden ortalama değeri hesaplar.
+ * Girdi olarak bir sayı dizisi alır ve ortalamayı döndürür.
+ * Dizi boşsa 0 döndürür.
+ * @param numbers - Ortalaması hesaplanacak sayı dizisi
+ * @returns Dizideki sayıların ortalama değeri
+ */
+function calculateAverageValueFromArrayOfNumbers(numbers: number[]): number {
+  if (numbers.length === 0) {
+    return 0;
+  }
+  let sum = 0;
+  for (let i = 0; i < numbers.length; i++) {
+    sum = sum + numbers[i];
+  }
+  return sum / numbers.length;
+}
+```
+
+**Verimli Kod:**
+
+```typescript
+// ✅ İyi: Özlü, token verimli
+/** Sayıların ortalamasını hesapla. Boşsa 0 döndür. */
+function avg(nums: number[]): number {
+  return nums.length ? nums.reduce((a, b) => a + b) / nums.length : 0;
+}
+```
+
+**Yorum Stratejisi:**
+
+```typescript
+// ❌ Kötü: Aşırı yorumlar
+// Sayaç değişkenini sıfıra başlat
+let counter = 0;
+
+// Sayaç değişkenini bir artır
+counter++;
+
+// Sayaç ondan büyük mü kontrol et
+if (counter > 10) {
+  // Sayaç değerini logla
+  console.log(counter);
+}
+
+// ✅ İyi: Kendi kendini dokümante eden kod
+let counter = 0;
+counter++;
+if (counter > 10) {
+  console.log(counter);
+}
+
+// Sadece "neden" açıklarken yorum yapın, "ne" değil
+// Dairesel tampon için sarmalama işlemini ele almak için modulo kullan
+const index = (current + offset) % buffer.length;
+```
+
+### 2.3. Verimlilik: Token-Optimize İsimlendirme
+
+Modeller değişken isimlerini token token ayrıştırdığından, hem okunabilir hem de token verimli isimlendirme standartları geliştirin.
+
+**İsimlendirme Karşılaştırması:**
+
+| Stil | Örnek | Tokenlar | Okunabilirlik | Verimlilik |
+|-------|---------|--------|-------------|------------|
+| Ayrıntılı | `calculateUserProfileAverage` | 4 | Yüksek | Düşük |
+| Kısaltılmış | `calcUserProfAvg` | 4 | Orta | Orta |
+| Kısa | `calcAvg` | 2 | Düşük | Yüksek |
+| Dengeli | `calcUserAvg` | 3 | Orta-Yüksek | Yüksek |
+
+**En İyi Uygulamalar:**
+
+```typescript
+// ✅ İyi: Dengeli yaklaşım
+// Kısa, yaygın kelimeler daha az token kullanır
+const user = getUser();
+const avg = calculateAvg(scores);
+const max = Math.max(...values);
+
+// Yaygın kısaltmalar anlaşılır
+const config = getConfig();
+const props = componentProps;
+const ctx = useContext();
+
+// ✅ İyi: Domain-spesifik kısaltmalar
+// Finansta: PnL (Kar ve Zarar), ROI (Yatırım Getirisi)
+const pnl = calculatePnL(trades);
+const roi = calculateROI(investment);
+
+// ❌ Kötü: Aşırı kısaltma anlamı kaybettirir
+const u = getUser(); // Çok kısa
+const cua = calcUserAvg(); // Belirsiz kısaltma
+```
+
+## 3. Bağlam Penceresi ve Bellek Yönetimi
+
+Bağlam Penceresini bir mühendislik kısıtlaması olarak yönetmek, üretim AI sistemleri için çok önemlidir.
+
+<Mermaid chart={`
+flowchart TB
+    Input[Girdi Verisi] --> Window[Bağlam Penceresi]
+    Window --> Capacity{Kapasite İçinde mi?}
+    Capacity -->|Evet| Process[İşle]
+    Capacity -->|Hayır| Chunk[Veriyi Parçala]
+    Chunk --> Process
+    
+    subgraph Optimization [Optimizasyon Teknikleri]
+        Priority[Öncelik Yerleştirme]
+        Chunking[Dosya Parçalama]
+        Summarization[Özetleme]
+    end
+    
+    Optimization --> Window
+`} />
+
+### 3.1. Bellek Kapasitesi
+
+Bir modelin Bağlam Penceresi, tek bir işlemde işleyebileceği maksimum veri miktarıdır—bunu bir mühendislik kısıtlaması olarak ele alın.
+
+**Bağlam Penceresi Limitleri:**
+
+| Model | Bağlam Penceresi | Kullanım Durumu |
+|-------|---------------|----------|
+| GPT-3.5 Turbo | 4K token | Basit görevler |
+| GPT-4 | 8K token | Standart görevler |
+| GPT-4 Turbo | 128K token | Uzun belgeler |
+| Claude 3 Opus | 200K token | Çok uzun belgeler |
+
+**Maliyet Etkileri:**
+
+```python
+# Bağlam penceresi kullanımı maliyeti etkiler
+# GPT-4: ~1K girdi tokenı başına $0.03, ~1K çıktı tokenı başına $0.06
+
+def calculate_cost(input_tokens, output_tokens):
+    input_cost = (input_tokens / 1000) * 0.03
+    output_cost = (output_tokens / 1000) * 0.06
+    return input_cost + output_cost
+
+# Örnek: 50K girdi tokenı, 5K çıktı tokenı
+cost = calculate_cost(50000, 5000)
+# Maliyet: $1.50 + $0.30 = $1.80 istek başına
+```
+
+### 3.2. "Ortada Kaybolma" Fenomeni
+
+Modeller büyük bağlam pencerelerinin ortasındaki detayları kaçırma eğilimindedir. En kritik talimatları promptunuzun başına veya sonuna yerleştirin.
+
+**Etkisiz Prompt Yapısı:**
+
+```text
+# ❌ Kötü: Kritik bilgi ortada
+Yardımcı bir asistansınız.
+
+İşte bazı arka plan bilgileri:
+[5000 token bağlam]
+
+ÖNEMLİ: İşlemeden önce her zaman kullanıcı girdisini doğrulayın.
+
+Daha fazla bağlam:
+[5000 token daha]
+
+Lütfen kullanıcıya yardımcı olun.
+```
+
+**Etkili Prompt Yapısı:**
+
+```text
+# ✅ İyi: Kritik bilgi başta
+Yardımcı bir asistansınız.
+
+KRİTİK TALİMATLAR:
+1. İşlemeden önce her zaman kullanıcı girdisini doğrulayın
+2. Sanitizasyon olmadan asla kod çalıştırmayın
+3. Hataları JSON formatında döndürün
+
+Bağlam:
+[10000 token bağlam]
+
+Yukarıdaki bağlamla kullanıcıya yardımcı olun.
+```
+
+**Öncelik Yerleştirme Stratejisi:**
+
+```python
+def build_prompt(critical_instructions, context, task):
+    """
+    Kritik talimatları başta ve sonda olan prompt oluştur.
+    """
+    return f"""
+{kritical_instructions}
+
+{context}
+
+Unutmayın:
+{kritical_instructions}
+
+Görev: {task}
+"""
+```
+
+### 3.3. Dosya Parçalama
+
+Büyük dosyaları atomik parçalara bölün, böylece model bunları etkili bir şekilde işleyebilir.
+
+**Parçalama Stratejileri:**
+
+```python
+from typing import List
+
+def chunk_file_by_lines(
+    content: str, 
+    max_lines: int = 100,
+    overlap: int = 10
+) -> List[str]:
+    """
+    Bağlam koruma için örtüşme ile dosyayı satırlara göre parçala.
+    """
+    lines = content.split('\n')
+    chunks = []
+    
+    for i in range(0, len(lines), max_lines - overlap):
+        chunk = '\n'.join(lines[i:i + max_lines])
+        chunks.append(chunk)
+    
+    return chunks
+
+def chunk_file_by_tokens(
+    content: str,
+    max_tokens: int = 1000,
+    tokenizer
+) -> List[str]:
+    """
+    Kesin bağlam penceresi yönetimi için token sayısına göre dosyayı parçala.
+    """
+    tokens = tokenizer.encode(content)
+    chunks = []
+    
+    for i in range(0, len(tokens), max_tokens):
+        chunk_tokens = tokens[i:i + max_tokens]
+        chunk = tokenizer.decode(chunk_tokens)
+        chunks.append(chunk)
+    
+    return chunks
+
+def chunk_file_semantically(
+    content: str,
+    max_tokens: int = 1000
+) -> List[str]:
+    """
+    Semantik sınırlara göre dosyayı parçala (paragraflar, bölümler).
+    """
+    # Çift satır sonlarına göre böl (paragraflar)
+    paragraphs = content.split('\n\n')
+    chunks = []
+    current_chunk = []
+    current_tokens = 0
+    
+    for para in paragraphs:
+        para_tokens = len(para.split())  # Yaklaşık
+        if current_tokens + para_tokens > max_tokens:
+            chunks.append('\n\n'.join(current_chunk))
+            current_chunk = [para]
+            current_tokens = para_tokens
+        else:
+            current_chunk.append(para)
+            current_tokens += para_tokens
+    
+    if current_chunk:
+        chunks.append('\n\n'.join(current_chunk))
+    
+    return chunks
+```
+
+**Parçalama En İyi Uygulamaları:**
+
+| Strateji | En İyi Kullanım | Artılar | Eksiler |
+|----------|----------|------|------|
+| Sabit Boyut | Genel metin | Basit, tahmin edilebilir | Kavramları bölebilir |
+| Token tabanlı | Kesin kontrol | Kesin token sayısı | Tokenizer gerektirir |
+| Semantik | Belgeler | Anlamı korur | Değişken boyutlar |
+| Örtüşen | Uzun bağlamlar | Sürekliliği korur | Gereksiz tokenlar |
+
+## Uygulama Kontrol Listesi
+
+### Mimari-olarak-Kod
+- [ ] `.github/copilot-instructions.md` oluşturun
+- [ ] React-LM kalıplarını uygulayın
+- [ ] Mimari sınırları tanımlayın
+- [ ] Katman uygulaması için ESLint kuralları kurun
+
+### Token Ekonomisi
+- [ ] Ayrıntılı isimlendirme için kod tabanını denetleyin
+- [ ] Token verimli isimlendirme standartlarını uygulayın
+- [ ] Gereksiz yorumları kaldırın
+- [ ] Boilerplate kodunu optimize edin
+
+### Bağlam Penceresi Yönetimi
+- [ ] Mevcut bağlam penceresi kullanımını ölçün
+- [ ] Parçalama stratejisi uygulayın
+- [ ] Öncelik yerleştirme ile promptları yeniden yapılandırın
+- [ ] Token maliyetlerini izleyin
+
+## Özet
+
+Anahtar çıkarımlar:
+
+1. **Programlanabilir Yönetişim**: LLM uygulaması için standartları kodda kodlayın
+2. **Token Verimliliği**: Okunabilirlik ile token maliyetlerini dengeleyin
+3. **Bağlam Yönetimi**: Bağlam penceresini bir mühendislik kısıtlaması olarak ele alın
+4. **Mimari Sınırlar**: Otomatik kurallar aracılığıyla ihlalleri önleyin
+
+Bu kalıplar hem maliyet etkin hem de bakımı kolay üretim hazır AI sistemlerini mümkün kılar.

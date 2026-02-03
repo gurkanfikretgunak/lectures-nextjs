@@ -11,7 +11,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/language-context";
 
 interface MermaidProps {
@@ -30,7 +29,6 @@ export function Mermaid({ chart }: MermaidProps) {
   const [zoom, setZoom] = useState(1.15); // Default zoom slightly above 1 for better visibility
   const [fullscreenZoom, setFullscreenZoom] = useState(1);
   const [isFullscreenOpen, setIsFullscreenOpen] = useState(false);
-  const [svgContent, setSvgContent] = useState<string | null>(null);
   const { resolvedTheme } = useTheme();
   const { t } = useLanguage();
 
@@ -79,9 +77,9 @@ export function Mermaid({ chart }: MermaidProps) {
       }
       
       return result.svg;
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Mermaid rendering error:", err);
-      const errorMessage = err?.message || err?.toString() || "Failed to render diagram";
+      const errorMessage = err instanceof Error ? err.message : String(err) || "Failed to render diagram";
       throw new Error(errorMessage);
     }
   }, [resolvedTheme]);
@@ -97,16 +95,13 @@ export function Mermaid({ chart }: MermaidProps) {
     }
 
     renderChart(containerRef, chart)
-      .then((svg) => {
-        if (svg) {
-          setSvgContent(svg);
-          setError(null);
-        }
+      .then(() => {
+        setError(null);
       })
       .catch((err) => {
-        setError(err.message);
+        setError(err instanceof Error ? err.message : String(err));
       });
-  }, [chart, resolvedTheme, mounted]);
+  }, [chart, resolvedTheme, mounted, renderChart]);
 
   // Render fullscreen chart when dialog opens
   useEffect(() => {

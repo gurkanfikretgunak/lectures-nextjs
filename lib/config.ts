@@ -24,7 +24,7 @@ export function getConfig(): Config {
     const fileContents = fs.readFileSync(configPath, "utf8");
     configCache = yaml.load(fileContents) as Config;
     return configCache!;
-  } catch (error) {
+  } catch {
     // Default config if file doesn't exist
     console.warn("config.yaml not found, using default config");
     return {

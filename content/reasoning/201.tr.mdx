@@ -1,0 +1,435 @@
+---
+title: "Bilişsel Akıl Yürütme Kalıpları - Gelişmiş Çerçeveler"
+description: "Mühendislerin AI'nın 'düşünme kapasitesini' manipüle etmesini sağlayan gelişmiş yöntemler"
+category: "reasoning"
+level: 201
+order: 1
+---
+
+# Bilişsel Akıl Yürütme Kalıpları - Gelişmiş Çerçeveler
+
+Mühendislerin AI'nın "düşünme kapasitesini" manipüle etmesini sağlayan gelişmiş yöntemler. Bu ders LLM'lerin mantıksal akıl yürütme yeteneklerini geliştiren gelişmiş kalıpları kapsar.
+
+## Gelişmiş Akıl Yürütme Çerçeveleri Genel Bakış
+
+<Mermaid chart={`
+flowchart TB
+    subgraph Patterns [Bilişsel Akıl Yürütme Kalıpları]
+        CoT[Zincir Düşünce<br/>Adım Adım Planlama]
+        CoVe[Doğrulama Zinciri<br/>Kendi Kendini Doğrulama Katmanı]
+        CoD[Yoğunluk Zinciri<br/>Bilgi Yoğunluğu]
+        ToT[Düşünce Ağacı<br/>Çoklu Çözüm Yolları]
+    end
+    
+    subgraph Applications [Uygulama Alanları]
+        Code[Kod Geliştirme]
+        Docs[Dokümantasyon]
+        Arch[Mimari Analiz]
+        Review[Kod İnceleme]
+    end
+    
+    CoT --> Code
+    CoVe --> Review
+    CoD --> Docs
+    ToT --> Arch
+`} />
+
+## Zincir Düşünce (CoT): "Önce Planla, Sonra Kodla"
+
+Zincir Düşünce, LLM'lerin düşünme sürecini adım adım göstermesini sağlar. Bu metodoloji mantıksal hataları %60 azaltır.
+
+### CoT Nasıl Çalışır
+
+<Mermaid chart={`
+flowchart LR
+    Problem[Karmaşık Problem] --> Step1[Adım 1: Problemi Anla]
+    Step1 --> Step2[Adım 2: Bileşenlere Ayır]
+    Step2 --> Step3[Adım 3: Her Bileşeni Çöz]
+    Step3 --> Step4[Adım 4: Çözümleri Birleştir]
+    Step4 --> Solution[Son Çözüm]
+`} />
+
+### Standart Prompting vs CoT
+
+```python
+# Standart Prompting - Yüksek Hata Riski
+standard_prompt = """
+Kullanıcı kimlik doğrulama sistemi oluşturun.
+"""
+
+# Zincir Düşünce Prompting - Mantıksal Hataları %60 Azaltır
+cot_prompt = """
+Kullanıcı kimlik doğrulama sistemi oluşturun.
+
+Önce planla, sonra kodla:
+
+Adım 1: Gereksinimleri Tanımla
+- Kullanıcı kaydı (e-posta, şifre)
+- Şifre hashleme (bcrypt)
+- JWT token üretimi
+- Token doğrulama middleware'i
+
+Adım 2: Veritabanı Şema Tasarımı
+- Kullanıcılar tablosu: id, email, password_hash, created_at
+
+Adım 3: API Endpoint'lerini Planla
+- POST /auth/register
+- POST /auth/login
+- GET /auth/me (korumalı)
+
+Adım 4: Güvenlik Kontrolleri
+- Şifre güçlülük kuralları
+- Hız sınırlama
+- CSRF koruması
+
+Şimdi kodu yaz:
+"""
+```
+
+### Sıfır-Shot CoT: Basit Ama Etkili
+
+Sadece "Adım adım düşünelim" eklemek akıl yürütmeyi iyileştirir:
+
+```python
+zero_shot_cot = """
+Bir REST API endpoint'i tasarla. Bu endpoint bir e-ticaret sitesinde 
+ürün arayacak.
+
+Adım adım düşünelim:
+"""
+```
+
+### CoT Kod Geliştirme Örneği
+
+```python
+cot_coding_prompt = """
+Bir önbellek geçersiz kılma stratejisi tasarla.
+
+Düşünme Süreci:
+1. Önbelleğin ne zaman geçersiz hale geldiğini belirle
+   - Veri güncellemeleri
+   - Veri silme
+   - İlgili veri değişiklikleri
+
+2. Geçersiz kılma stratejilerini değerlendir
+   - Zaman tabanlı: TTL kullan
+   - Olay tabanlı: Veri değiştiğinde temizle
+   - Etiket tabanlı: İlgili etiketleri temizle
+
+3. En iyi stratejiyi seç ve uygulama planı oluştur
+
+4. Kodu yaz
+"""
+```
+
+## Doğrulama Zinciri (CoVe): Kendi Kendini Doğrulama Katmanı
+
+CoVe, kod ürettikten sonra "Bellek sızıntıları veya güvenlik açıkları var mı? Kendi çözümünüzü gözden geçirin" diye sorarak bir kendi kendini doğrulama katmanı ekler.
+
+### CoVe Mimarisi
+
+<Mermaid chart={`
+flowchart TB
+    Generate[Kod Üret] --> Verify[Doğrulama Soruları Oluştur]
+    Verify --> Q1[Soru 1: Bellek sızıntıları?]
+    Verify --> Q2[Soru 2: Güvenlik açıkları?]
+    Verify --> Q3[Soru 3: Uç durumlar ele alındı mı?]
+    
+    Q1 --> Check1[Kod İncelemesi]
+    Q2 --> Check2[Güvenlik Analizi]
+    Q3 --> Check3[Uç Durum Testi]
+    
+    Check1 --> Revise[Gerekirse Revize Et]
+    Check2 --> Revise
+    Check3 --> Revise
+    
+    Revise --> Final[Son Kod]
+`} />
+
+### CoVe Uygulama Örneği
+
+```python
+cove_prompt = """
+Bir dosya yükleme fonksiyonu yaz.
+
+[Kod üretildi]
+
+Şimdi kendi çözümünüzü doğrulayın:
+
+Doğrulama Soruları:
+1. Bellek sızıntıları var mı?
+   - Dosya akışı düzgün kapatıldı mı?
+   - Tamponlar temizlendi mi?
+
+2. Güvenlik açıkları var mı?
+   - Dosya tipi kontrol edildi mi?
+   - Dosya boyutu sınırı var mı?
+   - Yol geçiş saldırılarına karşı korumalı mı?
+   - Dosya adlarından kötü amaçlı karakterler filtrelendi mi?
+
+3. Uç durumlar ele alındı mı?
+   - Disk doluysa ne olur?
+   - Dosya adı zaten varsa ne olur?
+   - Ağ hatalarında ne olur?
+
+Her soruyu kontrol edin ve gerekirse kodu revize edin.
+"""
+```
+
+### CoVe ile Güvenlik Kontrolü
+
+```python
+security_cove = """
+Bir SQL sorgu fonksiyonu yazdınız. Şimdi kontrol edin:
+
+1. SQL Injection açığı var mı?
+   - Parametreli sorgular kullanıldı mı?
+   - Kullanıcı girdisi doğrudan sorguya eklendi mi?
+
+2. XSS açığı var mı?
+   - Çıktı escape edildi mi?
+
+3. CSRF koruması var mı?
+   - Token kontrol edildi mi?
+
+Her açığı tespit edin ve düzeltin.
+"""
+```
+
+## Yoğunluk Zinciri (CoD): Bilgi Yoğunluğunu Artırma
+
+CoD, teknik dokümantasyon hazırlarken "Her yinelemede bilgi yoğunluğunu artır" kuralını takip ederek rafine raporlar üretir.
+
+### CoD Yinelemeli Süreç
+
+<Mermaid chart={`
+flowchart LR
+    V1[Sürüm 1<br/>Temel Bilgi] --> V2[Sürüm 2<br/>Detay Ekle]
+    V2 --> V3[Sürüm 3<br/>Örnek Ekle]
+    V3 --> V4[Sürüm 4<br/>En İyi Uygulamalar]
+    V4 --> Final[Rafine Dokümantasyon]
+`} />
+
+### CoD Dokümantasyon Örneği
+
+```python
+cod_documentation = """
+Bir API endpoint'i için dokümantasyon hazırla.
+
+Yineleme 1 - Temel Bilgi:
+POST /api/users
+- Kullanıcı oluşturur
+- E-posta ve şifre alır
+
+Yineleme 2 - Detay Ekle:
+POST /api/users
+- Kullanıcı oluşturur
+- İstek gövdesi: { email: string, password: string }
+- Yanıt: { id: number, email: string, created_at: timestamp }
+- Durum kodları: 201 (Oluşturuldu), 400 (Hatalı İstek), 409 (Çakışma)
+
+Yineleme 3 - Örnekler Ekle:
+İstek:
+{
+  "email": "user@example.com",
+  "password": "SecurePass123!"
+}
+
+Yanıt (201):
+{
+  "id": 42,
+  "email": "user@example.com",
+  "created_at": "2024-01-15T10:30:00Z"
+}
+
+Hata Yanıtı (400):
+{
+  "error": "Geçersiz e-posta formatı"
+}
+
+Yineleme 4 - En İyi Uygulamalar ve Uç Durumlar:
+- Şifre en az 8 karakter, büyük/küçük harf ve sayı içermeli
+- E-posta formatı RFC 5322 standardına uymalı
+- Tekrar eden e-posta kontrolü gerekli
+- Hız sınırlama: dakikada 5 istek
+- Şifre hashleme: bcrypt, maliyet faktörü 10
+"""
+```
+
+### CoD ile Teknik Rapor Hazırlama
+
+```python
+cod_report = """
+Bir sistem mimarisi analizi hazırla.
+
+Yineleme 1: Genel Bakış
+- Mikroservis mimarisi
+- 3 ana servis: Auth, Product, Order
+
+Yineleme 2: Detaylı Mimari
+- Auth Servisi: JWT tabanlı kimlik doğrulama
+- Product Servisi: RESTful API, PostgreSQL
+- Order Servisi: Olay güdümlü, RabbitMQ
+
+Yineleme 3: Teknik Detaylar
+- Veritabanı: PostgreSQL 14, bağlantı havuzlama
+- Önbellek: Redis, TTL 5 dakika
+- Mesaj Kuyruğu: RabbitMQ, dayanıklı kuyruklar
+- API Gateway: Kong, hız sınırlama
+
+Yineleme 4: Performans ve Güvenlik
+- Gecikme: P95 < 200ms
+- Verim: 1000 req/s
+- Güvenlik: OAuth 2.0, TLS 1.3
+- İzleme: Prometheus + Grafana
+- Hata yönetimi: Sentry entegrasyonu
+"""
+```
+
+## Düşünce Ağacı (ToT): Çoklu Çözüm Yolları
+
+ToT, mimari değiş tokuş analizleri için 3 farklı çözüm yolunu yan yana değerlendirmenizi sağlar.
+
+### ToT Yapısı
+
+<Mermaid chart={`
+flowchart TB
+    Problem[Mimari Problem] --> Branch1[Dal 1: Monolitik Yaklaşım]
+    Problem --> Branch2[Dal 2: Mikroservis Yaklaşımı]
+    Problem --> Branch3[Dal 3: Serverless Yaklaşım]
+    
+    Branch1 --> Eval1[Değerlendirme:<br/>+ Basit başlangıç<br/>- Ölçeklenebilirlik]
+    Branch2 --> Eval2[Değerlendirme:<br/>+ Ölçeklenebilirlik<br/>- Karmaşıklık]
+    Branch3 --> Eval3[Değerlendirme:<br/>+ Maliyet<br/>- Satıcı kilidi]
+    
+    Eval1 --> Compare[Karşılaştır ve En İyisini Seç]
+    Eval2 --> Compare
+    Eval3 --> Compare
+    
+    Compare --> Decision[Son Karar]
+`} />
+
+### ToT ile Mimari Değiş Tokuş Analizi
+
+```python
+tot_architecture = """
+Bir e-ticaret platformu için veritabanı stratejisi seç.
+
+Problem: Yüksek trafikli bir e-ticaret sitesi için veritabanı mimarisi
+
+3 Farklı Çözüm Yolunu Değerlendir:
+
+Dal 1: Tek PostgreSQL Veritabanı
+Avantajlar:
+- Basit kurulum ve bakım
+- ACID garantileri
+- İlişkisel sorgular kolay
+- Düşük başlangıç maliyeti
+
+Dezavantajlar:
+- Tek hata noktası
+- Ölçeklenebilirlik sınırlamaları
+- Okuma ağırlıklı iş yüklerinde darboğaz
+
+Dal 2: PostgreSQL + Okuma Replikaları
+Avantajlar:
+- Yüksek okuma performansı
+- Master-slave replikasyon
+- Failover desteği
+
+Dezavantajlar:
+- Replikasyon gecikmesi
+- Daha karmaşık kurulum
+- Daha yüksek maliyet
+
+Dal 3: PostgreSQL + Redis Önbellek Katmanı
+Avantajlar:
+- Çok hızlı okumalar (önbellek isabeti)
+- PostgreSQL güvenilirliği
+- Esnek önbellek stratejisi
+
+Dezavantajlar:
+- Önbellek geçersiz kılma karmaşıklığı
+- Yönetilecek iki sistem
+- Önbellek kaçırmada gecikme
+
+Karşılaştırma:
+- Trafik: Günlük 10M+ istek
+- Okuma/Yazma oranı: 80/20
+- Tutarlılık gereksinimi: Yüksek
+
+En İyi Çözüm: Dal 3 (PostgreSQL + Redis)
+- Okuma ağırlıklı iş yükü için optimize edilmiş
+- Önbellek ile performans artışı
+- PostgreSQL ile veri tutarlılığı
+"""
+```
+
+### ToT ile Performans Optimizasyonu
+
+```python
+tot_performance = """
+Bir API endpoint'i için performans optimizasyonu.
+
+Problem: /api/products endpoint'i yavaş (500ms+)
+
+3 Optimizasyon Yolunu Değerlendir:
+
+Yol 1: Veritabanı Sorgu Optimizasyonu
+- İndeksler ekle
+- N+1 sorgu problemini çöz
+- Sorgu planı analizi
+
+Yol 2: Önbellekleme Stratejisi
+- Redis önbellek katmanı
+- Önbellek geçersiz kılma stratejisi
+- TTL ayarları
+
+Yol 3: API Yanıt Optimizasyonu
+- Sayfalama ekle
+- Alan seçimi (seyrek alan setleri)
+- Yanıt sıkıştırma
+
+Her yolu değerlendir ve kombinasyon öner.
+"""
+```
+
+## Pratik Uygulama: Birleşik Kalıp Kullanımı
+
+Gerçek dünyada bu kalıpları birlikte kullanabilirsiniz:
+
+```python
+combined_patterns = """
+Bir kimlik doğrulama middleware'i geliştir.
+
+CoT - Planlama:
+1. JWT token'ı ayrıştır
+2. Token'ı doğrula
+3. Kullanıcı bilgilerini getir
+4. Kullanıcı bilgisini isteğe ekle
+
+CoVe - Kendi Kendini Doğrulama:
+1. Token süresi kontrol edildi mi?
+2. Geçersiz token durumu ele alındı mı?
+3. Hız sınırlama var mı?
+4. Hata yönetimi uygun mu?
+
+ToT - Alternatif Yaklaşımlar:
+Yaklaşım 1: Her istekte DB sorgusu
+Yaklaşım 2: Redis önbelleği ile kullanıcı bilgisi
+Yaklaşım 3: JWT'de kullanıcı bilgisi
+
+En iyi yaklaşımı seç ve uygula.
+"""
+```
+
+## Özet
+
+Bu derste öğrendikleriniz:
+
+- **Zincir Düşünce (CoT)**: Adım adım planlama mantıksal hataları %60 azaltır
+- **Doğrulama Zinciri (CoVe)**: Güvenlik ve kalite kontrolü için kendi kendini doğrulama katmanı
+- **Yoğunluk Zinciri (CoD)**: Yinelemeli bilgi yoğunluğu artışı rafine dokümantasyon üretir
+- **Düşünce Ağacı (ToT)**: Optimal karar verme için çoklu çözüm yollarını değerlendirme
+
+Sonraki ders: Bu kalıpları Prompt Engineering Library ile nasıl uygulayacağımızı öğreneceğiz.

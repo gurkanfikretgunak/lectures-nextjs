@@ -1,0 +1,270 @@
+---
+title: "Resources 101"
+description: "AI ve LLM öğrenimi için temel kaynaklar"
+category: "resources"
+level: 101
+order: 1
+---
+
+# Temel AI & LLM Kaynakları
+
+Bu kaynak kılavuzu AI ve LLM geliştirmeye başlamak için temel materyalleri sağlar.
+
+## Öğrenme Platformları
+
+<Mermaid chart={`
+flowchart TB
+    subgraph Free [Ücretsiz Kaynaklar]
+        Coursera[Coursera]
+        YouTube[YouTube]
+        Papers[Araştırma Makaleleri]
+        Blogs[Teknik Bloglar]
+    end
+    
+    subgraph Paid [Ücretli Kaynaklar]
+        Udemy[Udemy]
+        DeepLearning[DeepLearning.AI]
+        Pluralsight[Pluralsight]
+    end
+    
+    subgraph Hands [Uygulamalı]
+        Kaggle[Kaggle]
+        Colab[Google Colab]
+        HuggingFace[Hugging Face]
+    end
+`} />
+
+### Önerilen Kurslar
+
+| Kurs | Platform | Seviye | Odak |
+|--------|----------|-------|-------|
+| CS229 Machine Learning | Stanford/YouTube | Başlangıç | ML Temelleri |
+| Deep Learning Specialization | Coursera | Orta | Sinir Ağları |
+| LLM Course | Hugging Face | Orta | LLM'ler |
+| Prompt Engineering | DeepLearning.AI | Başlangıç | Prompting |
+
+## Dokümantasyon
+
+### LLM Sağlayıcıları
+
+```
+OpenAI Dokümantasyonu
+├── API Referansı
+├── En İyi Uygulamalar
+├── Güvenlik Kılavuzları
+└── Cookbook Örnekleri
+URL: https://platform.openai.com/docs
+```
+
+```
+Anthropic Dokümantasyonu
+├── Claude API
+├── Constitutional AI
+├── Prompt Tasarımı
+└── Güvenlik Araştırması
+URL: https://docs.anthropic.com
+```
+
+### Çerçeveler
+
+```
+LangChain
+├── Başlangıç
+├── Modüller
+│   ├── Modeller
+│   ├── Promptlar
+│   ├── Zincirler
+│   └── Ajanlar
+├── Entegrasyonlar
+└── Örnekler
+URL: https://python.langchain.com/docs
+```
+
+```
+LlamaIndex
+├── Veri Bağlayıcıları
+├── Dizin Yapıları
+├── Sorgu Motorları
+└── Uygulamalar
+URL: https://docs.llamaindex.ai
+```
+
+## Anahtar Araştırma Makaleleri
+
+### Temel Makaleler
+
+<Mermaid chart={`
+timeline
+    title LLM'lerin Evrimi
+    2017 : Attention Is All You Need (Transformer)
+    2018 : BERT
+         : GPT-1
+    2019 : GPT-2
+    2020 : GPT-3
+    2022 : ChatGPT
+         : Constitutional AI
+    2023 : GPT-4
+         : Claude 2
+    2024 : Claude 3
+         : Gemini
+`} />
+
+| Makale | Yıl | Anahtar Katkı |
+|-------|------|------------------|
+| Attention Is All You Need | 2017 | Transformer mimarisi |
+| BERT | 2018 | İki yönlü ön eğitim |
+| GPT-3 | 2020 | Few-shot öğrenme |
+| InstructGPT | 2022 | RLHF hizalama |
+| Constitutional AI | 2022 | AI güvenlik yaklaşımı |
+
+### Okuma Listesi
+
+1. **Attention Is All You Need** (Vaswani et al.)
+   - Transformer mimarisini tanıtır
+   - Modern LLM'lerin temeli
+
+2. **Language Models are Few-Shot Learners** (GPT-3)
+   - Ölçekleme yasaları
+   - Bağlam içi öğrenme
+
+3. **Training Language Models to Follow Instructions** (InstructGPT)
+   - RLHF metodolojisi
+   - Hizalama teknikleri
+
+## Geliştirme Araçları
+
+### IDE'ler ve Uzantılar
+
+```yaml
+Cursor:
+  type: AI-native IDE
+  features:
+    - AI kod tamamlama
+    - Sohbet arayüzü
+    - Kod üretimi
+  url: https://cursor.sh
+
+GitHub Copilot:
+  type: VS Code uzantısı
+  features:
+    - Kod önerileri
+    - Çok dilli destek
+    - Bağlam farkındalığı
+  url: https://github.com/features/copilot
+
+Continue:
+  type: Açık kaynak
+  features:
+    - Yerel model desteği
+    - Özelleştirilebilir
+    - Gizlilik odaklı
+  url: https://continue.dev
+```
+
+### API'ler ve Servisler
+
+| Servis | Amaç | Fiyatlandırma Modeli |
+|---------|---------|---------------|
+| OpenAI API | LLM erişimi | Token başına |
+| Anthropic API | Claude erişimi | Token başına |
+| Hugging Face | Model barındırma | Ücretsiz katman + ücretli |
+| Pinecone | Vektör Veritabanı | Ücretsiz katman + kullanım |
+| LangSmith | Gözlemlenebilirlik | Ücretsiz katman + ücretli |
+
+## Topluluk Kaynakları
+
+### Discord Sunucuları
+
+- **LangChain Discord**: Çerçeve tartışmaları
+- **Hugging Face Discord**: Model paylaşımı
+- **OpenAI Discord**: API desteği
+
+### GitHub Depoları
+
+```
+Temel Depolar:
+├── langchain-ai/langchain
+├── run-llama/llama_index
+├── openai/openai-cookbook
+├── anthropics/anthropic-cookbook
+└── huggingface/transformers
+```
+
+### Bloglar ve Bültenler
+
+<Mermaid chart={`
+flowchart LR
+    subgraph Blogs [Teknik Bloglar]
+        OpenAI[OpenAI Blog]
+        Anthropic[Anthropic Research]
+        HF[Hugging Face Blog]
+        LangChain[LangChain Blog]
+    end
+    
+    subgraph News [Bültenler]
+        TLDR[TLDR AI]
+        Import[Import AI]
+        TheSequence[The Sequence]
+    end
+`} />
+
+## Pratik Ortamları
+
+### Not Defterleri ve Oyun Alanları
+
+| Platform | En İyi Kullanım | Maliyet |
+|----------|----------|------|
+| Google Colab | Deneyler | Ücretsiz GPU saatleri |
+| Kaggle | Yarışmalar | Ücretsiz hesaplama |
+| Hugging Face Spaces | Demolar | Ücretsiz katman |
+| Replit | Hızlı prototipler | Ücretsiz katman |
+
+### Veri Setleri
+
+```
+Yaygın Veri Setleri:
+├── Natural Questions (Soru-Cevap)
+├── SQuAD (Okuma Anlama)
+├── MMLU (Bilgi Testi)
+├── HumanEval (Kod Üretimi)
+└── MT-Bench (Sohbet Değerlendirmesi)
+```
+
+## Hızlı Referans
+
+### Token Tahmini
+
+```python
+# Genel kural: İngilizce'de 1 token ≈ 4 karakter
+def estimate_tokens(text: str) -> int:
+    return len(text) // 4
+
+# tiktoken ile daha doğru
+import tiktoken
+encoder = tiktoken.encoding_for_model("gpt-4")
+tokens = encoder.encode(text)
+```
+
+### Maliyet Tahmini
+
+```python
+def estimate_cost(input_tokens: int, output_tokens: int, model: str) -> float:
+    rates = {
+        "gpt-4": {"input": 0.03, "output": 0.06},
+        "gpt-3.5-turbo": {"input": 0.0005, "output": 0.0015},
+        "claude-3-opus": {"input": 0.015, "output": 0.075},
+    }
+    rate = rates.get(model, rates["gpt-3.5-turbo"])
+    return (input_tokens * rate["input"] + output_tokens * rate["output"]) / 1000
+```
+
+## Özet
+
+AI geliştirme için temel kaynaklar:
+- Kaliteli öğrenme platformları ve kurslar
+- Çerçeve dokümantasyonu
+- Temel araştırma makaleleri
+- Geliştirme araçları ve ortamları
+- Aktif topluluk katılımı
+
+Gelişmiş materyaller için Resources 201'e devam edin.

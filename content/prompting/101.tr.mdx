@@ -1,0 +1,318 @@
+---
+title: "Prompting 101"
+description: "Prompt mühendisliği temellerine giriş"
+category: "prompting"
+level: 101
+order: 1
+---
+
+# Prompting'e Giriş
+
+Prompting 101'e hoş geldiniz! Bu ders, AI dil modelleriyle etkili iletişim kurma sanatı olan prompt mühendisliğinin temellerini kapsar.
+
+## Prompt Mühendisliği Nedir?
+
+Prompt mühendisliği, AI dil modellerinden istenen çıktıları almak için metin girdilerini (promptları) tasarlama ve optimize etme pratiğidir. Büyük Dil Modelleri (LLM'ler) ile çalışan herkes için çok önemli bir beceridir.
+
+<Mermaid chart={`
+flowchart LR
+    User[Kullanıcı Niyeti] --> Prompt[Prompt Tasarımı]
+    Prompt --> LLM[Dil Modeli]
+    LLM --> Output[Oluşturulan Yanıt]
+    Output --> Eval[Değerlendirme]
+    Eval -->|Yinele| Prompt
+`} />
+
+## Bir Prompt'un Temel Bileşenleri
+
+### 1. Talimat
+
+Talimat, modele hangi görevi gerçekleştireceğini söyler. Net ve spesifik olun.
+
+<MultiLanguageCode
+  python={`# İyi talimat
+prompt = "Aşağıdaki makaleyi 3 madde halinde özetle:"
+
+# Belirsiz talimat (bundan kaçının)
+belirsiz_prompt = "Bu metinle bir şeyler yap:"`}
+  turkish={`# İyi talimat
+prompt = "Aşağıdaki makaleyi 3 madde halinde özetle:"
+
+# Belirsiz talimat (bundan kaçının)
+belirsiz_prompt = "Bu metinle bir şeyler yap:"`}
+  typescript={`// İyi talimat
+const prompt = "Aşağıdaki makaleyi 3 madde halinde özetle:";
+
+// Belirsiz talimat (bundan kaçının)
+const belirsizPrompt = "Bu metinle bir şeyler yap:";`}
+  csharp={`// İyi talimat
+var prompt = "Aşağıdaki makaleyi 3 madde halinde özetle:";
+
+// Belirsiz talimat (bundan kaçının)
+var belirsizPrompt = "Bu metinle bir şeyler yap:";`}
+  dart={`// İyi talimat
+final prompt = "Aşağıdaki makaleyi 3 madde halinde özetle:";
+
+// Belirsiz talimat (bundan kaçının)
+final belirsizPrompt = "Bu metinle bir şeyler yap:";`}
+/>
+
+### 2. Bağlam
+
+Bağlam, modelin görevi daha iyi anlaması için gerekli bilgileri sağlar.
+
+<MultiLanguageCode
+  python={`# Bağlam ile
+prompt = """
+Sen bir müşteri hizmetleri temsilcisisin.
+Müşteri: Ürünüm hala gelmedi.
+Sen: [Yanıt ver]
+"""
+
+# Bağlam olmadan
+prompt = "Ürünüm hala gelmedi."`}
+  turkish={`# Bağlam ile
+prompt = """
+Sen bir müşteri hizmetleri temsilcisisin.
+Müşteri: Ürünüm hala gelmedi.
+Sen: [Yanıt ver]
+"""
+
+# Bağlam olmadan
+prompt = "Ürünüm hala gelmedi."`}
+  typescript={`// Bağlam ile
+const prompt = \`
+Sen bir müşteri hizmetleri temsilcisisin.
+Müşteri: Ürünüm hala gelmedi.
+Sen: [Yanıt ver]
+\`;
+
+// Bağlam olmadan
+const prompt = "Ürünüm hala gelmedi.";`}
+  csharp={`// Bağlam ile
+var prompt = @"
+Sen bir müşteri hizmetleri temsilcisisin.
+Müşteri: Ürünüm hala gelmedi.
+Sen: [Yanıt ver]
+";
+
+// Bağlam olmadan
+var prompt = "Ürünüm hala gelmedi.";`}
+  dart={`// Bağlam ile
+final prompt = """
+Sen bir müşteri hizmetleri temsilcisisin.
+Müşteri: Ürünüm hala gelmedi.
+Sen: [Yanıt ver]
+""";
+
+// Bağlam olmadan
+final prompt = "Ürünüm hala gelmedi.";`}
+/>
+
+### 3. Çıktı Formatı
+
+Modelden nasıl bir çıktı istediğinizi belirtin.
+
+<MultiLanguageCode
+  python={`# Format belirtilmiş
+prompt = """
+Aşağıdaki ürünleri JSON formatında listele:
+- Elma
+- Muz
+- Portakal
+
+Format: {"ürünler": ["ürün1", "ürün2"]}
+"""
+`}
+  turkish={`# Format belirtilmiş
+prompt = """
+Aşağıdaki ürünleri JSON formatında listele:
+- Elma
+- Muz
+- Portakal
+
+Format: {"ürünler": ["ürün1", "ürün2"]}
+"""
+`}
+  typescript={`// Format belirtilmiş
+const prompt = \`
+Aşağıdaki ürünleri JSON formatında listele:
+- Elma
+- Muz
+- Portakal
+
+Format: {"ürünler": ["ürün1", "ürün2"]}
+\`;`}
+  csharp={`// Format belirtilmiş
+var prompt = @"
+Aşağıdaki ürünleri JSON formatında listele:
+- Elma
+- Muz
+- Portakal
+
+Format: {""ürünler"": [""ürün1"", ""ürün2""]}
+";`}
+  dart={`// Format belirtilmiş
+final prompt = """
+Aşağıdaki ürünleri JSON formatında listele:
+- Elma
+- Muz
+- Portakal
+
+Format: {"ürünler": ["ürün1", "ürün2"]}
+""";`}
+/>
+
+## En İyi Uygulamalar
+
+### 1. Netlik
+
+Belirsizlik yerine netlik tercih edin. Model ne istediğinizi tam olarak anlamalı.
+
+### 2. Örnekler Kullanın
+
+Few-shot öğrenme, modelin görevi daha iyi anlamasını sağlar.
+
+<MultiLanguageCode
+  python={`prompt = """
+Aşağıdaki cümleleri pozitif veya negatif olarak sınıflandır:
+
+Cümle: Bu film harika!
+Duygu: pozitif
+
+Cümle: Hizmet çok kötüydü.
+Duygu: negatif
+
+Cümle: Ürün beklentilerimi karşıladı.
+Duygu: [sınıflandır]
+"""
+`}
+  turkish={`prompt = """
+Aşağıdaki cümleleri pozitif veya negatif olarak sınıflandır:
+
+Cümle: Bu film harika!
+Duygu: pozitif
+
+Cümle: Hizmet çok kötüydü.
+Duygu: negatif
+
+Cümle: Ürün beklentilerimi karşıladı.
+Duygu: [sınıflandır]
+"""
+`}
+  typescript={`const prompt = \`
+Aşağıdaki cümleleri pozitif veya negatif olarak sınıflandır:
+
+Cümle: Bu film harika!
+Duygu: pozitif
+
+Cümle: Hizmet çok kötüydü.
+Duygu: negatif
+
+Cümle: Ürün beklentilerimi karşıladı.
+Duygu: [sınıflandır]
+\`;`}
+  csharp={`var prompt = @"
+Aşağıdaki cümleleri pozitif veya negatif olarak sınıflandır:
+
+Cümle: Bu film harika!
+Duygu: pozitif
+
+Cümle: Hizmet çok kötüydü.
+Duygu: negatif
+
+Cümle: Ürün beklentilerimi karşıladı.
+Duygu: [sınıflandır]
+";`}
+  dart={`final prompt = """
+Aşağıdaki cümleleri pozitif veya negatif olarak sınıflandır:
+
+Cümle: Bu film harika!
+Duygu: pozitif
+
+Cümle: Hizmet çok kötüydü.
+Duygu: negatif
+
+Cümle: Ürün beklentilerimi karşıladı.
+Duygu: [sınıflandır]
+""";`}
+/>
+
+### 3. Adım Adım Düşünme
+
+Karmaşık görevler için modeli adım adım düşünmeye teşvik edin.
+
+<MultiLanguageCode
+  python={`prompt = """
+Aşağıdaki matematik problemini çöz. Adım adım düşün:
+
+Problem: Bir mağazada 24 elma var. Müşteriler 8 elma satın aldı. Kaç elma kaldı?
+
+Çözüm:
+1. Başlangıç elma sayısı: 24
+2. Satılan elma sayısı: 8
+3. Kalan elma sayısı: 24 - 8 = 16
+
+Cevap: 16 elma kaldı.
+"""
+`}
+  turkish={`prompt = """
+Aşağıdaki matematik problemini çöz. Adım adım düşün:
+
+Problem: Bir mağazada 24 elma var. Müşteriler 8 elma satın aldı. Kaç elma kaldı?
+
+Çözüm:
+1. Başlangıç elma sayısı: 24
+2. Satılan elma sayısı: 8
+3. Kalan elma sayısı: 24 - 8 = 16
+
+Cevap: 16 elma kaldı.
+"""
+`}
+  typescript={`const prompt = \`
+Aşağıdaki matematik problemini çöz. Adım adım düşün:
+
+Problem: Bir mağazada 24 elma var. Müşteriler 8 elma satın aldı. Kaç elma kaldı?
+
+Çözüm:
+1. Başlangıç elma sayısı: 24
+2. Satılan elma sayısı: 8
+3. Kalan elma sayısı: 24 - 8 = 16
+
+Cevap: 16 elma kaldı.
+\`;`}
+  csharp={`var prompt = @"
+Aşağıdaki matematik problemini çöz. Adım adım düşün:
+
+Problem: Bir mağazada 24 elma var. Müşteriler 8 elma satın aldı. Kaç elma kaldı?
+
+Çözüm:
+1. Başlangıç elma sayısı: 24
+2. Satılan elma sayısı: 8
+3. Kalan elma sayısı: 24 - 8 = 16
+
+Cevap: 16 elma kaldı.
+";`}
+  dart={`final prompt = """
+Aşağıdaki matematik problemini çöz. Adım adım düşün:
+
+Problem: Bir mağazada 24 elma var. Müşteriler 8 elma satın aldı. Kaç elma kaldı?
+
+Çözüm:
+1. Başlangıç elma sayısı: 24
+2. Satılan elma sayısı: 8
+3. Kalan elma sayısı: 24 - 8 = 16
+
+Cevap: 16 elma kaldı.
+""";`}
+/>
+
+## Özet
+
+- **Talimat**: Net ve spesifik olun
+- **Bağlam**: Modelin görevi anlaması için gerekli bilgileri sağlayın
+- **Format**: İstediğiniz çıktı formatını belirtin
+- **Örnekler**: Few-shot öğrenme kullanın
+- **Adım Adım**: Karmaşık görevler için düşünme sürecini bölün
+
+Sonraki derslerde daha gelişmiş prompt tekniklerini keşfedeceğiz!

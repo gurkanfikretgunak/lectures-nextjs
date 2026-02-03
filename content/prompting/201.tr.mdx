@@ -1,0 +1,313 @@
+---
+title: "Prompting 201"
+description: "Gelişmiş prompt mühendisliği teknikleri"
+category: "prompting"
+level: 201
+order: 3
+---
+
+# Gelişmiş Prompting Teknikleri
+
+Prompting 201'e hoş geldiniz! Bu ders karmaşık AI etkileşimleri için gelişmiş teknikleri kapsar.
+
+## Zincir Düşünce (Chain-of-Thought) Prompting
+
+Zincir Düşünce (CoT) prompting, modelin akıl yürütme sürecini adım adım göstermesini teşvik eder.
+
+<Mermaid chart={`
+flowchart LR
+    Problem[Karmaşık Problem] --> Step1[Adım 1: Anla]
+    Step1 --> Step2[Adım 2: Parçalara Ayır]
+    Step2 --> Step3[Adım 3: Parçaları Çöz]
+    Step3 --> Step4[Adım 4: Birleştir]
+    Step4 --> Solution[Son Çözüm]
+`} />
+
+### Standart vs CoT Prompting
+
+```python
+# Standart Prompting
+standard = "23 * 17 nedir?"
+
+# Zincir Düşünce Prompting
+cot = """
+23 * 17 nedir?
+
+Bunu adım adım çözelim:
+1. Önce 17'yi 10 + 7'ye ayıracağım
+2. 23 * 10 = 230 hesapla
+3. 23 * 7 = 161 hesapla
+4. Sonuçları topla: 230 + 161 = 391
+
+Dolayısıyla, 23 * 17 = 391
+"""
+```
+
+### Sıfır-Shot CoT
+
+Sadece "Adım adım düşünelim" eklemek akıl yürütmeyi iyileştirebilir:
+
+```python
+prompt = """
+Bir mağazada 45 elma var. Sabah 12 tanesini satıyorlar ve öğleden sonra 
+30 elmalık bir sevkiyat alıyorlar. Sonra 18 tane daha satıyorlar. 
+Kaç elma kaldı?
+
+Adım adım düşünelim.
+"""
+```
+
+### Çok Dilli Örnek
+
+Farklı dillerde aynı prompt kalıbının bir örneği. Dil sekmelerine tıklayarak geçiş yapın:
+
+<MultiLanguageCode
+  python={`# Python örneği
+from dataclasses import dataclass
+
+@dataclass
+class PromptConfig:
+    question: str
+    use_cot: bool
+
+def create_prompt(config: PromptConfig) -> str:
+    cot_suffix = "\\n\\nAdım adım düşünelim." if config.use_cot else ""
+    return f"{config.question}{cot_suffix}"
+
+prompt = create_prompt(PromptConfig(
+    question="Bir mağazada 45 elma var. Sabah 12 tanesini satıyorlar ve öğleden sonra 30 elmalık bir sevkiyat alıyorlar. Sonra 18 tane daha satıyorlar. Kaç elma kaldı?",
+    use_cot=True
+))
+
+print(prompt)`}
+  turkish={`# Türkçe örnek
+from dataclasses import dataclass
+
+@dataclass
+class PromptConfig:
+    question: str
+    use_cot: bool
+
+def create_prompt(config: PromptConfig) -> str:
+    cot_suffix = "\\n\\nAdım adım düşünelim." if config.use_cot else ""
+    return f"{config.question}{cot_suffix}"
+
+prompt = create_prompt(PromptConfig(
+    question="Bir mağazada 45 elma var. Sabah 12 tanesini satıyorlar ve öğleden sonra 30 elmalık bir sevkiyat alıyorlar. Sonra 18 tane daha satıyorlar. Kaç elma kaldı?",
+    use_cot=True
+))
+
+print(prompt)`}
+  typescript={`// TypeScript örneği
+interface PromptConfig {
+  question: string;
+  useCoT: boolean;
+}
+
+function createPrompt(config: PromptConfig): string {
+  const cotSuffix = config.useCoT ? "\\n\\nAdım adım düşünelim." : "";
+  return \`\${config.question}\${cotSuffix}\`;
+}
+
+const prompt = createPrompt({
+  question: "Bir mağazada 45 elma var. Sabah 12 tanesini satıyorlar ve öğleden sonra 30 elmalık bir sevkiyat alıyorlar. Sonra 18 tane daha satıyorlar. Kaç elma kaldı?",
+  useCoT: true
+});
+
+console.log(prompt);`}
+  csharp={`// C# örneği
+public class PromptConfig
+{
+    public string Question { get; set; }
+    public bool UseCoT { get; set; }
+}
+
+public static string CreatePrompt(PromptConfig config)
+{
+    var cotSuffix = config.UseCoT ? "\\n\\nAdım adım düşünelim." : "";
+    return $\"{config.Question}{cotSuffix}\";
+}
+
+var prompt = CreatePrompt(new PromptConfig
+{
+    Question = "Bir mağazada 45 elma var. Sabah 12 tanesini satıyorlar ve öğleden sonra 30 elmalık bir sevkiyat alıyorlar. Sonra 18 tane daha satıyorlar. Kaç elma kaldı?",
+    UseCoT = true
+});
+
+Console.WriteLine(prompt);`}
+  dart={`// Dart örneği
+class PromptConfig {
+  final String question;
+  final bool useCoT;
+
+  PromptConfig({
+    required this.question,
+    required this.useCoT,
+  });
+}
+
+String createPrompt(PromptConfig config) {
+  final cotSuffix = config.useCoT ? "\\n\\nAdım adım düşünelim." : "";
+  return '\${config.question}\$cotSuffix';
+}
+
+void main() {
+  final prompt = createPrompt(PromptConfig(
+    question: "Bir mağazada 45 elma var. Sabah 12 tanesini satıyorlar ve öğleden sonra 30 elmalık bir sevkiyat alıyorlar. Sonra 18 tane daha satıyorlar. Kaç elma kaldı?",
+    useCoT: true,
+  ));
+  
+  print(prompt);
+}`}
+/>
+
+## Kendi Kendine Tutarlılık (Self-Consistency)
+
+Birden fazla akıl yürütme yolu üretin ve en tutarlı cevabı seçin.
+
+<Mermaid chart={`
+flowchart TB
+    Q[Soru] --> P1[Yol 1]
+    Q --> P2[Yol 2]
+    Q --> P3[Yol 3]
+    P1 --> A1[Cevap: X]
+    P2 --> A2[Cevap: X]
+    P3 --> A3[Cevap: Y]
+    A1 --> Vote[Çoğunluk Oyu]
+    A2 --> Vote
+    A3 --> Vote
+    Vote --> Final[Son: X]
+`} />
+
+```python
+self_consistency_prompt = """
+Bu problemi üç farklı yaklaşımla çözün:
+
+Problem: {problem}
+
+Yaklaşım 1: [Çöz]
+Yaklaşım 2: [Farklı şekilde çöz]
+Yaklaşım 3: [Başka bir yöntemle çöz]
+
+En tutarlı cevap:
+"""
+```
+
+## Düşünce Ağacı (Tree of Thoughts)
+
+Karmaşık problemler için birden fazla akıl yürütme dalını keşfedin.
+
+<Mermaid chart={`
+flowchart TB
+    Root[Problem] --> B1[Dal 1]
+    Root --> B2[Dal 2]
+    Root --> B3[Dal 3]
+    B1 --> B1a[Alt-çözüm 1a]
+    B1 --> B1b[Alt-çözüm 1b]
+    B2 --> B2a[Alt-çözüm 2a]
+    B3 --> B3a[Alt-çözüm 3a]
+    B1a --> Eval[Değerlendir]
+    B1b --> Eval
+    B2a --> Eval
+    B3a --> Eval
+    Eval --> Best[En İyi Yol]
+`} />
+
+## ReAct: Akıl Yürütme + Eylem
+
+Akıl yürütmeyi eylemlerle iç içe bir şekilde birleştirin.
+
+```python
+react_prompt = """
+Aşağıdaki formatı kullanarak soruyu yanıtlayın:
+
+Soru: {question}
+
+Düşünce: [Ne yapılacağı hakkında akıl yürütmeniz]
+Eylem: [Yapılacak eylem - Ara, Hesapla, vb.]
+Gözlem: [Eylemin sonucu]
+... (gerektiği kadar tekrarla) ...
+Düşünce: [Son akıl yürütme]
+Cevap: [Son cevabınız]
+"""
+```
+
+## Prompt Zincirleme
+
+Karmaşık görevleri sıralı promptlara bölün.
+
+<Mermaid chart={`
+flowchart LR
+    Input[Karmaşık Görev] --> P1[Prompt 1: Analiz Et]
+    P1 --> O1[Çıktı 1]
+    O1 --> P2[Prompt 2: Planla]
+    P2 --> O2[Çıktı 2]
+    O2 --> P3[Prompt 3: Uygula]
+    P3 --> Final[Son Sonuç]
+`} />
+
+```python
+# Adım 1: Problemi analiz et
+analysis_prompt = """
+Bu iş problemini analiz edin ve ana faktörleri belirleyin:
+{problem}
+"""
+
+# Adım 2: Analize dayalı çözümler üret
+solution_prompt = """
+Bu analize dayanarak:
+{analysis_output}
+
+3 potansiyel çözüm üretin.
+"""
+
+# Adım 3: Değerlendir ve öner
+evaluation_prompt = """
+Bu çözümler verildiğinde:
+{solutions}
+
+Her birini değerlendirin ve gerekçeyle en iyi yaklaşımı önerin.
+"""
+```
+
+## Meta-Prompting
+
+Diğer promptları oluşturmak veya iyileştirmek için promptları kullanın.
+
+```python
+meta_prompt = """
+Bir prompt mühendisliği uzmanısınız.
+
+Görev: Aşağıdaki kullanım durumu için optimize edilmiş bir prompt oluşturun:
+Kullanım Durumu: {use_case}
+
+Promptunuz şunları içermelidir:
+1. Net rol tanımı
+2. Spesifik görev talimatları
+3. Çıktı formatı belirtimi
+4. Yardımcı olursa örnek
+
+Oluşturulan Prompt:
+"""
+```
+
+## Gelişmiş Teknikler Özeti
+
+| Teknik | En İyi Kullanım | Karmaşıklık |
+|-----------|----------|------------|
+| Zincir Düşünce | Akıl yürütme görevleri | Orta |
+| Kendi Kendine Tutarlılık | Matematik, mantık | Yüksek |
+| Düşünce Ağacı | Yaratıcı problemler | Yüksek |
+| ReAct | Araçlarla görevler | Yüksek |
+| Prompt Zincirleme | Çok adımlı görevler | Orta |
+| Meta-Prompting | Prompt optimizasyonu | Orta |
+
+## Özet
+
+Gelişmiş prompting teknikleri şunları sağlar:
+- Adım adım düşünme yoluyla daha iyi akıl yürütme
+- Birden fazla yol yoluyla daha yüksek doğruluk
+- Zincirleme yoluyla karmaşık görev işleme
+- Meta-prompting yoluyla kendi kendini iyileştirme
+
+Sonraki adımda, Prompting 202'de gelişmiş çalışma örneklerini keşfedin.

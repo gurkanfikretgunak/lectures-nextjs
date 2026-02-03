@@ -1,0 +1,1024 @@
+---
+title: "Prompting 204 - Üretim Standartları & Çok Model Stratejisi"
+description: "OpenAI standartları, Claude 3 ailesi, vektör gömme ve etkileşim kalıpları"
+category: "prompting"
+level: 204
+order: 6
+---
+
+# Üretim Standartları & Çok Model Stratejisi
+
+Bu gelişmiş ders, OpenAI prompt mühendisliği standartlarını, Claude 3 ailesi ile çok model stratejilerini, vektör gömme ve üretim AI sistemleri için profesyonel etkileşim kalıplarını kapsar.
+
+## 1. OpenAI Prompt Mühendisliği Standartları
+
+OpenAI, tüm mühendislik süreçlerine entegre edilmesi gereken 6 temel strateji belirlemiştir.
+
+<Mermaid chart={`
+flowchart TB
+    Strategy[OpenAI Stratejileri] --> S1[Net Talimatlar]
+    Strategy --> S2[Referans Metinler]
+    Strategy --> S3[Görev Ayrıştırma]
+    Strategy --> S4[Düşünme Zamanı]
+    Strategy --> S5[Harici Araçlar]
+    Strategy --> S6[Sistematik Test]
+    
+    S1 --> Result[Daha İyi Sonuçlar]
+    S2 --> Result
+    S3 --> Result
+    S4 --> Result
+    S5 --> Result
+    S6 --> Result
+`} />
+
+### 1.1. Net Talimatlar
+
+Kişilikleri ve kısıtlamaları tanımlayarak belirsizliği ortadan kaldırın.
+
+**Net Talimatlar Olmadan:**
+
+```text
+❌ Kötü: Veri işlemek için bir fonksiyon yazın.
+```
+
+**Net Talimatlarla:**
+
+```text
+✅ İyi: Veri işleme konusunda uzman kıdemli bir Python geliştiricisisiniz.
+
+Şunları yapan bir fonksiyon yazın:
+- Girdi olarak sözlük listesi alır
+- 'status' 'inactive' olan girişleri filtreler
+- 'created_at' tarihine göre sıralanmış liste döndürür (en yeni önce)
+- Boş listeleri zarifçe işler
+- Tip ipuçları ve docstring içerir
+- Girdi liste değilse ValueError yükseltir
+
+Fonksiyon imzası:
+def process_active_records(records: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+```
+
+**Kişilik Tanımı:**
+
+```text
+Şu konularda 15+ yıl deneyime sahip uzman bir yazılım mimarısınız:
+- Mikroservis mimarisi
+- Olay güdümlü sistemler
+- Bulut-native uygulamalar (AWS, GCP, Azure)
+- Konteyner orkestrasyonu (Kubernetes, Docker Swarm)
+
+Göreviniz: Ölçeklenebilir bir bildirim sistemi tasarlayın.
+```
+
+**Kısıtlama Tanımı:**
+
+```text
+Kısıtlamalar:
+- TypeScript kullanmalı
+- SOLID prensiplerini takip etmeli
+- Maksimum fonksiyon uzunluğu: 50 satır
+- Hata yönetimi içermeli
+- Test edilebilir olmalı (bağımlılık enjeksiyonu)
+- Performans: Saniyede 10K istek işlemeli
+```
+
+### 1.2. Referans Metinler
+
+Model halüsinasyonlarını önlemek için kod parçacıkları referans olarak sağlayın.
+
+**Referans Olmadan:**
+
+```text
+❌ Kötü: Mevcut kullanıcı kimlik doğrulamamıza benzer bir fonksiyon yazın.
+```
+
+**Referansla:**
+
+```text
+✅ İyi: Mevcut kullanıcı kimlik doğrulama kalıbımıza benzer bir fonksiyon yazın:
+
+Referans uygulama:
+\`\`\`python
+def authenticate_user(email: str, password: str) -> Optional[User]:
+    """
+    E-posta ve şifre ile kullanıcıyı doğrula.
+    
+    Args:
+        email: Kullanıcı e-posta adresi
+        password: Düz metin şifre
+        
+    Returns:
+        Doğrulanmışsa User nesnesi, aksi halde None
+    """
+    user = UserRepository.find_by_email(email)
+    if user and bcrypt.checkpw(password.encode(), user.password_hash.encode()):
+        return user
+    return None
+\`\`\`
+
+Şimdi aynı kalıbı takip ederek API anahtarı kimlik doğrulaması için benzer bir fonksiyon yazın.
+```
+
+**Kod Bağlamı:**
+
+```text
+Kod tabanından bağlam:
+- Dosya: src/auth/strategies/jwt.ts
+- Kalıp: Token tabanlı kimlik doğrulama
+- Hata yönetimi: Özel AuthError sınıfı
+- Loglama: Winston logger
+
+Bu kalıbı takip ederek yeni bir OAuth2 stratejisi yazın.
+```
+
+### 1.3. Görev Ayrıştırma
+
+Karmaşık görevleri alt görevlere bölün.
+
+**Monolitik Görev:**
+
+```text
+❌ Kötü: Tam bir e-ticaret ödeme sistemi oluşturun.
+```
+
+**Ayrıştırılmış Görevler:**
+
+```text
+✅ İyi: E-ticaret ödemesini alt görevlere bölün:
+
+Görev 1: Sepeti Doğrula
+- Tüm öğelerin stokta olduğunu kontrol et
+- Fiyatların değişmediğini doğrula
+- Kullanıcının gerekli izinlere sahip olduğunu doğrula
+
+Görev 2: Toplamları Hesapla
+- Öğe fiyatlarını topla
+- İndirim kodlarını uygula
+- Kargo adresine göre vergiyi hesapla
+- Kargo maliyetlerini ekle
+
+Görev 3: Ödemeyi İşle
+- Ödeme yöntemini doğrula
+- Müşteriyi ücretlendir
+- Ödeme hatalarını işle
+
+Görev 4: Sipariş Oluştur
+- Sipariş ID'si oluştur
+- Veritabanına kaydet
+- Onay e-postası gönder
+- Envanteri güncelle
+
+Görev 5: Hataları İşle
+- Başarısızlıkta geri al
+- Hataları logla
+- Kullanıcıyı bilgilendir
+
+Görev 1: Sepeti Doğrula ile başlayın
+```
+
+**Adım Adım Yaklaşım:**
+
+```python
+# Karmaşık görevler için prompt yapısı
+prompt = """
+Bir veri hattı oluşturuyorsunuz. Bunu adımlara bölün:
+
+Ana Görev: Müşteri siparişlerini işle ve raporlar oluştur
+
+Adım 1: Veri çıkar
+- Siparişler tablosundan oku
+- Tarih aralığına göre filtrele
+- Veri formatını doğrula
+
+Adım 2: Veriyi dönüştür
+- Toplamları hesapla
+- İş kurallarını uygula
+- Tarihleri formatla
+
+Adım 3: Veriyi yükle
+- Raporlama veritabanına yaz
+- Özet tablolar oluştur
+- Analitikleri güncelle
+
+Adım 4: Raporlar oluştur
+- Görselleştirmeler oluştur
+- PDF'e aktar
+- Bildirimler gönder
+
+Adım 1 ile başlayın ve çalışmanızı gösterin.
+"""
+```
+
+### 1.4. Düşünme Zamanı
+
+Modelin yanıtlamadan önce adım adım "düşünmesi" için zaman verin.
+
+**Düşünme Zamanı Olmadan:**
+
+```text
+❌ Kötü: Gerçek zamanlı bir sohbet uygulaması için en iyi mimari nedir?
+```
+
+**Düşünme Zamanıyla:**
+
+```text
+✅ İyi: Gerçek zamanlı bir sohbet uygulaması için en iyi mimari hakkında adım adım düşünelim.
+
+Adım 1: Gereksinimleri Belirle
+- Gerçek zamanlı mesaj teslimi
+- 1M+ eşzamanlı kullanıcı desteği
+- Mesaj geçmişi depolama
+- Varlık göstergeleri (çevrimiçi/çevrimdışı)
+- Dosya paylaşım yetenekleri
+
+Adım 2: Mimari Seçenekleri Değerlendir
+Seçenek A: WebSocket + Redis Pub/Sub
+- Artılar: Düşük gecikme, gerçek zamanlı
+- Eksiler: Ölçekleme zorlukları, bağlantı yönetimi
+
+Seçenek B: Server-Sent Events + Mesaj Kuyruğu
+- Artılar: Daha basit, HTTP tabanlı
+- Eksiler: Tek yönlü iletişim
+
+Seçenek C: WebSocket + Mesaj Broker (RabbitMQ/Kafka)
+- Artılar: Ölçeklenebilir, güvenilir
+- Eksiler: Daha karmaşık kurulum
+
+Adım 3: Gereksinimlere Göre Değerlendir
+[Model her seçeneği akıl yürütür]
+
+Adım 4: Çözüm Öner
+Gereksinimlere dayanarak Seçenek C'yi öneriyorum çünkü...
+```
+
+**Zincir Düşünce Prompting:**
+
+```text
+Bu problemi adım adım çözelim:
+
+Problem: 5 saniye süren veritabanı sorgusunu optimize edin.
+
+Adım 1: Mevcut sorguyu analiz et
+- Hangi tablolar dahil?
+- Hangi join'ler oluyor?
+- Hangi filtreler uygulanıyor?
+
+Adım 2: Darboğazları belirle
+- İndeksler eksik mi?
+- Tam tablo taramaları var mı?
+- Sorgu planı optimal mi?
+
+Adım 3: Çözümler öner
+- Join sütunlarında indeksler ekle
+- Alt sorgulardan kaçınmak için sorguyu yeniden yaz
+- Gerekirse sorgu ipuçları kullan
+
+Adım 4: Çözümü doğrula
+- Sorgu yürütme planını kontrol et
+- Performans iyileştirmesini ölç
+- Veri doğruluğunu sağla
+
+Her adım için akıl yürütmenizi gösterin.
+```
+
+### 1.5. Harici Araçlar
+
+Kod yürütme (Yorumlayıcı) veya arama araçlarını kullanın.
+
+**Yorumlayıcı ile Kod Yürütme:**
+
+```text
+✅ İyi: Kod yorumlayıcıyı şunlar için kullanın:
+
+1. Bu veri setini analiz edin: [CSV dosyası ekle]
+2. İstatistikleri hesaplayın (ortalama, medyan, std sapma)
+3. Görselleştirmeler oluşturun
+4. Özet rapor oluşturun
+
+Kodu adım adım yürütün ve sonuçları gösterin.
+```
+
+**Web Arama Entegrasyonu:**
+
+```text
+✅ İyi: Şunlar hakkında en son en iyi uygulamaları arayın:
+- React Server Components (2024)
+- Next.js 14 App Router kalıpları
+- TypeScript 5.3 yeni özellikler
+
+Sonra mevcut standartlara dayalı öneriler sağlayın.
+```
+
+**Araç Kullanım Kalıbı:**
+
+<MultiLanguageCode
+  python={`# Örnek: Prompt'ta harici araçlar kullanma
+prompt = """
+Bu araçlara erişiminiz var:
+1. Kod Yorumlayıcı: Python kodu yürüt
+2. Web Arama: Güncel bilgileri ara
+3. Dosya Sistemi: Dosya oku/yaz
+
+Görev: Satış verilerini analiz et ve içgörüler üret.
+
+Adım 1: Verileri yüklemek ve analiz etmek için Kod Yorumlayıcı kullan
+Adım 2: Sektör kıyaslamalarını bulmak için Web Arama kullan
+Adım 3: Verilerinizi kıyaslamalarla karşılaştır
+Adım 4: İçgörüler ve öneriler üret
+
+Her adımda çalışmanızı gösterin.
+"""`}
+  turkish={`# Örnek: Prompt'ta harici araçlar kullanma
+prompt = """
+Bu araçlara erişiminiz var:
+1. Kod Yorumlayıcı: Python kodu yürüt
+2. Web Arama: Güncel bilgileri ara
+3. Dosya Sistemi: Dosya oku/yaz
+
+Görev: Satış verilerini analiz et ve içgörüler üret.
+
+Adım 1: Verileri yüklemek ve analiz etmek için Kod Yorumlayıcı kullan
+Adım 2: Sektör kıyaslamalarını bulmak için Web Arama kullan
+Adım 3: Verilerinizi kıyaslamalarla karşılaştır
+Adım 4: İçgörüler ve öneriler üret
+
+Her adımda çalışmanızı gösterin.
+"""`}
+  typescript={`// Örnek: Prompt'ta harici araçlar kullanma
+const prompt = \`
+Bu araçlara erişiminiz var:
+1. Kod Yorumlayıcı: TypeScript/JavaScript kodu yürüt
+2. Web Arama: Güncel bilgileri ara
+3. Dosya Sistemi: Dosya oku/yaz
+
+Görev: Satış verilerini analiz et ve içgörüler üret.
+
+Adım 1: Verileri yüklemek ve analiz etmek için Kod Yorumlayıcı kullan
+Adım 2: Sektör kıyaslamalarını bulmak için Web Arama kullan
+Adım 3: Verilerinizi kıyaslamalarla karşılaştır
+Adım 4: İçgörüler ve öneriler üret
+
+Her adımda çalışmanızı gösterin.
+\`;`}
+  csharp={`// Örnek: Prompt'ta harici araçlar kullanma
+var prompt = @"
+Bu araçlara erişiminiz var:
+1. Kod Yorumlayıcı: C# kodu yürüt
+2. Web Arama: Güncel bilgileri ara
+3. Dosya Sistemi: Dosya oku/yaz
+
+Görev: Satış verilerini analiz et ve içgörüler üret.
+
+Adım 1: Verileri yüklemek ve analiz etmek için Kod Yorumlayıcı kullan
+Adım 2: Sektör kıyaslamalarını bulmak için Web Arama kullan
+Adım 3: Verilerinizi kıyaslamalarla karşılaştır
+Adım 4: İçgörüler ve öneriler üret
+
+Her adımda çalışmanızı gösterin.
+";`}
+  dart={`// Örnek: Prompt'ta harici araçlar kullanma
+final prompt = """
+Bu araçlara erişiminiz var:
+1. Kod Yorumlayıcı: Dart kodu yürüt
+2. Web Arama: Güncel bilgileri ara
+3. Dosya Sistemi: Dosya oku/yaz
+
+Görev: Satış verilerini analiz et ve içgörüler üret.
+
+Adım 1: Verileri yüklemek ve analiz etmek için Kod Yorumlayıcı kullan
+Adım 2: Sektör kıyaslamalarını bulmak için Web Arama kullan
+Adım 3: Verilerinizi kıyaslamalarla karşılaştır
+Adım 4: İçgörüler ve öneriler üret
+
+Her adımda çalışmanızı gösterin.
+""";`}
+/>
+
+### 1.6. Sistematik Test
+
+Kıyaslama setleri kullanarak prompt performansını ölçün.
+
+**Test Durumu Tanımı:**
+
+```python
+# Kıyaslama test durumları
+test_cases = [
+    {
+        "input": "Faktöriyel hesaplayan bir fonksiyon yazın",
+        "expected_output": "def factorial(n: int) -> int: ...",
+        "criteria": [
+            "Tip ipuçları var",
+            "Uç durumları işler (0, negatif)",
+            "Docstring içerir",
+            "Özyineleme veya yinelemeyi doğru kullanır"
+        ]
+    },
+    {
+        "input": "E-posta doğrulayan bir fonksiyon yazın",
+        "expected_output": "def validate_email(email: str) -> bool: ...",
+        "criteria": [
+            "Regex veya uygun doğrulama kullanır",
+            "Uç durumları işler",
+            "Boolean döndürür",
+            "Hata yönetimi içerir"
+        ]
+    }
+]
+
+# Prompt performansını değerlendir
+def evaluate_prompt(prompt_template, test_cases):
+    results = []
+    for test in test_cases:
+        response = llm.generate(prompt_template.format(input=test["input"]))
+        score = evaluate_response(response, test["criteria"])
+        results.append({
+            "test": test["input"],
+            "score": score,
+            "passed": score >= 0.8
+        })
+    return results
+```
+
+**A/B Test Promptları:**
+
+```text
+İki prompt varyasyonunu test edin:
+
+Versiyon A:
+"Sayı listesini artan sırada sıralayan bir fonksiyon yazın."
+
+Versiyon B:
+"Python uzmanısınız. Şunları yapan bir fonksiyon yazın:
+- Sayı listesi alır
+- Artan sırada sıralar
+- Sıralanmış listeyi döndürür
+- Boş listeleri ve None değerlerini işler
+- Tip ipuçları ve docstring içerir"
+
+Ölçün:
+- Kod kalitesi (1-10)
+- Uç durum işleme (1-10)
+- Dokümantasyon (1-10)
+- Üretim süresi (saniye)
+```
+
+## 2. Çok Model Stratejisi: Claude 3 Ailesi
+
+Görev karmaşıklığına göre modelleri seçerek performans ve maliyeti dengeleyin.
+
+<Mermaid chart={`
+flowchart TB
+    Task[Görev Karmaşıklığı] --> Assess{Görevi Değerlendir}
+    Assess -->|Yüksek| Opus[Claude 3 Opus]
+    Assess -->|Orta| Sonnet[Claude 3 Sonnet]
+    Assess -->|Düşük| Haiku[Claude 3 Haiku]
+    
+    Opus --> Deep[Derin Akıl Yürütme]
+    Sonnet --> Daily[Günlük Geliştirme]
+    Haiku --> Quick[Hızlı Düzeltmeler]
+`} />
+
+### 2.1. Claude 3 Opus
+
+**En İyi Kullanım:**
+- Derin akıl yürütme ve stratejik mimari kararlar
+- Çok dosyalı yeniden düzenleme işlemleri
+- Karmaşık problem çözme
+- Yüksek riskli kod incelemeleri
+
+**Kullanım Durumları:**
+
+```text
+✅ Opus'u şunlar için kullanın:
+
+1. Mimari Kararlar
+"Mevcut mikroservis mimarimizi analiz edin ve günde 10M+ istek 
+işlemek için iyileştirmeler önerin. Düşünün:
+- Servis sınırları
+- Veri tutarlılığı
+- Hata modları
+- Maliyet optimizasyonu"
+
+2. Karmaşık Yeniden Düzenleme
+"Bu eski kod tabanını (50+ dosya) modern kalıpları kullanacak 
+şekilde yeniden düzenleyin, geriye dönük uyumluluğu koruyarak. 
+Bir geçiş planı oluşturun."
+
+3. Stratejik Planlama
+"Platformumuzu 1K'dan 100K kullanıcıya ölçeklendirmek için 6 
+aylık teknik yol haritası tasarlayın. Altyapı, ekip ve süreç 
+değerlendirmelerini dahil edin."
+```
+
+**Maliyet Değerlendirmesi:**
+- Token başına en yüksek maliyet
+- Sadece yüksek değerli görevler için kullanın
+- ROI: Daha iyi kararlar uzun vadede zaman/para tasarrufu sağlar
+
+### 2.2. Claude 3 Sonnet
+
+**En İyi Kullanım:**
+- Günlük geliştirme görevleri
+- Orta ölçekli özellik oluşturma
+- Birim test yazma
+- Kod incelemeleri
+
+**Kullanım Durumları:**
+
+```text
+✅ Sonnet'i şunlar için kullanın:
+
+1. Özellik Geliştirme
+"Şunlarla bir kullanıcı profil düzenleme özelliği uygulayın:
+- Form doğrulama
+- Görsel yükleme
+- API entegrasyonu
+- Hata yönetimi"
+
+2. Test Yazma
+"Bu fonksiyon için kapsamlı birim testleri yazın:
+[kod]
+Uç durumları ve hata senaryolarını kapsayın."
+
+3. Kod İncelemeleri
+"Bu pull request'i inceleyin ve şunlar hakkında geri bildirim sağlayın:
+- Kod kalitesi
+- Performans
+- Güvenlik
+- En iyi uygulamalar"
+```
+
+**Maliyet Değerlendirmesi:**
+- Dengeli maliyet/performans
+- Çoğu geliştirme görevi için iyi
+- Günlük iş için varsayılan seçim
+
+### 2.3. Claude 3 Haiku
+
+**En İyi Kullanım:**
+- Hızlı hata düzeltmeleri
+- Sözdizimi soruları
+- Boilerplate üretimi
+- Basit sorgular
+
+**Kullanım Durumları:**
+
+```text
+✅ Haiku'yu şunlar için kullanın:
+
+1. Hızlı Düzeltmeler
+"Bu sözdizimi hatasını düzeltin: [kod]"
+
+2. Sözdizimi Soruları
+"JavaScript'te 'let' ve 'const' arasındaki fark nedir?"
+
+3. Boilerplate
+"TypeScript, props arayüzü ve temel yapı ile bir React bileşen 
+şablonu oluşturun."
+
+4. Dokümantasyon Arama
+"Bu regex'in ne yaptığını açıklayın: /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/"
+```
+
+**Maliyet Değerlendirmesi:**
+- Token başına en düşük maliyet
+- En hızlı yanıt süresi
+- Yüksek hacimli, basit görevler için kullanın
+
+### 2.4. Model Seçim Karar Ağacı
+
+```python
+def select_model(task_complexity: str, file_count: int, reasoning_depth: str) -> str:
+    """
+    Görev özelliklerine göre uygun Claude 3 modelini seç.
+    """
+    if reasoning_depth == "deep" or file_count > 20:
+        return "claude-3-opus-20240229"
+    
+    if task_complexity == "medium" or file_count > 5:
+        return "claude-3-sonnet-20240229"
+    
+    return "claude-3-haiku-20240307"
+
+# Kullanım örnekleri
+tasks = [
+    {
+        "description": "Hızlı sözdizimi düzeltmesi",
+        "complexity": "low",
+        "files": 1,
+        "reasoning": "shallow"
+    },
+    {
+        "description": "Özellik uygulaması",
+        "complexity": "medium",
+        "files": 5,
+        "reasoning": "medium"
+    },
+    {
+        "description": "Mimari yeniden tasarım",
+        "complexity": "high",
+        "files": 50,
+        "reasoning": "deep"
+    }
+]
+
+for task in tasks:
+    model = select_model(
+        task["complexity"],
+        task["files"],
+        task["reasoning"]
+    )
+    print(f"{task['description']}: {model}")
+```
+
+## 3. Vektör Dünyası ve Semantik Arama
+
+Kodunuzun vektör uzayında nasıl temsil edildiğini ve Copilot'un @workspace ile semantik benzerliği nasıl kullandığını anlayın.
+
+<Mermaid chart={`
+flowchart LR
+    Code[Kaynak Kod] --> Embed[Gömme Modeli]
+    Embed --> Vector[Vektör: 1536 boyut]
+    Vector --> Store[(Vektör DB)]
+    
+    Query["Sorgu: workspace"] --> EmbedQ[Sorguyu Göm]
+    EmbedQ --> Search[Semantik Arama]
+    Store --> Search
+    Search --> Results[Benzer Kod Blokları]
+`} />
+
+### 3.1. Gömme Mantığı
+
+Kod, anlamsal olarak benzer kodun birbirine yakın olduğu yüksek boyutlu bir uzayda vektörler olarak temsil edilir.
+
+**Gömme Nasıl Çalışır:**
+
+```python
+# Örnek: Kod gömme
+code_snippets = [
+    "def calculate_total(items): return sum(item.price for item in items)",
+    "def compute_sum(numbers): return sum(numbers)",
+    "def authenticate_user(email, password): ...",
+    "def login_user(username, password): ..."
+]
+
+# Gömme sonrası, vektörler şöyle görünebilir:
+# calculate_total: [0.1, 0.8, 0.3, ...] (1536 boyut)
+# compute_sum:     [0.1, 0.7, 0.3, ...] (calculate_total'e benzer)
+# authenticate_user: [0.9, 0.2, 0.1, ...] (calculate_total'den farklı)
+# login_user:      [0.9, 0.2, 0.1, ...] (authenticate_user'e benzer)
+
+# Semantik benzerlik = vektörler arasındaki kosinüs benzerliği
+```
+
+**@workspace Kullanımı:**
+
+```text
+GitHub Copilot'ta @workspace kullandığınızda:
+
+1. Copilot tüm çalışma alanınızı gömler
+2. Sorgunuz da gömülür
+3. Semantik arama benzer kod bloklarını bulur
+4. İlgili bağlam alınır
+5. Bağlamla yanıt oluşturulur
+
+Örnek:
+Sorgu: "@workspace Kullanıcı kimlik doğrulamasını nasıl yapıyoruz?"
+
+Copilot bulur:
+- auth.ts: Kullanıcı kimlik doğrulama mantığı
+- middleware.ts: Auth middleware
+- types.ts: Kullanıcı tip tanımları
+
+Sonra bu bağlamı kullanarak yanıt oluşturur.
+```
+
+### 3.2. Semantik Arama Optimizasyonu
+
+Kodun ne yaptığını açıklayan tutarlı isimlendirme yoluyla AI'nın doğru kod bloklarını bulma başarı oranını artırın.
+
+**Kötü İsimlendirme (Düşük Başarı Oranı):**
+
+```typescript
+// ❌ Kötü: Belirsiz isimler semantik aramaya yardımcı olmaz
+function xyz(a: any, b: any): any {
+  // ...
+}
+
+function process(data: any): any {
+  // ...
+}
+
+function helper(arr: any[]): any {
+  // ...
+}
+```
+
+**İyi İsimlendirme (Yüksek Başarı Oranı):**
+
+```typescript
+// ✅ İyi: Açıklayıcı isimler semantik aramayı iyileştirir
+function calculateUserOrderTotal(orderItems: OrderItem[]): number {
+  // ...
+}
+
+function validateUserEmailFormat(email: string): boolean {
+  // ...
+}
+
+function filterActiveUsers(users: User[]): User[] {
+  // ...
+}
+```
+
+**İsimlendirme En İyi Uygulamaları:**
+
+| Yön | Kötü | İyi | Neden |
+|--------|------|------|-----|
+| Fonksiyon İsimleri | `process()` | `calculateOrderTotal()` | Eylem + nesneyi açıklar |
+| Değişken İsimleri | `data` | `userOrders` | Spesifik ve anlamlı |
+| Tip İsimleri | `Item` | `OrderItem` | Net domain bağlamı |
+| Dosya İsimleri | `utils.ts` | `order-utils.ts` | Amacı belirtir |
+
+**Semantik Arama Örneği:**
+
+```text
+Sorgu: "Kargo maliyetlerini nasıl hesaplıyoruz?"
+
+İyi isimlendirme ile:
+✅ Bulur: calculateShippingCost(), getShippingRates(), computeDeliveryFee()
+
+Kötü isimlendirme ile:
+❌ Bulur: process(), calculate(), compute() (çok genel, birçok yanlış pozitif)
+```
+
+### 3.3. Gömme için Kod Dokümantasyonu
+
+İyi dokümante edilmiş kod semantik arama doğruluğunu artırır.
+
+**Minimal Dokümantasyon:**
+
+```typescript
+// ❌ Kötü: Gömme için bağlam yok
+function calculate(x: number, y: number): number {
+  return x * y + 10;
+}
+```
+
+**Zengin Dokümantasyon:**
+
+```typescript
+// ✅ İyi: Zengin bağlam semantik aramayı iyileştirir
+/**
+ * Temel fiyat ve kargo ücreti dahil toplam sipariş maliyetini hesaplar.
+ * 
+ * @param basePrice - Sipariş öğelerinin temel fiyatı
+ * @param shippingFee - Kargo ücreti (varsayılan: $10)
+ * @returns Toplam sipariş maliyeti
+ * 
+ * @example
+ * const total = calculateOrderTotal(100, 10); // 110 döndürür
+ */
+function calculateOrderTotal(basePrice: number, shippingFee: number = 10): number {
+  return basePrice + shippingFee;
+}
+```
+
+## 4. Etkileşim Standartları: Slash Komutları ve Özel İş Akışları
+
+Slash komutlarını ve özel iş akışlarını profesyonel geliştirme süreçlerine entegre edin.
+
+<Mermaid chart={`
+flowchart TB
+    Command[Slash Komutu] --> Parse[Komutu Ayrıştır]
+    Parse --> Fix["fix komutu"]
+    Parse --> Explain["explain komutu"]
+    Parse --> Tests["tests komutu"]
+    Parse --> Terminal["terminal komutu"]
+    Parse --> Custom["özel komut"]
+    
+    Fix --> Action[Eylemi Yürüt]
+    Explain --> Action
+    Tests --> Action
+    Terminal --> Action
+    Custom --> Action
+`} />
+
+### 4.1. Standart Slash Komutları
+
+**/fix Komutu:**
+
+```text
+Kullanım: /fix [açıklama]
+
+Örnekler:
+/fix Bu fonksiyondaki tip hatasını düzelt
+/fix Null pointer istisnasını işle
+/fix Bu veritabanı sorgusunu optimize et
+
+En İyi Uygulamalar:
+- Ne düzeltileceği konusunda spesifik olun
+- Varsa hata mesajlarını dahil edin
+- Beklenen davranışı belirtin
+```
+
+**/explain Komutu:**
+
+```text
+Kullanım: /explain [kod veya kavram]
+
+Örnekler:
+/explain Bu kimlik doğrulama middleware'i nasıl çalışır?
+/explain useMemo ve useCallback arasındaki fark nedir?
+/explain Bu algoritmayı adım adım açıkla
+
+En İyi Uygulamalar:
+- Açıklama seviyesi isteyin (başlangıç/orta/ileri)
+- Gerekirse örnekler isteyin
+- İlgili kavramları sorun
+```
+
+**/tests Komutu:**
+
+```text
+Kullanım: /tests [fonksiyon veya bileşen]
+
+Örnekler:
+/tests Bu fonksiyon için birim testleri yaz
+/tests Bu API endpoint'i için entegrasyon testleri oluştur
+/tests Uç durumları kapsayan test durumları oluştur
+
+En İyi Uygulamalar:
+- Test çerçevesini belirtin (Jest, Vitest, vb.)
+- Kapsam gereksinimlerinden bahsedin
+- Test edilecek uç durumları dahil edin
+```
+
+**/terminal Komutu:**
+
+```text
+Kullanım: /terminal [komut veya görev]
+
+Örnekler:
+/terminal Bağımlılıkları nasıl kurarım?
+/terminal Git durumunu kontrol eden komut nedir?
+/terminal Tüm TypeScript dosyalarını bulmak için komut oluştur
+
+En İyi Uygulamalar:
+- İlgiliyse işletim sistemini belirtin
+- Shell'den bahsedin (bash, zsh, PowerShell)
+- Komutun açıklamasını isteyin
+```
+
+### 4.2. Özel Komutlar
+
+Kurumsal çıktı formatlarını standartlaştırmak için `.github/copilot-instructions.md` içinde özel komutlar tanımlayın.
+
+**Özel Komut Tanımı:**
+
+```markdown
+# Özel Slash Komutları
+
+## /doc
+Standart formatımızı takip ederek dokümantasyon oluşturun:
+- Tiplerle fonksiyon imzası
+- Parametre açıklamaları
+- Dönüş değeri açıklaması
+- Kullanım örnekleri
+- Hata koşulları
+- İlgili fonksiyonlar
+
+Örnek:
+/doc calculateTotal() için dokümantasyon yaz
+
+## /refactor
+Standartlarımızı takip ederek kodu yeniden düzenleyin:
+- > 50 satırsa fonksiyonları çıkar
+- Açıklayıcı değişken isimleri kullan
+- Tip ipuçları ekle
+- SOLID prensiplerini takip et
+- Geriye dönük uyumluluğu koru
+
+Örnek:
+/refactor Bu fonksiyonu daha modüler hale getir
+
+## /review
+Kod inceleme kontrol listesi:
+- [ ] Tip güvenliği
+- [ ] Hata yönetimi
+- [ ] Performans değerlendirmeleri
+- [ ] Güvenlik etkileri
+- [ ] Test kapsamı
+- [ ] Dokümantasyon
+
+Örnek:
+/review Bu pull request'i incele
+
+## /security
+Güvenlik denetimi kontrol listesi:
+- [ ] Girdi doğrulama
+- [ ] SQL injection önleme
+- [ ] XSS koruması
+- [ ] Kimlik doğrulama/Yetkilendirme
+- [ ] Hassas veri işleme
+- [ ] Hız sınırlama
+
+Örnek:
+/security Bu kimlik doğrulama kodunu denetle
+```
+
+**İş Akışı Entegrasyonu:**
+
+```markdown
+# Geliştirme İş Akışı
+
+## Özellik Geliştirme
+1. /doc - Özellik gereksinimlerini dokümante et
+2. /tests - Önce testleri yaz (TDD)
+3. Özelliği uygula
+4. /review - PR öncesi kendi kendine inceleme
+5. /security - Güvenlik kontrolü
+
+## Hata Düzeltme
+1. /explain - Hatayı anla
+2. /fix - Sorunu düzelt
+3. /tests - Regresyon testleri ekle
+4. /doc - Gerekirse dokümantasyonu güncelle
+
+## Yeniden Düzenleme
+1. /explain - Mevcut kodu anla
+2. /refactor - Standartları takip ederek yeniden düzenle
+3. /tests - Testlerin hala geçtiğinden emin ol
+4. /review - Değişiklikleri incele
+```
+
+### 4.3. Komut Şablonları
+
+Yaygın görevler için yeniden kullanılabilir komut şablonları oluşturun.
+
+**Şablon Sistemi:**
+
+```markdown
+# Komut Şablonları
+
+## Şablon: Yeni Özellik
+/feature [isim]
+- Özellik dal adı oluştur
+- Bileşen yapısı oluştur
+- Yer tutucu testler ekle
+- Dokümantasyon dizinini güncelle
+
+## Şablon: API Endpoint
+/api [endpoint-adı]
+- Route handler oluştur
+- İstek/yanıt tipleri oluştur
+- Doğrulama ekle
+- Entegrasyon testleri yaz
+- API dokümantasyonunu güncelle
+
+## Şablon: Veritabanı Geçişi
+/migration [açıklama]
+- Geçiş dosyası oluştur
+- Yukarı/aşağı geçişler oluştur
+- Geri alma stratejisi ekle
+- Şema dokümantasyonunu güncelle
+```
+
+## Uygulama Kontrol Listesi
+
+### OpenAI Standartları
+- [ ] Net talimat kalıplarını uygulayın
+- [ ] Referans kod kütüphanesi oluşturun
+- [ ] Karmaşık görevleri bölün
+- [ ] Promptlara düşünme zamanı ekleyin
+- [ ] Harici araçları entegre edin
+- [ ] Kıyaslama testini kurun
+
+### Çok Model Stratejisi
+- [ ] Model seçim kriterlerini tanımlayın
+- [ ] Yönlendirme mantığı oluşturun
+- [ ] Model başına maliyetleri izleyin
+- [ ] Model kullanımını optimize edin
+
+### Semantik Arama
+- [ ] Kod tabanı isimlendirmesini denetleyin
+- [ ] Fonksiyon/değişken isimlerini iyileştirin
+- [ ] Kapsamlı dokümantasyon ekleyin
+- [ ] @workspace etkinliğini test edin
+
+### Slash Komutları
+- [ ] Özel komutları tanımlayın
+- [ ] Komut kullanımını dokümante edin
+- [ ] Komut şablonları oluşturun
+- [ ] Ekibi komutlar konusunda eğitin
+
+## Özet
+
+Anahtar çıkarımlar:
+
+1. **OpenAI Standartları**: Daha iyi prompt mühendisliği için altı temel strateji
+2. **Çok Model Stratejisi**: Doğru görev için doğru model
+3. **Semantik Arama**: AI anlayışı için kodu optimize edin
+4. **Etkileşim Kalıpları**: Slash komutlarıyla iş akışlarını standartlaştırın
+
+Bu kalıplar profesyonel, ölçeklenebilir AI destekli geliştirme iş akışlarını mümkün kılar.

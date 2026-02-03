@@ -1,0 +1,271 @@
+---
+title: "LLM 201"
+description: "Gelişmiş LLM kavramları ve mimarileri"
+category: "llm"
+level: 201
+order: 3
+---
+
+# Gelişmiş LLM Kavramları
+
+LLM 201'e hoş geldiniz! Bu ders Büyük Dil Modeli mimarisi ve optimizasyonunda gelişmiş konuları kapsar.
+
+## Transformer Derinlemesine İnceleme
+
+### Çok Başlı Dikkat (Multi-Head Attention)
+
+Transformer mimarisinin çekirdeği, modelin girdinin farklı kısımlarına aynı anda odaklanmasına olanak tanır.
+
+<Mermaid chart={`
+flowchart TB
+    Input[Girdi] --> Split[Başlara Böl]
+    Split --> H1[Baş 1]
+    Split --> H2[Baş 2]
+    Split --> H3[Baş 3]
+    Split --> Hn[Baş n]
+    H1 --> Concat[Birleştir]
+    H2 --> Concat
+    H3 --> Concat
+    Hn --> Concat
+    Concat --> Linear[Doğrusal İzdüşüm]
+    Linear --> Output[Çıktı]
+`} />
+
+### Dikkat Mekanizması
+
+```python
+# Basitleştirilmiş dikkat hesaplama
+def attention(Q, K, V):
+    """
+    Q: Sorgu matrisi
+    K: Anahtar matrisi
+    V: Değer matrisi
+    """
+    # Ölçekli nokta çarpım dikkati
+    scores = (Q @ K.T) / sqrt(d_k)
+    weights = softmax(scores)
+    output = weights @ V
+    return output
+```
+
+### Konum Kodlama
+
+Transformer'lar tüm tokenları aynı anda işlediği için konumsal bilgi eklenmelidir:
+
+```python
+# Sinüzoidal konum kodlama
+def positional_encoding(position, d_model):
+    PE = np.zeros((position, d_model))
+    for pos in range(position):
+        for i in range(0, d_model, 2):
+            PE[pos, i] = sin(pos / (10000 ** (i / d_model)))
+            PE[pos, i+1] = cos(pos / (10000 ** (i / d_model)))
+    return PE
+```
+
+## Model Mimarileri
+
+<Mermaid chart={`
+flowchart TB
+    subgraph Architectures [LLM Mimarileri]
+        Enc[Sadece Encoder]
+        Dec[Sadece Decoder]
+        E2E[Encoder-Decoder]
+    end
+    
+    Enc --> BERT[BERT]
+    Dec --> GPT[GPT Ailesi]
+    E2E --> T5[T5/BART]
+    
+    BERT --> NLU[Anlama Görevleri]
+    GPT --> Gen[Üretim Görevleri]
+    T5 --> Both[Her İki Görev]
+`} />
+
+### Sadece Decoder (GPT tarzı)
+
+- Otoregresif üretim
+- Nedensel dikkat (sadece geçmiş tokenları görebilir)
+- Örnekler: GPT-4, Claude, LLaMA
+
+### Sadece Encoder (BERT tarzı)
+
+- İki yönlü bağlam
+- Sınıflandırma/anlama için iyi
+- Örnekler: BERT, RoBERTa
+
+### Encoder-Decoder (T5 tarzı)
+
+- Girdi için tam bağlam
+- Otoregresif çıktı
+- Örnekler: T5, BART
+
+## Ölçekleme Yasaları
+
+<Mermaid chart={`
+flowchart LR
+    subgraph Scaling [Ölçekleme Boyutları]
+        Params[Parametreler]
+        Data[Eğitim Verisi]
+        Compute[Hesaplama]
+    end
+    
+    Params --> Perf[Performans]
+    Data --> Perf
+    Compute --> Perf
+`} />
+
+### Kaplan Ölçekleme Yasaları
+
+Performans tahmin edilebilir şekilde şunlarla iyileşir:
+
+| Faktör | Ölçekleme Üssü |
+|--------|------------------|
+| Parametreler | ~0.076 |
+| Veri | ~0.095 |
+| Hesaplama | ~0.050 |
+
+### Chinchilla Optimal
+
+Eğitim tokenları ≈ 20 × Parametreler
+
+```
+7B model → 140B token
+70B model → 1.4T token
+```
+
+## Eğitim Teknikleri
+
+### Ön Eğitim Hedefleri
+
+```python
+# Nedensel Dil Modelleme (GPT)
+"Kedi oturdu" → "mat"
+
+# Maskelenmiş Dil Modelleme (BERT)
+"Kedi [MASK] oturdu mat" → "üzerine"
+
+# Span Bozulması (T5)
+"Kedi <X> oturdu <Y>" → "<X> üzerine <Y> mat"
+```
+
+### İnce Ayar Yöntemleri
+
+<Mermaid chart={`
+flowchart TB
+    Base[Temel Model] --> Full[Tam İnce Ayar]
+    Base --> LoRA[LoRA]
+    Base --> Prefix[Prefix Tuning]
+    Base --> Prompt[Prompt Tuning]
+    
+    Full --> High[Yüksek Maliyet]
+    LoRA --> Low[Düşük Maliyet]
+    Prefix --> Low
+    Prompt --> Low
+`} />
+
+### LoRA (Düşük Rank Adaptasyonu)
+
+```python
+# Tam ağırlık matrisi W'yi güncellemek yerine
+# Güncelle: W' = W + A @ B
+# burada A (d × r) ve B (r × d), r << d
+
+class LoRALayer:
+    def __init__(self, in_dim, out_dim, rank=8):
+        self.W = pretrained_weights  # Dondurulmuş
+        self.A = nn.Linear(in_dim, rank)
+        self.B = nn.Linear(rank, out_dim)
+    
+    def forward(self, x):
+        return self.W(x) + self.B(self.A(x))
+```
+
+## Çıkarım Optimizasyonu
+
+### KV Önbellekleme
+
+Daha önce görülen tokenlar için dikkati yeniden hesaplamaktan kaçının:
+
+<Mermaid chart={`
+flowchart LR
+    subgraph Without [Önbellek Olmadan]
+        T1[Token 1] --> C1[Tümünü Hesapla]
+        T2[Token 1,2] --> C2[Tümünü Hesapla]
+        T3[Token 1,2,3] --> C3[Tümünü Hesapla]
+    end
+    
+    subgraph With [Önbellekle]
+        CT1[Token 1] --> CC1[Hesapla + Önbellekle]
+        CT2[Token 2] --> CC2[Hesapla + Önbellekle]
+        CT3[Token 3] --> CC3[Hesapla + Önbellekle]
+    end
+`} />
+
+### Kuantizasyon
+
+Model boyutunu azaltın ve çıkarımı hızlandırın:
+
+| Hassasiyet | Bit | Boyut Azaltma |
+|-----------|------|----------------|
+| FP32 | 32 | 1x |
+| FP16 | 16 | 2x |
+| INT8 | 8 | 4x |
+| INT4 | 4 | 8x |
+
+```python
+# Kuantizasyon için sahte kod
+def quantize_int8(weights):
+    scale = weights.max() / 127
+    quantized = (weights / scale).round().clamp(-128, 127)
+    return quantized, scale
+```
+
+### Spekülatif Dekodlama
+
+Taslak için küçük model, doğrulama için büyük model kullanın:
+
+<Mermaid chart={`
+flowchart LR
+    Draft[Küçük Model] --> Tokens[K Token Taslağı]
+    Tokens --> Verify[Büyük Model]
+    Verify --> Accept{Kabul?}
+    Accept -->|Evet| Keep[Tokenları Tut]
+    Accept -->|Hayır| Reject[Reddet + Yeniden Örnekle]
+`} />
+
+## Gelişen Mimariler
+
+### Uzman Karışımı (MoE)
+
+<Mermaid chart={`
+flowchart TB
+    Input[Girdi] --> Router[Yönlendirici Ağı]
+    Router --> E1[Uzman 1]
+    Router --> E2[Uzman 2]
+    Router --> E3[Uzman 3]
+    E1 --> Combine[Çıktıları Birleştir]
+    E2 --> Combine
+    Combine --> Output[Çıktı]
+`} />
+
+- Seyrek aktivasyon (tüm uzmanlar kullanılmaz)
+- Benzer hesaplama ile daha fazla parametre
+- Örnekler: Mixtral, GPT-4 (söylenti)
+
+### Durum Uzay Modelleri
+
+- Dikkat alternatifi
+- Dizi uzunluğu ile doğrusal karmaşıklık
+- Örnekler: Mamba, RWKV
+
+## Özet
+
+Anahtar gelişmiş kavramlar:
+- Transformer mimarisi detayları ve varyantları
+- Eğitim kararları için ölçekleme yasaları
+- Verimli ince ayar yöntemleri (LoRA, vb.)
+- Üretim için çıkarım optimizasyonları
+- Transformer'ların ötesinde gelişen mimariler
+
+Sonraki: LLM 202'de gelişmiş çalışma örnekleri.

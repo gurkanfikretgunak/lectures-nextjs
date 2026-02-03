@@ -1,0 +1,296 @@
+---
+title: "AI Tooling 101"
+description: "AI geliştirme araçları ve çerçevelerine giriş"
+category: "ai-tooling"
+level: 101
+order: 1
+---
+
+# AI Tooling'e Giriş
+
+AI Tooling 101'e hoş geldiniz! Bu ders AI geliştirme için temel araçları ve çerçeveleri tanıtır.
+
+## AI Geliştirme Yığını
+
+<Mermaid chart={`
+flowchart TB
+    subgraph Apps [Uygulama Katmanı]
+        ChatBot[Sohbet Botları]
+        Assistant[AI Asistanları]
+        Agent[AI Ajanları]
+    end
+    
+    subgraph Framework [Çerçeve Katmanı]
+        LangChain[LangChain]
+        LlamaIndex[LlamaIndex]
+        Semantic[Semantic Kernel]
+    end
+    
+    subgraph Infra [Altyapı Katmanı]
+        API[LLM API'leri]
+        Vector[Vektör Veritabanları]
+        Cache[Önbellekleme]
+    end
+    
+    subgraph Models [Model Katmanı]
+        OpenAI[OpenAI]
+        Anthropic[Anthropic]
+        Local[Yerel Modeller]
+    end
+    
+    Apps --> Framework
+    Framework --> Infra
+    Infra --> Models
+`} />
+
+## LLM Sağlayıcı API'leri
+
+### OpenAI
+
+```python
+from openai import OpenAI
+
+client = OpenAI(api_key="your-key")
+
+response = client.chat.completions.create(
+    model="gpt-4",
+    messages=[
+        {"role": "system", "content": "Yardımsever bir asistansınız."},
+        {"role": "user", "content": "Kuantum hesaplamayı açıklayın."}
+    ],
+    temperature=0.7,
+    max_tokens=500
+)
+
+print(response.choices[0].message.content)
+```
+
+### Anthropic (Claude)
+
+```python
+from anthropic import Anthropic
+
+client = Anthropic(api_key="your-key")
+
+response = client.messages.create(
+    model="claude-3-opus-20240229",
+    max_tokens=1024,
+    messages=[
+        {"role": "user", "content": "Kuantum hesaplamayı açıklayın."}
+    ]
+)
+
+print(response.content[0].text)
+```
+
+### Yerel Modeller (Ollama)
+
+```python
+import ollama
+
+response = ollama.chat(
+    model='llama2',
+    messages=[
+        {'role': 'user', 'content': 'Kuantum hesaplamayı açıklayın.'}
+    ]
+)
+
+print(response['message']['content'])
+```
+
+## LangChain Çerçevesi
+
+<Mermaid chart={`
+flowchart LR
+    subgraph LangChain [LangChain Bileşenleri]
+        Models[Modeller]
+        Prompts[Promptlar]
+        Chains[Zincirler]
+        Agents[Ajanlar]
+        Memory[Bellek]
+    end
+    
+    Prompts --> Models
+    Models --> Chains
+    Chains --> Agents
+    Memory --> Agents
+`} />
+
+### Temel Zincir
+
+```python
+from langchain_openai import ChatOpenAI
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.output_parsers import StrOutputParser
+
+# Bileşenler oluştur
+llm = ChatOpenAI(model="gpt-4")
+prompt = ChatPromptTemplate.from_messages([
+    ("system", "Yardımsever bir asistansınız."),
+    ("user", "{input}")
+])
+output_parser = StrOutputParser()
+
+# Zincir oluştur
+chain = prompt | llm | output_parser
+
+# Çalıştır
+result = chain.invoke({"input": "AI nedir?"})
+print(result)
+```
+
+### RAG Zinciri
+
+```python
+from langchain_community.vectorstores import Chroma
+from langchain_openai import OpenAIEmbeddings
+from langchain_core.runnables import RunnablePassthrough
+
+# Alıcı kurulumu
+vectorstore = Chroma(embedding_function=OpenAIEmbeddings())
+retriever = vectorstore.as_retriever()
+
+# RAG promptu
+rag_prompt = ChatPromptTemplate.from_template("""
+Bağlama göre yanıt verin:
+Bağlam: {context}
+Soru: {question}
+""")
+
+# RAG zinciri oluştur
+rag_chain = (
+    {"context": retriever, "question": RunnablePassthrough()}
+    | rag_prompt
+    | llm
+    | output_parser
+)
+```
+
+## Vektör Veritabanları
+
+### Neden Vektör Veritabanları?
+
+<Mermaid chart={`
+flowchart LR
+    Text[Metin] --> Embed[Gömme Modeli]
+    Embed --> Vector[Vektör: 1536 boyut]
+    Vector --> Store[(Vektör Veritabanı)]
+    
+    Query[Sorgu] --> EmbedQ[Sorguyu Göm]
+    EmbedQ --> Search[Benzerlik Arama]
+    Store --> Search
+    Search --> Results[En İyi K Sonuç]
+`} />
+
+### Popüler Seçenekler
+
+| Veritabanı | Tip | En İyi Kullanım |
+|----------|------|----------|
+| Pinecone | Bulut | Üretim ölçeği |
+| Chroma | Yerel/Bulut | Geliştirme |
+| Weaviate | Kendi barındırma | Kurumsal |
+| Qdrant | Kendi barındırma | Performans |
+| pgvector | Postgres uzantısı | Mevcut Postgres |
+
+### Chroma Örneği
+
+```python
+import chromadb
+from chromadb.utils import embedding_functions
+
+# Başlat
+client = chromadb.Client()
+embedding_fn = embedding_functions.OpenAIEmbeddingFunction(
+    api_key="your-key"
+)
+
+# Koleksiyon oluştur
+collection = client.create_collection(
+    name="documents",
+    embedding_function=embedding_fn
+)
+
+# Belgeler ekle
+collection.add(
+    documents=["AI teknolojiyi dönüştürüyor", "ML AI'ın bir alt kümesidir"],
+    ids=["doc1", "doc2"]
+)
+
+# Sorgula
+results = collection.query(
+    query_texts=["Yapay zeka nedir?"],
+    n_results=2
+)
+```
+
+## Geliştirme Araçları
+
+### IDE Uzantıları
+
+- **GitHub Copilot**: AI kod tamamlama
+- **Cursor**: AI-öncelikli kod editörü
+- **Continue**: Açık kaynak AI asistanı
+
+### Test ve İzleme
+
+```python
+# LangSmith ile izleme kullanımı
+import os
+os.environ["LANGCHAIN_TRACING_V2"] = "true"
+os.environ["LANGCHAIN_API_KEY"] = "your-key"
+
+# LangChain kodunuz artık otomatik olarak izleniyor
+chain = prompt | llm | output_parser
+result = chain.invoke({"input": "Merhaba"})
+```
+
+### Prompt Yönetimi
+
+<Mermaid chart={`
+flowchart TB
+    Dev[Geliştirme] --> Test[Test]
+    Test --> Version[Sürüm Kontrolü]
+    Version --> Deploy[Dağıtım]
+    Deploy --> Monitor[İzleme]
+    Monitor --> Iterate[Yinele]
+    Iterate --> Dev
+`} />
+
+## Ortam Kurulumu
+
+### Proje Yapısı
+
+```
+ai-project/
+├── .env                 # API anahtarları (gitignore)
+├── requirements.txt     # Bağımlılıklar
+├── src/
+│   ├── chains/         # LangChain zincirleri
+│   ├── prompts/        # Prompt şablonları
+│   ├── utils/          # Yardımcılar
+│   └── main.py
+├── data/
+│   └── documents/      # Kaynak belgeler
+├── tests/
+└── notebooks/          # Deneyler
+```
+
+### Temel Bağımlılıklar
+
+```txt
+# requirements.txt
+langchain>=0.1.0
+langchain-openai>=0.0.5
+chromadb>=0.4.0
+python-dotenv>=1.0.0
+```
+
+## Özet
+
+AI geliştirme için anahtar araçlar:
+- LLM API'leri (OpenAI, Anthropic, yerel modeller)
+- Çerçeveler (LangChain, LlamaIndex)
+- Semantik arama için vektör veritabanları
+- Geliştirme ve izleme araçları
+
+Sonraki: AI Tooling 102'de pratik tooling örneklerini keşfedin.

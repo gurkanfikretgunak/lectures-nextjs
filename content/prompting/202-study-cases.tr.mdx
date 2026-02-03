@@ -1,0 +1,264 @@
+---
+title: "Prompting 202 - Çalışma Örnekleri"
+description: "Gelişmiş prompt mühendisliği çalışma örnekleri"
+category: "prompting"
+level: 202
+order: 4
+---
+
+# Gelişmiş Prompting Çalışma Örnekleri
+
+Bu ders, gelişmiş prompting tekniklerinin karmaşık gerçek dünya uygulamalarını sunar.
+
+## Çalışma Örneği 1: Otomatik Kod Üretim Hattı
+
+### Zorluk
+
+Kodu otomatik olarak üreten, test eden ve iyileştiren bir sistem oluşturun.
+
+<Mermaid chart={`
+flowchart TB
+    Req[Gereksinimler] --> Gen[Kod Üretimi]
+    Gen --> Test[Test Üretimi]
+    Test --> Run[Testleri Çalıştır]
+    Run --> Pass{Testler Geçti mi?}
+    Pass -->|Evet| Done[Tamamlandı]
+    Pass -->|Hayır| Debug[Hata Ayıklama Promptu]
+    Debug --> Gen
+`} />
+
+### Uygulama
+
+```text
+# Aşama 1: Kod Üretimi
+code_gen_prompt = """
+Uzman bir Python geliştiricisisiniz.
+
+Gereksinimler:
+<requirements>
+
+Şunlarla üretim hazır kod üretin:
+- Tip ipuçları
+- Hata yönetimi
+- Docstring'ler
+- Uç durum işleme
+"""
+
+# Aşama 2: Test Üretimi
+test_gen_prompt = """
+Bu kod verildiğinde:
+<generated_code>
+
+Şunları kapsayan kapsamlı pytest testleri üretin:
+- Mutlu yol senaryoları
+- Uç durumlar
+- Hata koşulları
+"""
+
+# Aşama 3: Hata Ayıklama ve İyileştirme
+debug_prompt = """
+Aşağıdaki testler başarısız oldu:
+<failed_tests>
+
+Orijinal kod:
+<code>
+
+Hata mesajları:
+<errors>
+
+Tüm testleri geçecek şekilde kodu düzeltin. Değişikliklerinizi açıklayın.
+"""
+```
+
+## Çalışma Örneği 2: Çok Ajanlı Tartışma Sistemi
+
+### Zorluk
+
+Birden fazla AI "ajanının" daha iyi sonuçlara ulaşmak için tartıştığı bir sistem oluşturun.
+
+<Mermaid chart={`
+flowchart LR
+    Topic[Konu] --> A1[Ajan 1: Destekleyen]
+    Topic --> A2[Ajan 2: Karşı]
+    Topic --> A3[Ajan 3: Tarafsız]
+    A1 --> D1[Argüman]
+    A2 --> D2[Karşı Argüman]
+    A3 --> D3[Analiz]
+    D1 --> Judge[Hakem Ajanı]
+    D2 --> Judge
+    D3 --> Judge
+    Judge --> Conclusion[Son Sonuç]
+`} />
+
+```text
+debate_system = """
+=== TARTIŞMA TURU <round> ===
+
+Konu: <topic>
+
+Ajan 1 (Destekleyen):
+Konuyu DESTEKLEYEN tarafındasınız. En güçlü argümanınızı sunun.
+Ele alınacak önceki karşıt noktalar: <opponent_points>
+
+Ajan 2 (Karşıt):
+Konuya KARŞI tarafındasınız. En güçlü karşı argümanınızı sunun.
+Ele alınacak önceki destekleyen noktalar: <proponent_points>
+
+Hakem:
+Her iki argümanı şunlar için değerlendirin:
+- Mantıksal tutarlılık
+- Kanıt kalitesi
+- İkna edicilik
+
+Mevcut kazanan: [Değerlendirmeniz]
+"""
+```
+
+## Çalışma Örneği 3: Otonom Araştırma Asistanı
+
+### Zorluk
+
+ReAct kullanarak konuları otonom olarak araştırabilen bir AI asistanı oluşturun.
+
+<Mermaid chart={`
+flowchart TB
+    Query[Araştırma Sorgusu] --> Think1[Düşünce: Araştırmayı Planla]
+    Think1 --> Act1[Eylem: Ara]
+    Act1 --> Obs1[Gözlem: Sonuçlar]
+    Obs1 --> Think2[Düşünce: Analiz Et]
+    Think2 --> Act2[Eylem: Derinlemesine İncele]
+    Act2 --> Obs2[Gözlem: Detaylar]
+    Obs2 --> Think3[Düşünce: Sentezle]
+    Think3 --> Report[Araştırma Raporu]
+`} />
+
+```text
+research_agent_prompt = """
+Bu araçlara erişimi olan bir araştırma asistanısınız:
+- search(query): Bilgi ara
+- read(url): Bir URL'den içerik oku
+- calculate(expression): Hesaplamalar yap
+- save(content): Bulguları kaydet
+
+Araştırma Sorusu: <question>
+
+Bu formatı kullanın:
+Düşünce: [Ne bulmam gerektiği]
+Eylem: [tool_name(parameters)]
+Gözlem: [Sonuç]
+... tamamlanana kadar tekrarla ...
+Düşünce: [Son sentez]
+Rapor: [Kapsamlı cevap]
+"""
+```
+
+## Çalışma Örneği 4: Dinamik Prompt Optimizasyonu
+
+### Zorluk
+
+Çıktı kalitesine göre promptları otomatik olarak iyileştirin.
+
+<Mermaid chart={`
+flowchart TB
+    Initial[İlk Prompt] --> Gen[Çıktı Üret]
+    Gen --> Eval[Kaliteyi Değerlendir]
+    Eval --> Score{Skor Tamam mı?}
+    Score -->|Evet| Final[Son Prompt]
+    Score -->|Hayır| Analyze[Başarısızlıkları Analiz Et]
+    Analyze --> Improve[Promptu İyileştir]
+    Improve --> Gen
+`} />
+
+```text
+optimization_system = """
+=== PROMPT OPTİMİZASYON DÖNGÜSÜ ===
+
+Mevcut Prompt:
+<current_prompt>
+
+Üretilen Çıktılar (örnek):
+<sample_outputs>
+
+Kalite Metrikleri:
+- Doğruluk: <accuracy>
+- İlgililik: <relevance>
+- Format Uyumluluğu: <format_score>
+
+Belirlenen Sorunlar:
+<issues>
+
+Göreviniz: Bu sorunları ele almak için promptu yeniden yazın.
+
+İyileştirilmiş Prompt:
+"""
+```
+
+## Çalışma Örneği 5: Karmaşık Belge Analizi
+
+### Zorluk
+
+Prompt zincirleme kullanarak uzun yasal belgeleri analiz edin.
+
+```text
+# Zincir 1: Anahtar Bölümleri Çıkar
+extraction_prompt = """
+Belge: <document>
+
+Bu bölümleri çıkarın ve etiketleyin:
+1. İlgili taraflar
+2. Anahtar terimler ve tanımlar
+3. Yükümlülükler
+4. Ceza/Sonuçlar
+5. Fesih maddeleri
+
+Yapılandırılmış JSON olarak formatlayın.
+"""
+
+# Zincir 2: Risk Analizi
+risk_prompt = """
+Çıkarılan bölümler: <extracted>
+
+<party> için potansiyel riskleri analiz edin:
+- Yasal riskler
+- Finansal riskler
+- Operasyonel riskler
+
+Her birini açıklamayla Düşük/Orta/Yüksek olarak derecelendirin.
+"""
+
+# Zincir 3: Özet ve Öneriler
+summary_prompt = """
+Risk analizi: <risks>
+
+Şunlarla bir yönetici özeti oluşturun:
+1. Anahtar bulgular (3-5 madde)
+2. Kritik eylem maddeleri
+3. Önerilen sonraki adımlar
+"""
+```
+
+## Sonuç Karşılaştırması
+
+| Çalışma Örneği | Teknik | İyileştirme |
+|------------|-----------|-------------|
+| Kod Hattı | Zincirleme + CoT | %40 daha az hata |
+| Tartışma Sistemi | Çok ajanlı | %25 daha iyi kararlar |
+| Araştırma | ReAct | %60 daha hızlı araştırma |
+| Optimizasyon | Meta-prompting | %35 kalite artışı |
+| Belge Analizi | Zincirleme | %50 zaman tasarrufu |
+
+## Uygulama İpuçları
+
+1. **Basit Başlayın**: Temel promptlarla başlayın, karmaşıklık ekleyin
+2. **Her Şeyi Ölçün**: Başarı metriklerini takip edin
+3. **Sürüm Kontrolü**: Prompt sürümlerini saklayın
+4. **A/B Testi**: Teknikleri ampirik olarak karşılaştırın
+5. **Başarısızlıkları Dokümante Edin**: Çalışmayan şeylerden öğrenin
+
+## Özet
+
+Gelişmiş prompting şunları sağlar:
+- Otonom çok adımlı iş akışları
+- Kendini iyileştiren sistemler
+- Karmaşık akıl yürütme görevleri
+- Üretim hazır uygulamalar

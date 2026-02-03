@@ -1,0 +1,173 @@
+---
+title: "LLM 101"
+description: "Büyük Dil Modellerine Giriş"
+category: "llm"
+level: 101
+order: 1
+---
+
+# Büyük Dil Modellerine Giriş
+
+LLM 101'e hoş geldiniz! Bu ders Büyük Dil Modellerinin temellerini tanıtır.
+
+## Büyük Dil Modelleri Nedir?
+
+Büyük Dil Modelleri (LLM'ler), insan benzeri dili anlamak ve üretmek için büyük miktarda metin verisi üzerinde eğitilmiş AI sistemleridir. Modern AI asistanları, kod üreticileri ve yaratıcı araçların temelini oluştururlar.
+
+<Mermaid chart={`
+flowchart LR
+    Data[Eğitim Verisi] --> Model[Sinir Ağı]
+    Model --> Weights[Öğrenilen Kalıplar]
+    Weights --> LLM[Dil Modeli]
+    LLM --> Gen[Metin Üretimi]
+`} />
+
+## LLM'ler Nasıl Çalışır?
+
+### Transformer Mimarisi
+
+LLM'ler, "Attention is All You Need" (2017) makalesinde tanıtılan Transformer mimarisine dayanır.
+
+<Mermaid chart={`
+flowchart TB
+    Input[Girdi Metni] --> Embed[Gömme Katmanı]
+    Embed --> PE[Konumsal Kodlama]
+    PE --> Attn[Kendi Kendine Dikkat]
+    Attn --> FF[İleri Besleme]
+    FF --> Norm[Katman Normalleştirme]
+    Norm --> Output[Çıktı Olasılıkları]
+`} />
+
+### Temel Bileşenler
+
+1. **Tokenizasyon**: Metni daha küçük parçalara (tokenlar) ayırma
+2. **Gömme**: Tokenları sayısal vektörlere dönüştürme
+3. **Dikkat**: Tokenlar arasındaki ilişkileri öğrenme
+4. **Üretim**: Bir sonraki tokenı tahmin etme
+
+```python
+# Basit tokenizasyon örneği
+text = "Merhaba, dünya!"
+tokens = ["Merhaba", ",", " dünya", "!"]
+token_ids = [15496, 11, 995, 0]
+```
+
+## Eğitim Süreci
+
+<Mermaid chart={`
+flowchart TB
+    subgraph Training [Eğitim Hattı]
+        Data[Metin Verisi] --> Clean[Ön İşleme]
+        Clean --> Token[Tokenizasyon]
+        Token --> Train[Eğitim Döngüsü]
+        Train --> Loss[Kayıp Hesapla]
+        Loss --> Update[Ağırlıkları Güncelle]
+        Update --> Train
+    end
+`} />
+
+### Ön Eğitim
+
+Modeller büyük metin külliyatlarından öğrenir:
+- Web sayfaları
+- Kitaplar
+- Kod depoları
+- Bilimsel makaleler
+
+### İnce Ayar
+
+Modeller belirli görevler için özelleştirilir:
+- Talimat takibi
+- Kod üretimi
+- Konuşma
+
+## Temel Kavramlar
+
+### Bağlam Penceresi
+
+Modelin aynı anda işleyebileceği maksimum metin miktarı.
+
+| Model | Bağlam Penceresi |
+|-------|----------------|
+| GPT-3.5 | 4K token |
+| GPT-4 | 8K-128K token |
+| Claude | 100K+ token |
+
+### Sıcaklık (Temperature)
+
+Üretimdeki rastgeleliği kontrol eder:
+
+```python
+# Düşük sıcaklık (0.1) - Daha odaklı
+"Fransa'nın başkenti Paris'tir."
+
+# Yüksek sıcaklık (1.0) - Daha yaratıcı
+"Fransa'nın başkenti Paris'tir, ışıklar ve romantizm şehri..."
+```
+
+### Tokenlar vs Kelimeler
+
+```python
+# Her zaman 1:1 değil
+text = "ChatGPT harika!"
+# Tokenlar: ["Chat", "G", "PT", " harika", "!"]
+# 4 kelime için 6 token
+```
+
+## LLM Türleri
+
+<Mermaid chart={`
+flowchart TB
+    LLMs[LLM Türleri]
+    LLMs --> Base[Temel Modeller]
+    LLMs --> Instruct[Talimat-Ayarlı]
+    LLMs --> Chat[Sohbet Modelleri]
+    LLMs --> Code[Kod Modelleri]
+    
+    Base --> GPT3[GPT-3 Temel]
+    Instruct --> GPT35[GPT-3.5]
+    Chat --> Claude[Claude]
+    Code --> Codex[Codex/Copilot]
+`} />
+
+### Temel Modeller
+- Sadece metin tahmini üzerinde eğitilmiş
+- Dikkatli prompt gerektirir
+- Tamamlama görevleri için iyi
+
+### Talimat-Ayarlı Modeller
+- Talimatları takip etmek için ince ayar yapılmış
+- Belirli görevlerde daha iyi
+- Örnekler: GPT-3.5, Claude
+
+### Sohbet Modelleri
+- Konuşma için optimize edilmiş
+- Turlar arasında bağlamı korur
+- Çok turlu diyalogları işler
+
+## Yetenekler ve Sınırlamalar
+
+### LLM'lerin Yapabilecekleri
+- Tutarlı metin üretme
+- Sorulara cevap verme
+- İçeriği özetleme
+- Dilleri çevirme
+- Kod yazma
+- Yaratıcı yazma
+
+### Sınırlamalar
+- Gerçekleri halüsinasyon yapabilir
+- Eğitim verisi kesme tarihiyle sınırlı
+- Gerçek anlayış yok
+- Önyargılı olabilir
+- Gerçek zamanlı öğrenemez
+
+## Özet
+
+Anahtar çıkarımlar:
+- LLM'ler büyük metin verileri üzerinde eğitilmiş sinir ağlarıdır
+- Bağlama göre bir sonraki tokenı tahmin ederler
+- Farklı türler farklı amaçlara hizmet eder
+- Sınırlamaları anlamak etkili kullanım için çok önemlidir
+
+Sonraki: LLM 102'de pratik LLM uygulamalarını keşfedin.
