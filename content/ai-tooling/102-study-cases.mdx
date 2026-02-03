@@ -1,0 +1,340 @@
+---
+title: "AI Tooling 102 - Study Cases"
+description: "Practical study cases for AI development tools"
+category: "ai-tooling"
+level: 102
+order: 2
+---
+
+# AI Tooling Study Cases
+
+This lecture presents practical implementations using AI development tools.
+
+## Case Study 1: Document Q&A System
+
+### Challenge
+
+Build a Q&A system over company documentation using LangChain and Chroma.
+
+<Mermaid chart={`
+flowchart TB
+    subgraph Ingest [Document Ingestion]
+        Docs[PDF/Markdown] --> Load[Document Loader]
+        Load --> Split[Text Splitter]
+        Split --> Embed[Embeddings]
+        Embed --> Store[(ChromaDB)]
+    end
+    
+    subgraph Query [Query Pipeline]
+        Q[User Question] --> Retrieve[Retriever]
+        Store --> Retrieve
+        Retrieve --> Context[Build Context]
+        Context --> LLM[Generate Answer]
+        LLM --> Answer[Response]
+    end
+`} />
+
+### Implementation
+
+```python
+from langchain_community.document_loaders import DirectoryLoader
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_community.vectorstores import Chroma
+from langchain_openai import OpenAIEmbeddings, ChatOpenAI
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.runnables import RunnablePassthrough
+
+class DocumentQA:
+    def __init__(self, docs_path: str):
+        # Load documents
+        loader = DirectoryLoader(docs_path, glob="**/*.md")
+        docs = loader.load()
+        
+        # Split into chunks
+        splitter = RecursiveCharacterTextSplitter(
+            chunk_size=1000,
+            chunk_overlap=200
+        )
+        chunks = splitter.split_documents(docs)
+        
+        # Create vector store
+        self.vectorstore = Chroma.from_documents(
+            chunks,
+            OpenAIEmbeddings()
+        )
+        self.retriever = self.vectorstore.as_retriever(
+            search_kwargs={"k": 4}
+        )
+        
+        # Setup LLM and chain
+        self.llm = ChatOpenAI(model="gpt-4", temperature=0)
+        self.prompt = ChatPromptTemplate.from_template("""
+        Answer the question based on the context below.
+        If you cannot find the answer, say "I don't know."
+        
+        Context:
+        <context>
+        
+        Question: <question>
+        
+        Answer:
+        """)
+        
+        # Build the chain using LCEL
+        self.chain = self.prompt | self.llm
+    
+    def ask(self, question: str) -> str:
+        return self.chain.invoke(question).content
+
+# Usage
+qa = DocumentQA("./company_docs")
+answer = qa.ask("What is our refund policy?")
+```
+
+### Results
+
+| Metric | Before (Manual) | After (AI) |
+|--------|-----------------|------------|
+| Avg Response Time | 24 hours | 3 seconds |
+| Accuracy | 85% | 92% |
+| Cost per Query | $2.50 | $0.02 |
+
+## Case Study 2: AI Agent with Tools
+
+### Challenge
+
+Create an AI agent that can search the web, run calculations, and query databases.
+
+<Mermaid chart={`
+flowchart TB
+    User[User Query] --> Agent[AI Agent]
+    Agent --> Think[Reason about Task]
+    Think --> Tool{Select Tool}
+    Tool --> Search[Web Search]
+    Tool --> Calc[Calculator]
+    Tool --> DB[Database Query]
+    Search --> Observe[Observe Result]
+    Calc --> Observe
+    DB --> Observe
+    Observe --> More{Need More?}
+    More -->|Yes| Think
+    More -->|No| Answer[Final Answer]
+    Answer --> User
+`} />
+
+### Implementation
+
+```python
+from langchain.agents import AgentExecutor, create_openai_tools_agent
+from langchain_openai import ChatOpenAI
+from langchain_core.tools import tool
+from langchain import hub
+
+# Define tools
+@tool
+def calculator(expression: str) -> str:
+    """Evaluate a mathematical expression."""
+    try:
+        return str(eval(expression))
+    except:
+        return "Error evaluating expression"
+
+@tool
+def search_web(query: str) -> str:
+    """Search the web for information."""
+    # Implement with your search API
+    return f"Search results for: {query}"
+
+@tool
+def query_database(sql: str) -> str:
+    """Execute a SQL query on the sales database."""
+    # Implement with your database
+    return "Query results..."
+
+# Create agent
+llm = ChatOpenAI(model="gpt-4", temperature=0)
+tools = [calculator, search_web, query_database]
+prompt = hub.pull("hwchase17/openai-tools-agent")
+
+agent = create_openai_tools_agent(llm, tools, prompt)
+agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
+
+# Run
+result = agent_executor.invoke(
+    "What is the total revenue for Q3? Calculate the 15% commission."
+)
+```
+
+## Case Study 3: Streaming Chat Application
+
+### Challenge
+
+Build a real-time streaming chat interface with conversation memory.
+
+<Mermaid chart={`
+sequenceDiagram
+    participant User
+    participant Frontend
+    participant Backend
+    participant LLM
+    participant Memory
+    
+    User->>Frontend: Send Message
+    Frontend->>Backend: WebSocket
+    Backend->>Memory: Load History
+    Memory-->>Backend: Context
+    Backend->>LLM: Stream Request
+    loop Each Token
+        LLM-->>Backend: Token
+        Backend-->>Frontend: Stream Token
+        Frontend-->>User: Display Token
+    end
+    Backend->>Memory: Save Exchange
+`} />
+
+```python
+from fastapi import FastAPI, WebSocket
+from langchain_openai import ChatOpenAI
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain_community.chat_message_histories import ChatMessageHistory
+from langchain_core.runnables.history import RunnableWithMessageHistory
+
+app = FastAPI()
+
+# Session storage
+sessions = {}
+
+def get_session_history(session_id: str):
+    if session_id not in sessions:
+        sessions[session_id] = ChatMessageHistory()
+    return sessions[session_id]
+
+# Setup chain with memory
+llm = ChatOpenAI(model="gpt-4", streaming=True)
+prompt = ChatPromptTemplate.from_messages([
+    ("system", "You are a helpful assistant."),
+    MessagesPlaceholder(variable_name="history"),
+    ("human", "INPUT_PLACEHOLDER")
+])
+
+chain = prompt | llm
+
+chain_with_history = RunnableWithMessageHistory(
+    chain,
+    get_session_history,
+    input_messages_key="input",
+    history_messages_key="history"
+)
+
+@app.websocket("/chat/{session_id}")
+async def chat(websocket: WebSocket, session_id: str):
+    await websocket.accept()
+    
+    while True:
+        message = await websocket.receive_text()
+        
+        async for chunk in chain_with_history.astream(
+            message,
+            config={"configurable": {"session_id": session_id}}
+        ):
+            await websocket.send_text(chunk.content)
+        
+        await websocket.send_text("[END]")
+```
+
+## Case Study 4: Automated Testing with AI
+
+### Challenge
+
+Generate comprehensive test cases using AI.
+
+```python
+from langchain_openai import ChatOpenAI
+from langchain_core.prompts import ChatPromptTemplate
+
+test_generator = ChatOpenAI(model="gpt-4", temperature=0.3)
+
+test_prompt = ChatPromptTemplate.from_template("""
+Generate comprehensive pytest test cases for this function:
+
+<function_code>
+
+Requirements:
+1. Test happy path scenarios
+2. Test edge cases (empty input, None, etc.)
+3. Test error conditions
+4. Use parametrize for multiple inputs
+5. Include docstrings explaining each test
+
+Generated Tests:
+""")
+
+chain = test_prompt | test_generator
+
+def generate_tests(function_code: str) -> str:
+    return chain.invoke(function_code).content
+
+# Example usage
+code = '''
+def calculate_discount(price: float, percentage: float) -> float:
+    """Calculate discounted price."""
+    if price < 0:
+        raise ValueError("Price cannot be negative")
+    if not 0 <= percentage <= 100:
+        raise ValueError("Percentage must be 0-100")
+    return price * (1 - percentage / 100)
+'''
+
+tests = generate_tests(code)
+print(tests)
+```
+
+### Generated Output
+
+```python
+import pytest
+from your_module import calculate_discount
+
+class TestCalculateDiscount:
+    """Tests for calculate_discount function."""
+    
+    @pytest.mark.parametrize("price,percentage,expected", [
+        (100, 10, 90.0),
+        (50, 50, 25.0),
+        (200, 0, 200.0),
+        (100, 100, 0.0),
+    ])
+    def test_valid_inputs(self, price, percentage, expected):
+        """Test with valid inputs returns correct discount."""
+        assert calculate_discount(price, percentage) == expected
+    
+    def test_negative_price_raises_error(self):
+        """Test that negative price raises ValueError."""
+        with pytest.raises(ValueError, match="Price cannot be negative"):
+            calculate_discount(-10, 20)
+    
+    @pytest.mark.parametrize("percentage", [-1, 101, 150])
+    def test_invalid_percentage_raises_error(self, percentage):
+        """Test that invalid percentage raises ValueError."""
+        with pytest.raises(ValueError, match="Percentage must be 0-100"):
+            calculate_discount(100, percentage)
+```
+
+## Key Learnings
+
+| Tool | Best Use Case | Complexity |
+|------|---------------|------------|
+| LangChain | Complex chains/agents | Medium |
+| Chroma | Local vector search | Low |
+| Streaming | Real-time chat | Medium |
+| Agents | Multi-tool tasks | High |
+
+## Summary
+
+Practical AI tooling patterns:
+- Document Q&A with RAG pipelines
+- Agents with custom tools
+- Streaming for better UX
+- AI-assisted testing
+
+These patterns form the foundation for production AI applications.

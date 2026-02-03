@@ -1,0 +1,525 @@
+---
+title: "LLM 102 - Study Cases"
+description: "Practical applications and study cases for LLMs"
+category: "llm"
+level: 102
+order: 2
+---
+
+# LLM Study Cases
+
+This lecture explores real-world applications of Large Language Models.
+
+## Case Study 1: Customer Support Automation
+
+### Challenge
+
+Build an AI-powered customer support system that handles 80% of inquiries automatically.
+
+<Mermaid chart={`
+flowchart TB
+    Query[Customer Query] --> Classify[Intent Classification]
+    Classify --> Route{Can Auto-Resolve?}
+    Route -->|Yes| Auto[LLM Response]
+    Route -->|No| Human[Human Agent]
+    Auto --> Check[Quality Check]
+    Check --> Response[Send Response]
+    Human --> Response
+`} />
+
+### Implementation
+
+<MultiLanguageCode
+  python={`customer_support_prompt = """
+You are a helpful customer support agent for TechCorp.
+
+Company Knowledge:
+- Return policy: 30 days for unused items
+- Shipping: 3-5 business days standard
+- Support hours: 9 AM - 6 PM EST
+
+Customer Query: {query}
+
+Guidelines:
+1. Be friendly and professional
+2. If unsure, say you'll escalate to a human
+3. Never make up policies
+4. Always offer to help further
+
+Response:
+"""`}
+  typescript={`const customerSupportPrompt = \`
+You are a helpful customer support agent for TechCorp.
+
+Company Knowledge:
+- Return policy: 30 days for unused items
+- Shipping: 3-5 business days standard
+- Support hours: 9 AM - 6 PM EST
+
+Customer Query: \${query}
+
+Guidelines:
+1. Be friendly and professional
+2. If unsure, say you'll escalate to a human
+3. Never make up policies
+4. Always offer to help further
+
+Response:
+\`;`}
+  csharp={`var customerSupportPrompt = @"
+You are a helpful customer support agent for TechCorp.
+
+Company Knowledge:
+- Return policy: 30 days for unused items
+- Shipping: 3-5 business days standard
+- Support hours: 9 AM - 6 PM EST
+
+Customer Query: {query}
+
+Guidelines:
+1. Be friendly and professional
+2. If unsure, say you'll escalate to a human
+3. Never make up policies
+4. Always offer to help further
+
+Response:
+";`}
+  dart={`final customerSupportPrompt = """
+You are a helpful customer support agent for TechCorp.
+
+Company Knowledge:
+- Return policy: 30 days for unused items
+- Shipping: 3-5 business days standard
+- Support hours: 9 AM - 6 PM EST
+
+Customer Query: \$query
+
+Guidelines:
+1. Be friendly and professional
+2. If unsure, say you'll escalate to a human
+3. Never make up policies
+4. Always offer to help further
+
+Response:
+""";`}
+/>
+
+### Results
+
+| Metric | Before | After |
+|--------|--------|-------|
+| Response Time | 4 hours | 30 seconds |
+| Resolution Rate | 45% | 78% |
+| Customer Satisfaction | 3.2/5 | 4.4/5 |
+
+## Case Study 2: Document Intelligence
+
+### Challenge
+
+Extract structured information from legal contracts at scale.
+
+<Mermaid chart={`
+flowchart LR
+    Doc[Contract PDF] --> OCR[Text Extraction]
+    OCR --> LLM[LLM Analysis]
+    LLM --> Struct[Structured Data]
+    Struct --> DB[(Database)]
+    DB --> Search[Searchable Index]
+`} />
+
+### Key Extraction Points
+
+<MultiLanguageCode
+  python={`extraction_prompt = """
+Analyze this contract and extract:
+
+1. **Parties**: Names and roles
+2. **Effective Date**: When agreement starts
+3. **Term**: Duration of agreement
+4. **Key Obligations**: Main responsibilities
+5. **Payment Terms**: Financial arrangements
+6. **Termination Clauses**: How to end agreement
+
+Contract:
+{contract_text}
+
+Output as JSON:
+"""`}
+  typescript={`const extractionPrompt = \`
+Analyze this contract and extract:
+
+1. **Parties**: Names and roles
+2. **Effective Date**: When agreement starts
+3. **Term**: Duration of agreement
+4. **Key Obligations**: Main responsibilities
+5. **Payment Terms**: Financial arrangements
+6. **Termination Clauses**: How to end agreement
+
+Contract:
+\${contractText}
+
+Output as JSON:
+\`;`}
+  csharp={`var extractionPrompt = @"
+Analyze this contract and extract:
+
+1. **Parties**: Names and roles
+2. **Effective Date**: When agreement starts
+3. **Term**: Duration of agreement
+4. **Key Obligations**: Main responsibilities
+5. **Payment Terms**: Financial arrangements
+6. **Termination Clauses**: How to end agreement
+
+Contract:
+{contractText}
+
+Output as JSON:
+";`}
+  dart={`final extractionPrompt = """
+Analyze this contract and extract:
+
+1. **Parties**: Names and roles
+2. **Effective Date**: When agreement starts
+3. **Term**: Duration of agreement
+4. **Key Obligations**: Main responsibilities
+5. **Payment Terms**: Financial arrangements
+6. **Termination Clauses**: How to end agreement
+
+Contract:
+\$contractText
+
+Output as JSON:
+""";`}
+/>
+
+### Accuracy Metrics
+
+| Field | Extraction Accuracy |
+|-------|---------------------|
+| Parties | 98% |
+| Dates | 95% |
+| Amounts | 92% |
+| Clauses | 88% |
+
+## Case Study 3: Code Documentation Generator
+
+### Challenge
+
+Automatically generate documentation for legacy codebases.
+
+<Mermaid chart={`
+flowchart TB
+    Code[Source Code] --> Parse[Parse Functions]
+    Parse --> Analyze[LLM Analysis]
+    Analyze --> Docs[Generate Docs]
+    Docs --> Format[Format Markdown]
+    Format --> Output[Documentation Site]
+`} />
+
+<MultiLanguageCode
+  python={`doc_gen_prompt = """
+Generate comprehensive documentation for this function:
+
+\`\`\`python
+{function_code}
+\`\`\`
+
+Include:
+1. Brief description
+2. Parameters (name, type, description)
+3. Return value
+4. Example usage
+5. Edge cases to consider
+
+Format as docstring:
+"""`}
+  typescript={`const docGenPrompt = \`
+Generate comprehensive documentation for this function:
+
+\`\`\`typescript
+\${functionCode}
+\`\`\`
+
+Include:
+1. Brief description
+2. Parameters (name, type, description)
+3. Return value
+4. Example usage
+5. Edge cases to consider
+
+Format as JSDoc comment:
+\`;`}
+  csharp={`var docGenPrompt = @"
+Generate comprehensive documentation for this function:
+
+\`\`\`csharp
+{functionCode}
+\`\`\`
+
+Include:
+1. Brief description
+2. Parameters (name, type, description)
+3. Return value
+4. Example usage
+5. Edge cases to consider
+
+Format as XML documentation comment:
+";`}
+  dart={`final docGenPrompt = """
+Generate comprehensive documentation for this function:
+
+\`\`\`dart
+\$functionCode
+\`\`\`
+
+Include:
+1. Brief description
+2. Parameters (name, type, description)
+3. Return value
+4. Example usage
+5. Edge cases to consider
+
+Format as Dart doc comment:
+""";`}
+/>
+
+### Example Output
+
+```python
+def calculate_discount(price: float, percentage: float) -> float:
+    """
+    Calculate the discounted price based on a percentage discount.
+    
+    Args:
+        price (float): The original price of the item. Must be non-negative.
+        percentage (float): The discount percentage (0-100).
+    
+    Returns:
+        float: The price after applying the discount.
+    
+    Example:
+        >>> calculate_discount(100.0, 20)
+        80.0
+    
+    Raises:
+        ValueError: If price is negative or percentage is out of range.
+    """
+    ...
+```
+
+## Case Study 4: Content Moderation
+
+### Challenge
+
+Build a scalable content moderation system for a social platform.
+
+<Mermaid chart={`
+flowchart TB
+    Content[User Content] --> Screen[Initial Screen]
+    Screen --> LLM[LLM Analysis]
+    LLM --> Safe{Safe?}
+    Safe -->|Yes| Publish[Publish]
+    Safe -->|No| Flag[Flag for Review]
+    Safe -->|Maybe| Human[Human Review]
+    Flag --> Action[Take Action]
+    Human --> Publish
+    Human --> Action
+`} />
+
+### Moderation Categories
+
+<MultiLanguageCode
+  python={`moderation_prompt = """
+Analyze this content for policy violations:
+
+Content: {user_content}
+
+Check for:
+1. Hate speech
+2. Violence/threats
+3. Adult content
+4. Spam/scams
+5. Misinformation
+
+For each category, provide:
+- Detected: Yes/No/Uncertain
+- Confidence: 0-100%
+- Explanation: Why this assessment
+
+Output as JSON.
+"""`}
+  typescript={`const moderationPrompt = \`
+Analyze this content for policy violations:
+
+Content: \${userContent}
+
+Check for:
+1. Hate speech
+2. Violence/threats
+3. Adult content
+4. Spam/scams
+5. Misinformation
+
+For each category, provide:
+- Detected: Yes/No/Uncertain
+- Confidence: 0-100%
+- Explanation: Why this assessment
+
+Output as JSON.
+\`;`}
+  csharp={`var moderationPrompt = @"
+Analyze this content for policy violations:
+
+Content: {userContent}
+
+Check for:
+1. Hate speech
+2. Violence/threats
+3. Adult content
+4. Spam/scams
+5. Misinformation
+
+For each category, provide:
+- Detected: Yes/No/Uncertain
+- Confidence: 0-100%
+- Explanation: Why this assessment
+
+Output as JSON.
+";`}
+  dart={`final moderationPrompt = """
+Analyze this content for policy violations:
+
+Content: \$userContent
+
+Check for:
+1. Hate speech
+2. Violence/threats
+3. Adult content
+4. Spam/scams
+5. Misinformation
+
+For each category, provide:
+- Detected: Yes/No/Uncertain
+- Confidence: 0-100%
+- Explanation: Why this assessment
+
+Output as JSON.
+""";`}
+/>
+
+### Performance
+
+| Category | Precision | Recall |
+|----------|-----------|--------|
+| Hate Speech | 94% | 91% |
+| Violence | 96% | 89% |
+| Spam | 98% | 95% |
+
+## Case Study 5: Educational Tutoring
+
+### Challenge
+
+Create a personalized AI tutor that adapts to student level.
+
+<Mermaid chart={`
+flowchart TB
+    Student[Student Question] --> Assess[Assess Level]
+    Assess --> Adapt[Adapt Explanation]
+    Adapt --> Explain[Generate Response]
+    Explain --> Check[Check Understanding]
+    Check --> More{Need More?}
+    More -->|Yes| Examples[Provide Examples]
+    More -->|No| Next[Next Topic]
+    Examples --> Check
+`} />
+
+<MultiLanguageCode
+  python={`tutor_prompt = """
+You are a patient math tutor for a {level} student.
+
+Student's question: {question}
+
+Teaching approach:
+1. Start with the concept at their level
+2. Use relatable examples
+3. Break down into steps
+4. Check understanding with a practice problem
+
+Remember:
+- Use encouraging language
+- Adapt if they seem confused
+- Celebrate small wins
+
+Your response:
+"""`}
+  typescript={`const tutorPrompt = \`
+You are a patient math tutor for a \${level} student.
+
+Student's question: \${question}
+
+Teaching approach:
+1. Start with the concept at their level
+2. Use relatable examples
+3. Break down into steps
+4. Check understanding with a practice problem
+
+Remember:
+- Use encouraging language
+- Adapt if they seem confused
+- Celebrate small wins
+
+Your response:
+\`;`}
+  csharp={`var tutorPrompt = @"
+You are a patient math tutor for a {level} student.
+
+Student's question: {question}
+
+Teaching approach:
+1. Start with the concept at their level
+2. Use relatable examples
+3. Break down into steps
+4. Check understanding with a practice problem
+
+Remember:
+- Use encouraging language
+- Adapt if they seem confused
+- Celebrate small wins
+
+Your response:
+";`}
+  dart={`final tutorPrompt = """
+You are a patient math tutor for a \$level student.
+
+Student's question: \$question
+
+Teaching approach:
+1. Start with the concept at their level
+2. Use relatable examples
+3. Break down into steps
+4. Check understanding with a practice problem
+
+Remember:
+- Use encouraging language
+- Adapt if they seem confused
+- Celebrate small wins
+
+Your response:
+""";`}
+/>
+
+## Key Learnings
+
+1. **Prompt Engineering Matters**: Well-crafted prompts dramatically improve results
+2. **Human-in-the-Loop**: Keep humans for edge cases and oversight
+3. **Measure & Iterate**: Track metrics and continuously improve
+4. **Guard Rails**: Build safety checks into production systems
+5. **Scale Considerations**: Design for high throughput from the start
+
+## Summary
+
+LLMs enable powerful applications across industries when:
+- Properly prompted and configured
+- Combined with human oversight
+- Continuously monitored and improved
+- Designed with limitations in mind

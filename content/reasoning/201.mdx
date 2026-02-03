@@ -1,0 +1,435 @@
+---
+title: "Cognitive Reasoning Patterns - Advanced Frameworks"
+description: "Advanced methods that enable engineers to manipulate AI's 'thinking capacity'"
+category: "reasoning"
+level: 201
+order: 1
+---
+
+# Cognitive Reasoning Patterns - Advanced Frameworks
+
+Advanced methods that enable engineers to manipulate AI's "thinking capacity". This lecture covers advanced patterns that enhance LLMs' logical reasoning capabilities.
+
+## Advanced Reasoning Frameworks Overview
+
+<Mermaid chart={`
+flowchart TB
+    subgraph Patterns [Cognitive Reasoning Patterns]
+        CoT[Chain of Thought<br/>Step-by-Step Planning]
+        CoVe[Chain of Verification<br/>Self-Verification Layer]
+        CoD[Chain of Density<br/>Information Density]
+        ToT[Tree of Thoughts<br/>Multiple Solution Paths]
+    end
+    
+    subgraph Applications [Application Areas]
+        Code[Code Development]
+        Docs[Documentation]
+        Arch[Architecture Analysis]
+        Review[Code Review]
+    end
+    
+    CoT --> Code
+    CoVe --> Review
+    CoD --> Docs
+    ToT --> Arch
+`} />
+
+## Chain of Thought (CoT): "Plan First, Then Code"
+
+Chain of Thought enables LLMs to show their thinking process step by step. This methodology reduces logical errors by 60%.
+
+### How CoT Works
+
+<Mermaid chart={`
+flowchart LR
+    Problem[Complex Problem] --> Step1[Step 1: Understand Problem]
+    Step1 --> Step2[Step 2: Break into Components]
+    Step2 --> Step3[Step 3: Solve Each Component]
+    Step3 --> Step4[Step 4: Combine Solutions]
+    Step4 --> Solution[Final Solution]
+`} />
+
+### Standard Prompting vs CoT
+
+```python
+# Standard Prompting - High Error Risk
+standard_prompt = """
+Create a user authentication system.
+"""
+
+# Chain of Thought Prompting - Reduces Logical Errors by 60%
+cot_prompt = """
+Create a user authentication system.
+
+Plan first, then code:
+
+Step 1: Define Requirements
+- User registration (email, password)
+- Password hashing (bcrypt)
+- JWT token generation
+- Token validation middleware
+
+Step 2: Database Schema Design
+- Users table: id, email, password_hash, created_at
+
+Step 3: Plan API Endpoints
+- POST /auth/register
+- POST /auth/login
+- GET /auth/me (protected)
+
+Step 4: Security Controls
+- Password strength rules
+- Rate limiting
+- CSRF protection
+
+Now write the code:
+"""
+```
+
+### Zero-Shot CoT: Simple But Effective
+
+Simply adding "Let's think step by step" improves reasoning:
+
+```python
+zero_shot_cot = """
+Design a REST API endpoint. This endpoint will search for products 
+on an e-commerce site.
+
+Let's think step by step:
+"""
+```
+
+### CoT Code Development Example
+
+```python
+cot_coding_prompt = """
+Design a cache invalidation strategy.
+
+Thinking Process:
+1. Determine when cache becomes invalid
+   - Data updates
+   - Data deletion
+   - Related data changes
+
+2. Evaluate invalidation strategies
+   - Time-based: Use TTL
+   - Event-based: Clear when data changes
+   - Tag-based: Clear related tags
+
+3. Select the best strategy and create implementation plan
+
+4. Write the code
+"""
+```
+
+## Chain of Verification (CoVe): Self-Verification Layer
+
+CoVe adds a self-verification layer by asking "Are there memory leaks or security vulnerabilities? Review your own solution" after generating code.
+
+### CoVe Architecture
+
+<Mermaid chart={`
+flowchart TB
+    Generate[Generate Code] --> Verify[Create Verification Questions]
+    Verify --> Q1[Question 1: Memory leaks?]
+    Verify --> Q2[Question 2: Security vulnerabilities?]
+    Verify --> Q3[Question 3: Edge cases handled?]
+    
+    Q1 --> Check1[Code Review]
+    Q2 --> Check2[Security Analysis]
+    Q3 --> Check3[Edge Case Testing]
+    
+    Check1 --> Revise[Revise if Needed]
+    Check2 --> Revise
+    Check3 --> Revise
+    
+    Revise --> Final[Final Code]
+`} />
+
+### CoVe Application Example
+
+```python
+cove_prompt = """
+Write a file upload function.
+
+[Code generated]
+
+Now verify your own solution:
+
+Verification Questions:
+1. Are there memory leaks?
+   - Is the file stream properly closed?
+   - Are buffers cleared?
+
+2. Are there security vulnerabilities?
+   - Is file type checked?
+   - Is there a file size limit?
+   - Is it protected against path traversal attacks?
+   - Are malicious characters filtered from filenames?
+
+3. Are edge cases handled?
+   - What happens if disk is full?
+   - What happens if filename already exists?
+   - What happens on network errors?
+
+Check each question and revise code if needed.
+"""
+```
+
+### Security Check with CoVe
+
+```python
+security_cove = """
+You wrote a SQL query function. Now check:
+
+1. SQL Injection vulnerability?
+   - Are parameterized queries used?
+   - Is user input directly added to query?
+
+2. XSS vulnerability?
+   - Is output escaped?
+
+3. CSRF protection?
+   - Is token checked?
+
+Detect and fix each vulnerability.
+"""
+```
+
+## Chain of Density (CoD): Increasing Information Density
+
+CoD produces refined reports by following the rule "Increase information density with each iteration" when preparing technical documentation.
+
+### CoD Iterative Process
+
+<Mermaid chart={`
+flowchart LR
+    V1[Version 1<br/>Basic Info] --> V2[Version 2<br/>Add Details]
+    V2 --> V3[Version 3<br/>Add Examples]
+    V3 --> V4[Version 4<br/>Best Practices]
+    V4 --> Final[Refined Documentation]
+`} />
+
+### CoD Documentation Example
+
+```python
+cod_documentation = """
+Prepare documentation for an API endpoint.
+
+Iteration 1 - Basic Information:
+POST /api/users
+- Creates user
+- Takes email and password
+
+Iteration 2 - Add Details:
+POST /api/users
+- Creates user
+- Request body: { email: string, password: string }
+- Response: { id: number, email: string, created_at: timestamp }
+- Status codes: 201 (Created), 400 (Bad Request), 409 (Conflict)
+
+Iteration 3 - Add Examples:
+Request:
+{
+  "email": "user@example.com",
+  "password": "SecurePass123!"
+}
+
+Response (201):
+{
+  "id": 42,
+  "email": "user@example.com",
+  "created_at": "2024-01-15T10:30:00Z"
+}
+
+Error Response (400):
+{
+  "error": "Invalid email format"
+}
+
+Iteration 4 - Best Practices and Edge Cases:
+- Password must be at least 8 characters, include uppercase/lowercase and numbers
+- Email format must comply with RFC 5322 standard
+- Duplicate email check required
+- Rate limiting: 5 requests/minute
+- Password hashing: bcrypt, cost factor 10
+"""
+```
+
+### Technical Report Preparation with CoD
+
+```python
+cod_report = """
+Prepare a system architecture analysis.
+
+Iteration 1: Overview
+- Microservices architecture
+- 3 main services: Auth, Product, Order
+
+Iteration 2: Detailed Architecture
+- Auth Service: JWT-based authentication
+- Product Service: RESTful API, PostgreSQL
+- Order Service: Event-driven, RabbitMQ
+
+Iteration 3: Technical Details
+- Database: PostgreSQL 14, connection pooling
+- Cache: Redis, TTL 5 minutes
+- Message Queue: RabbitMQ, durable queues
+- API Gateway: Kong, rate limiting
+
+Iteration 4: Performance and Security
+- Latency: P95 < 200ms
+- Throughput: 1000 req/s
+- Security: OAuth 2.0, TLS 1.3
+- Monitoring: Prometheus + Grafana
+- Error handling: Sentry integration
+"""
+```
+
+## Tree of Thoughts (ToT): Multiple Solution Paths
+
+ToT enables you to evaluate 3 different solution paths side by side for architectural trade-off analyses.
+
+### ToT Structure
+
+<Mermaid chart={`
+flowchart TB
+    Problem[Architecture Problem] --> Branch1[Branch 1: Monolithic Approach]
+    Problem --> Branch2[Branch 2: Microservices Approach]
+    Problem --> Branch3[Branch 3: Serverless Approach]
+    
+    Branch1 --> Eval1[Evaluation:<br/>+ Simple start<br/>- Scalability]
+    Branch2 --> Eval2[Evaluation:<br/>+ Scalability<br/>- Complexity]
+    Branch3 --> Eval3[Evaluation:<br/>+ Cost<br/>- Vendor lock-in]
+    
+    Eval1 --> Compare[Compare and Select Best]
+    Eval2 --> Compare
+    Eval3 --> Compare
+    
+    Compare --> Decision[Final Decision]
+`} />
+
+### Architectural Trade-off Analysis with ToT
+
+```python
+tot_architecture = """
+Select a database strategy for an e-commerce platform.
+
+Problem: Database architecture for a high-traffic e-commerce site
+
+Evaluate 3 Different Solution Paths:
+
+Branch 1: Single PostgreSQL Database
+Advantages:
+- Simple setup and maintenance
+- ACID guarantees
+- Relational queries easy
+- Low initial cost
+
+Disadvantages:
+- Single point of failure
+- Scalability limitations
+- Bottleneck in read-heavy workloads
+
+Branch 2: PostgreSQL + Read Replicas
+Advantages:
+- High read performance
+- Master-slave replication
+- Failover support
+
+Disadvantages:
+- Replication lag
+- More complex setup
+- Higher cost
+
+Branch 3: PostgreSQL + Redis Cache Layer
+Advantages:
+- Very fast reads (cache hit)
+- PostgreSQL reliability
+- Flexible cache strategy
+
+Disadvantages:
+- Cache invalidation complexity
+- Two systems to manage
+- Latency on cache miss
+
+Comparison:
+- Traffic: 10M+ daily requests
+- Read/Write ratio: 80/20
+- Consistency requirement: High
+
+Best Solution: Branch 3 (PostgreSQL + Redis)
+- Optimized for read-heavy workload
+- Performance boost with cache
+- Data consistency with PostgreSQL
+"""
+```
+
+### Performance Optimization with ToT
+
+```python
+tot_performance = """
+Performance optimization for an API endpoint.
+
+Problem: /api/products endpoint is slow (500ms+)
+
+Evaluate 3 Optimization Paths:
+
+Path 1: Database Query Optimization
+- Add indexes
+- Solve N+1 query problem
+- Query plan analysis
+
+Path 2: Caching Strategy
+- Redis cache layer
+- Cache invalidation strategy
+- TTL settings
+
+Path 3: API Response Optimization
+- Add pagination
+- Field selection (sparse fieldsets)
+- Response compression
+
+Evaluate each path and suggest combination.
+"""
+```
+
+## Practical Application: Combined Pattern Usage
+
+In the real world, you can use these patterns together:
+
+```python
+combined_patterns = """
+Develop an authentication middleware.
+
+CoT - Planning:
+1. Parse JWT token
+2. Verify token
+3. Fetch user information
+4. Add user info to request
+
+CoVe - Self-Verification:
+1. Is token expiration checked?
+2. Is invalid token case handled?
+3. Is rate limiting present?
+4. Is error handling proper?
+
+ToT - Alternative Approaches:
+Approach 1: DB query on every request
+Approach 2: User info with Redis cache
+Approach 3: User info in JWT
+
+Select best approach and implement.
+"""
+```
+
+## Summary
+
+What you learned in this lecture:
+
+- **Chain of Thought (CoT)**: Step-by-step planning reduces logical errors by 60%
+- **Chain of Verification (CoVe)**: Self-verification layer for security and quality control
+- **Chain of Density (CoD)**: Iterative information density increase produces refined documentation
+- **Tree of Thoughts (ToT)**: Evaluating multiple solution paths for optimal decision-making
+
+Next lecture: We'll learn how to apply these patterns with the Prompt Engineering Library.

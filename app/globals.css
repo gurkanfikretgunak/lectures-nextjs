@@ -2,26 +2,190 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
-}
-
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+}
+
+/* Fira Code for all code elements */
+code,
+pre,
+kbd,
+samp {
+  font-family: var(--font-fira-code), "Fira Code", monospace;
+}
+
+/* Prose styling for MDX content */
+.prose code {
+  @apply font-mono text-sm bg-muted/80 dark:bg-muted/60 px-1.5 py-0.5 rounded font-medium text-foreground dark:text-foreground border border-border/50 dark:border-border/30;
+}
+
+.prose pre {
+  @apply font-mono bg-muted border border-border rounded-lg overflow-x-auto;
+}
+
+.prose pre code {
+  @apply bg-transparent p-0;
+}
+
+/* Code block styling from rehype-pretty-code */
+[data-rehype-pretty-code-figure] {
+  @apply my-6;
+}
+
+[data-rehype-pretty-code-figure] pre {
+  @apply overflow-x-auto rounded-lg p-4 border;
+}
+
+/* Light mode code block */
+[data-rehype-pretty-code-figure] pre {
+  background-color: #f6f8fa !important;
+  border-color: #d0d7de !important;
+}
+
+[data-rehype-pretty-code-figure] code {
+  @apply grid text-sm;
+  background-color: transparent !important;
+}
+
+/* Light mode text color */
+[data-rehype-pretty-code-figure] code,
+[data-rehype-pretty-code-figure] code span,
+[data-rehype-pretty-code-figure] .line {
+  color: #24292f !important;
+}
+
+/* Dark mode code block */
+.dark [data-rehype-pretty-code-figure] pre {
+  background-color: #161b22 !important;
+  border-color: #30363d !important;
+}
+
+.dark [data-rehype-pretty-code-figure] code,
+.dark [data-rehype-pretty-code-figure] code span,
+.dark [data-rehype-pretty-code-figure] .line {
+  color: #e6edf3 !important;
+}
+
+/* Syntax highlighting colors should override base colors */
+[data-rehype-pretty-code-figure] .line span[style*="color"] {
+  opacity: 1 !important;
+}
+
+[data-rehype-pretty-code-figure] [data-line] {
+  @apply px-4 -mx-4;
+}
+
+[data-rehype-pretty-code-figure] [data-highlighted-line] {
+  background-color: rgba(175, 184, 193, 0.2) !important;
+}
+
+.dark [data-rehype-pretty-code-figure] [data-highlighted-line] {
+  background-color: rgba(110, 118, 129, 0.2) !important;
+}
+
+/* Mermaid diagram styling */
+.mermaid {
+  @apply my-6 flex justify-center;
+}
+
+.mermaid svg {
+  @apply max-w-full;
+}
+
+/* White hierarchy sidebar styling */
+.sidebar-section {
+  @apply border-b border-border/50 pb-4 mb-4;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  @apply w-2 h-2;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-border rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-muted-foreground/50;
+}
+
+
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 3.9%;
+    --primary: 0 0% 9%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 96.1%;
+    --secondary-foreground: 0 0% 9%;
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 45.1%;
+    --accent: 0 0% 96.1%;
+    --accent-foreground: 0 0% 9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 89.8%;
+    --input: 0 0% 89.8%;
+    --ring: 0 0% 3.9%;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+    --radius: 0.5rem;
+  }
+  .dark {
+    --background: 0 0% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 9%;
+    --secondary: 0 0% 14.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 63.9%;
+    --accent: 0 0% 14.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 14.9%;
+    --input: 0 0% 14.9%;
+    --ring: 0 0% 83.1%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+  }
+}
+
+
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
   }
 }

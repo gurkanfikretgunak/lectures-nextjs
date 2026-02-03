@@ -1,0 +1,467 @@
+---
+title: "Context Engineering"
+description: "The skill of managing what data to feed into LLM's limited memory and when"
+category: "reasoning"
+level: 203
+order: 3
+---
+
+# Context Engineering
+
+The skill of managing what data to feed into LLM's limited memory and when. This lecture covers intelligent context management techniques with VS Code Focus and similar tools.
+
+## Context Engineering Overview
+
+<Mermaid chart={`
+flowchart TB
+    subgraph Context [Context Management]
+        Variable[Variable Usage<br/>@workspace, @file, @symbols]
+        Knowledge[Knowledge Injection<br/>Domain Expertise]
+        Pruning[Context Pruning<br/>Noise Reduction]
+    end
+    
+    subgraph Benefits [Benefits]
+        Efficiency[Efficiency]
+        Accuracy[Accuracy]
+        Cost[Cost Optimization]
+    end
+    
+    Variable --> Efficiency
+    Knowledge --> Accuracy
+    Pruning --> Cost
+`} />
+
+## Intelligent Context Management (VS Code Focus)
+
+Professionally manage which files and information the LLM will see with VS Code Focus and similar tools.
+
+### Variable Usage: Selecting the Right Context
+
+Learn which context variables to use in different scenarios.
+
+<Mermaid chart={`
+flowchart LR
+    Scenario[Scenario] --> Choice[Context Selection]
+    Choice --> Workspace[@workspace<br/>Broad Analysis]
+    Choice --> File[@file<br/>Specific Focus]
+    Choice --> Symbols[@symbols<br/>Type Definitions]
+    Choice --> Terminal[@terminal<br/>Debug]
+`} />
+
+#### @workspace: Broad Analysis
+
+Use for project-wide analyses:
+
+```markdown
+@workspace usage scenarios:
+
+1. Architecture Analysis
+   "Analyze the project's overall architecture and provide improvement suggestions"
+
+2. Cross-File Refactoring
+   "Refactor UserService used throughout the project to a new interface"
+
+3. Dependency Analysis
+   "Analyze all dependencies in the project and provide update suggestions"
+
+4. Code Quality Audit
+   "Detect code smells in all project files"
+
+Example Prompt:
+"Using @workspace, analyze the project's authentication flow and 
+detect security vulnerabilities. Examine all related files."
+```
+
+#### @file: Specific Focus
+
+Use to focus on a single file:
+
+```markdown
+@file usage scenarios:
+
+1. Single File Refactoring
+   "Make functions in this file more readable"
+
+2. Bug Fixing
+   "Find and fix the memory leak in this file"
+
+3. Code Review
+   "Review this file and provide improvement suggestions"
+
+4. Documentation
+   "Write documentation for functions in this file"
+
+Example Prompt:
+"@file: UserService.ts - Improve error handling in this service and 
+handle all edge cases."
+```
+
+#### @symbols: Type Definitions
+
+Use to focus on type definitions:
+
+```markdown
+@symbols usage scenarios:
+
+1. Type Safety
+   "Check all usages of User interface and ensure type safety"
+
+2. Interface Design
+   "Analyze existing interfaces and design a new unified interface"
+
+3. Type Refactoring
+   "Refactor User type to a new structure"
+
+4. API Contract
+   "Validate type contracts of API endpoints"
+
+Example Prompt:
+"@symbols: User, Order, Product - Analyze relationships between these 
+types and suggest a type-safe structure."
+```
+
+#### @terminal: Debug and Error Analysis
+
+Use to work with terminal output:
+
+```markdown
+@terminal usage scenarios:
+
+1. Error Analysis
+   "Analyze the error message in terminal and suggest solution"
+
+2. Log Analysis
+   "Analyze log output and detect performance issues"
+
+3. Test Debugging
+   "Analyze test output and fix failing tests"
+
+4. Build Errors
+   "Analyze build errors and suggest solution"
+
+Example Prompt:
+"@terminal - Analyze this error message and identify which file and 
+which line has the issue. Then fix it."
+```
+
+### Knowledge Injection: Making Domain Expert
+
+Add business logic documents to the project in Markdown format and make AI a "domain expert" through @workspace.
+
+#### Creating Markdown Knowledge Base
+
+```markdown
+# Project Structure: Knowledge Base
+
+## 1. Domain Knowledge Files
+
+project/
+├── docs/
+│   ├── domain/
+│   │   ├── business-rules.md
+│   │   ├── domain-model.md
+│   │   ├── workflows.md
+│   │   └── constraints.md
+│   └── architecture/
+│       ├── system-design.md
+│       └── api-contracts.md
+```
+
+#### Business Rules Documentation
+
+```markdown
+# docs/domain/business-rules.md
+
+# E-Commerce Business Rules
+
+## User Registration
+- Email must be unique
+- Password minimum 8 characters, must include uppercase/lowercase and numbers
+- Email verification required
+
+## Order Processing
+- Stock check required
+- Stock deducted after payment confirmation
+- Stock restored if order cancelled
+
+## Pricing
+- VAT 20% automatically added
+- Shipping fee 25 TL for orders under 50 TL
+- Discount code can provide maximum 30% discount
+
+## Return Policy
+- Products can be returned within 14 days after delivery
+- Unopened products full refund
+- Opened products refund with 20% deduction
+```
+
+#### Domain Model Documentation
+
+```markdown
+# docs/domain/domain-model.md
+
+# Domain Model
+
+## User Aggregate
+- User (Root Entity)
+  - id: UUID
+  - email: Email
+  - password: HashedPassword
+  - profile: UserProfile
+  - addresses: List<Address>
+  - orders: List<Order>
+
+## Order Aggregate
+- Order (Root Entity)
+  - id: UUID
+  - userId: UUID
+  - items: List<OrderItem>
+  - status: OrderStatus
+  - totalAmount: Money
+  - shippingAddress: Address
+
+## Product Aggregate
+- Product (Root Entity)
+  - id: UUID
+  - name: String
+  - price: Money
+  - stock: Quantity
+  - category: Category
+```
+
+#### Knowledge Injection Usage
+
+```markdown
+# Knowledge Injection Example
+
+Prompt:
+"Using @workspace and docs/domain/business-rules.md, write a new 
+order creation function. It should follow all business rules."
+
+AI now:
+1. Reads business rules
+2. Understands domain model
+3. Generates code following business rules
+4. Handles edge cases
+```
+
+### Context Pruning: Preventing Noise
+
+Prevent noise by excluding unnecessary folders (build, dist, node_modules) from AI indexing.
+
+#### Creating .cursorignore File
+
+```markdown
+# .cursorignore
+
+# Build outputs
+build/
+dist/
+out/
+.next/
+.nuxt/
+.vercel/
+
+# Dependencies
+node_modules/
+vendor/
+.venv/
+venv/
+
+# Generated files
+*.min.js
+*.min.css
+*.bundle.js
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env.local
+.env.*.local
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+```
+
+#### VS Code Focus Settings
+
+```json
+// .vscode/settings.json
+{
+  "cursor.focus.ignore": [
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/build/**",
+    "**/.next/**",
+    "**/coverage/**",
+    "**/*.min.js",
+    "**/*.bundle.js"
+  ],
+  "cursor.focus.include": [
+    "src/**",
+    "lib/**",
+    "components/**",
+    "docs/**"
+  ]
+}
+```
+
+#### Selective Context Loading
+
+```markdown
+# Selective Context Loading Strategy
+
+1. Initial Analysis: Source code only
+   "@workspace --include='src/**' --exclude='node_modules/**'"
+
+2. Add Documentation: Domain knowledge
+   "@workspace docs/domain/**"
+
+3. Test Files: For test coverage
+   "@workspace tests/**"
+
+4. Config Files: For configuration
+   "@workspace config/**"
+```
+
+## Practical Scenarios
+
+### Scenario 1: Cross-File Refactoring
+
+```markdown
+Task: Refactor UserService to a new interface
+
+Step 1: Broad analysis
+"@workspace - Find all usages of UserService"
+
+Step 2: Specific files
+"@file: UserService.ts - Refactor this file to the new interface"
+
+Step 3: Type check
+"@symbols: IUserService - Check all implementations of the new interface"
+
+Step 4: Test
+"@terminal - Analyze test output and fix errors"
+```
+
+### Scenario 2: Domain-Driven Development
+
+```markdown
+Task: Add a new feature (Wishlist)
+
+Step 1: Load domain knowledge
+"@workspace docs/domain/business-rules.md - Read Wishlist business rules"
+
+Step 2: Understand domain model
+"@symbols: User, Product - Integrate Wishlist with these aggregates"
+
+Step 3: Implementation
+"@file: WishlistService.ts - Write service following business rules"
+
+Step 4: Validation
+"@workspace - Verify all business rules are applied"
+```
+
+### Scenario 3: Performance Optimization
+
+```markdown
+Task: Optimize API endpoint
+
+Step 1: Problem identification
+"@terminal - Analyze API response time logs"
+
+Step 2: Code analysis
+"@file: ProductController.ts - Detect performance issues"
+
+Step 3: Broad context
+"@workspace - Analyze database query patterns"
+
+Step 4: Optimization
+"@file: ProductRepository.ts - Optimize queries"
+```
+
+## Best Practices
+
+### 1. Context Hierarchy
+
+```markdown
+1. Broad → Narrow: @workspace → @file → @symbols
+2. General analysis first, then specific solution
+3. Loading unnecessary context is costly
+```
+
+### 2. Knowledge Base Management
+
+```markdown
+1. Keep domain knowledge in Markdown
+2. Keep it current (outdated information is harmful)
+3. Modular structure (each domain in separate file)
+4. Add examples and edge cases
+```
+
+### 3. Context Pruning Strategy
+
+```markdown
+1. Always use .cursorignore
+2. Exclude build outputs
+3. Exclude dependencies
+4. Index only source code
+```
+
+### 4. Variable Selection Guide
+
+```markdown
+Use @workspace for:
+- Architecture changes
+- Cross-file refactoring
+- Dependency analysis
+- Code quality audit
+
+Use @file for:
+- Single file refactoring
+- Bug fixing
+- Code review
+- Documentation
+
+Use @symbols for:
+- Type safety
+- Interface design
+- API contracts
+- Type refactoring
+
+Use @terminal for:
+- Error analysis
+- Debug
+- Test failures
+- Build errors
+```
+
+## Summary
+
+What you learned in this lecture:
+
+- **Variable Usage**: Usage scenarios for @workspace, @file, @symbols, @terminal
+- **Knowledge Injection**: Adding domain knowledge in Markdown format
+- **Context Pruning**: Reducing cost and noise by filtering unnecessary files
+- **Practical Scenarios**: Real-world usage examples
+
+Next lecture: We'll learn how to transform AI into a work partner with Agentic Workflow & Multi-File Orchestration.

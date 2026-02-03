@@ -1,0 +1,517 @@
+---
+title: "Optimization, Cost & Enterprise Security"
+description: "Supporting engineering decisions with performance, cost, and scalability data"
+category: "reasoning"
+level: 205
+order: 5
+---
+
+# Optimization, Cost & Enterprise Security
+
+Supporting engineering decisions not just with performance, but with cost and scalability data. This lecture covers model optimization, token economics, and enterprise security strategies.
+
+## Optimization Framework Overview
+
+<Mermaid chart={`
+flowchart TB
+    subgraph Strategy [Strategy Selection]
+        Prompt[Prompt Engineering]
+        RAG[RAG]
+        FineTune[Fine-Tuning]
+    end
+    
+    subgraph Factors [Evaluation Factors]
+        Cost[Cost]
+        Latency[Latency]
+        Accuracy[Accuracy]
+        Scale[Scalability]
+    end
+    
+    Strategy --> Factors
+    Factors --> Decision[Optimal Decision]
+`} />
+
+## Model Optimization Framework
+
+Analyze which method (Prompt vs RAG vs Fine-Tuning) is more efficient in which scenario using IBM and OpenAI's approaches.
+
+### Strategy Selection: Prompt vs RAG vs Fine-Tuning
+
+<Mermaid chart={`
+flowchart TB
+    Problem[Problem] --> Analysis[Analysis]
+    Analysis --> Q1[Domain-specific?]
+    Q1 -->|Yes| Q2[Lots of data?]
+    Q1 -->|No| Prompt[Prompt Engineering]
+    
+    Q2 -->|Yes| FineTune[Fine-Tuning]
+    Q2 -->|No| Q3[Real-time data needed?]
+    
+    Q3 -->|Yes| RAG[RAG]
+    Q3 -->|No| Prompt
+`} />
+
+### Comparison Matrix
+
+```markdown
+# Prompt Engineering vs RAG vs Fine-Tuning
+
+## Prompt Engineering
+
+Use Cases:
+- General-purpose tasks
+- Rapid prototyping
+- Low cost requirement
+- Minimal domain knowledge
+
+Advantages:
+✅ Fast implementation (0-1 days)
+✅ Low cost ($0.01-0.10 per 1K tokens)
+✅ Flexible (easy prompt changes)
+✅ Automatic benefit from model updates
+
+Disadvantages:
+❌ Limited domain knowledge
+❌ Context window limit (128K-1M tokens)
+❌ All context sent with every request
+❌ No consistency guarantee
+
+Cost Example:
+- 1000 requests/day
+- Average 2000 tokens/request
+- GPT-4: $0.03 per 1K tokens
+- Daily cost: $60
+- Monthly cost: $1,800
+
+## RAG (Retrieval-Augmented Generation)
+
+Use Cases:
+- Large documentation sets
+- Real-time data requirement
+- Domain-specific knowledge
+- Variable content
+
+Advantages:
+✅ Current information access
+✅ Large knowledge base
+✅ Cost control (only relevant context)
+✅ Easy data updates
+
+Disadvantages:
+❌ Vector DB cost
+❌ Embedding cost
+❌ Retrieval latency
+❌ Setup complexity
+
+Cost Example:
+- Vector DB: Pinecone ($70/month)
+- Embedding: OpenAI ada-002 ($0.0001 per 1K tokens)
+- LLM: GPT-4 ($0.03 per 1K tokens)
+- 1000 requests/day, 500 tokens context
+- Daily cost: $15 + $70/30 = $17.33
+- Monthly cost: $520
+
+## Fine-Tuning
+
+Use Cases:
+- Very specific domain
+- Consistent output format requirement
+- High volume
+- Custom terminology
+
+Advantages:
+✅ Domain expertise
+✅ Consistent output
+✅ Low latency (smaller model)
+✅ Custom model ownership
+
+Disadvantages:
+❌ High initial cost ($0.008 per 1K tokens training)
+❌ Data preparation cost
+❌ Model updates difficult
+❌ Overfitting risk
+
+Cost Example:
+- Training: 1M tokens = $8
+- Inference: Fine-tuned GPT-3.5 ($0.002 per 1K tokens)
+- 1000 requests/day, 500 tokens/request
+- Daily cost: $1
+- Monthly cost: $30 + $8 (one-time) = $38
+```
+
+### Trade-off Analysis: Cost, Latency, Accuracy
+
+```markdown
+# Trade-off Analysis Framework
+
+## Scenario 1: Customer Support Chatbot
+
+Requirements:
+- Response time: < 2 seconds
+- Accuracy: 85%+
+- Volume: 10K requests/day
+- Budget: $500/month
+
+Analysis:
+
+### Option 1: Prompt Engineering
+- Latency: 1.5s ✅
+- Accuracy: 70% ❌
+- Cost: $180/month ✅
+- Verdict: Accuracy insufficient
+
+### Option 2: RAG
+- Latency: 2.5s ❌
+- Accuracy: 90% ✅
+- Cost: $520/month ❌
+- Verdict: High latency and cost
+
+### Option 3: Fine-Tuning
+- Latency: 0.8s ✅
+- Accuracy: 88% ✅
+- Cost: $38/month ✅
+- Verdict: ✅ Optimal
+
+Result: Fine-Tuning should be selected
+```
+
+### Decision Tree
+
+<Mermaid chart={`
+flowchart TD
+    Start[Start] --> Q1[Volume > 10K/day?]
+    Q1 -->|Yes| Q2[Domain-specific?]
+    Q1 -->|No| Prompt[Prompt Engineering]
+    
+    Q2 -->|Yes| Q3[Training data available?]
+    Q2 -->|No| RAG[RAG]
+    
+    Q3 -->|Yes| Q4[Budget > $1000/month?]
+    Q3 -->|No| RAG
+    
+    Q4 -->|Yes| FineTune[Fine-Tuning]
+    Q4 -->|No| RAG
+    
+    Prompt --> End[Decision]
+    RAG --> End
+    FineTune --> End
+`} />
+
+## Token Economics and Pricing
+
+Work with summarized (CoD) data instead of massive contexts, knowing the cost differences between Input (Context) and Output tokens.
+
+### Token Pricing Model
+
+```markdown
+# OpenAI Pricing (2024)
+
+## GPT-4 Models
+
+### GPT-4 Turbo
+- Input: $0.01 per 1K tokens
+- Output: $0.03 per 1K tokens
+- Context: 128K tokens
+
+### GPT-4o
+- Input: $0.005 per 1K tokens
+- Output: $0.015 per 1K tokens
+- Context: 128K tokens
+
+### GPT-4o-mini
+- Input: $0.15 per 1M tokens ($0.00015 per 1K)
+- Output: $0.60 per 1M tokens ($0.0006 per 1K)
+- Context: 128K tokens
+
+## GPT-3.5 Models
+
+### GPT-3.5 Turbo
+- Input: $0.50 per 1M tokens ($0.0005 per 1K)
+- Output: $1.50 per 1M tokens ($0.0015 per 1K)
+- Context: 16K tokens
+
+## Claude Models (Anthropic)
+
+### Claude 3 Opus
+- Input: $15 per 1M tokens ($0.015 per 1K)
+- Output: $75 per 1M tokens ($0.075 per 1K)
+- Context: 200K tokens
+
+### Claude 3 Sonnet
+- Input: $3 per 1M tokens ($0.003 per 1K)
+- Output: $15 per 1M tokens ($0.015 per 1K)
+- Context: 200K tokens
+
+### Claude 3 Haiku
+- Input: $0.25 per 1M tokens ($0.00025 per 1K)
+- Output: $1.25 per 1M tokens ($0.00125 per 1K)
+- Context: 200K tokens
+```
+
+### Cost Management Strategies
+
+#### Strategy 1: Context Optimization
+
+```markdown
+# Bad Practice: Sending All Documentation
+
+Prompt:
+"Read all API documentation and write an endpoint"
+
+Context: 50K tokens (all docs)
+Cost: $0.50 per request
+Volume: 100 requests/day
+Daily: $50
+Monthly: $1,500 ❌
+
+# Good Practice: Summarization with Chain of Density
+
+Step 1: Create summary
+"Summarize API documentation (5K tokens)"
+Cost: $0.05
+
+Step 2: Use summary
+"Write endpoint using summary"
+Context: 5K tokens
+Cost: $0.05 per request
+Volume: 100 requests/day
+Daily: $5
+Monthly: $150 ✅
+
+Savings: 90%
+```
+
+#### Strategy 2: Model Selection
+
+```markdown
+# Scenario: Code Review
+
+## Complex Task: Architecture Review
+- Model: GPT-4o
+- Tokens: 10K input, 2K output
+- Cost: $0.05 + $0.03 = $0.08 per request
+- Volume: 10/day
+- Daily: $0.80 ✅
+
+## Routine Task: Code Formatting
+- Model: GPT-4o-mini
+- Tokens: 5K input, 1K output
+- Cost: $0.00075 + $0.0006 = $0.00135 per request
+- Volume: 100/day
+- Daily: $0.135 ✅
+
+## Hybrid Approach
+- Complex: GPT-4o (10 requests) = $0.80
+- Routine: GPT-4o-mini (100 requests) = $0.135
+- Total: $0.935/day = $28/month ✅
+
+vs. All GPT-4o:
+- 110 requests × $0.08 = $8.80/day = $264/month ❌
+
+Savings: 89%
+```
+
+#### Strategy 3: Caching and Batch Processing
+
+```markdown
+# Caching Strategy
+
+## Scenario: Similar Questions
+
+100 users ask the same question:
+"How to use async/await in Python?"
+
+## Approach 1: API Call Every Time
+- 100 requests × $0.08 = $8/day ❌
+
+## Approach 2: Cache First Response
+- 1 request = $0.08
+- 99 cache hits = $0
+- Daily: $0.08 ✅
+
+Savings: 99%
+
+# Batch Processing
+
+## Scenario: 1000 Email Analysis
+
+## Approach 1: Process One by One
+- 1000 requests × $0.08 = $80 ❌
+
+## Approach 2: Batch Processing
+- 10 batch × 100 emails = 10 requests
+- 10 × $0.08 = $0.80 ✅
+
+Savings: 99%
+```
+
+### Economic Model Selection
+
+```markdown
+# Model Selection Framework
+
+## Complex Tasks: Expensive Models (o1, GPT-4o)
+
+Use Cases:
+- Architecture decisions
+- Complex problem solving
+- Critical code review
+- Security analysis
+
+Example: Architecture Decision
+- Model: GPT-4o
+- Tokens: 20K input, 5K output
+- Cost: $0.10 + $0.075 = $0.175
+- Volume: 5/day
+- Daily: $0.875
+- Monthly: $26.25 ✅
+
+## Routine Tasks: Cheap Models (4o-mini, Haiku)
+
+Use Cases:
+- Code formatting
+- Simple refactoring
+- Documentation
+- Test generation
+
+Example: Code Formatting
+- Model: GPT-4o-mini
+- Tokens: 2K input, 1K output
+- Cost: $0.0003 + $0.0006 = $0.0009
+- Volume: 500/day
+- Daily: $0.45
+- Monthly: $13.50 ✅
+
+## Budget Optimization
+
+Hybrid Strategy:
+- Complex (GPT-4o): $26.25/month
+- Routine (GPT-4o-mini): $13.50/month
+- Total: $39.75/month ✅
+
+vs. All GPT-4o:
+- 505 requests × $0.175 = $88.38/day = $2,651/month ❌
+
+Savings: 98.5%
+```
+
+## Enterprise Security and Scalability
+
+### Security Best Practices
+
+```markdown
+# Security Strategies
+
+## 1. API Key Management
+- Use environment variables
+- Key rotation policy
+- Rate limiting
+- Usage monitoring
+
+## 2. Data Privacy
+- PII (Personally Identifiable Information) filtering
+- Sensitive data masking
+- Audit logging
+- Compliance (GDPR, HIPAA)
+
+## 3. Input Validation
+- Prompt injection protection
+- Input sanitization
+- Output validation
+- Error handling
+
+## 4. Cost Controls
+- Budget alerts
+- Usage quotas
+- Auto-scaling limits
+- Cost monitoring dashboards
+```
+
+### Scalability Planning
+
+```markdown
+# Scaling Strategy
+
+## Phase 1: MVP (0-1K requests/day)
+- Model: GPT-4o-mini
+- Cost: ~$5/month
+- Infrastructure: Single instance
+
+## Phase 2: Growth (1K-10K requests/day)
+- Model: Hybrid (GPT-4o + GPT-4o-mini)
+- Cost: ~$50/month
+- Infrastructure: Load balancer + caching
+
+## Phase 3: Scale (10K-100K requests/day)
+- Model: Fine-tuned GPT-3.5
+- Cost: ~$200/month
+- Infrastructure: Multi-region + CDN
+
+## Phase 4: Enterprise (100K+ requests/day)
+- Model: Custom fine-tuned
+- Cost: Negotiated pricing
+- Infrastructure: Dedicated infrastructure
+```
+
+## Practical Scenarios
+
+### Scenario 1: Startup MVP
+
+```markdown
+Requirements:
+- Budget: $100/month
+- Volume: 5K requests/day
+- Latency: < 3s
+- Accuracy: 80%+
+
+Solution:
+- Model: GPT-4o-mini (routine) + GPT-4o (complex)
+- Caching: Redis (similar questions)
+- Cost: ~$75/month ✅
+```
+
+### Scenario 2: Enterprise Application
+
+```markdown
+Requirements:
+- Budget: $5,000/month
+- Volume: 100K requests/day
+- Latency: < 1s
+- Accuracy: 95%+
+
+Solution:
+- Model: Fine-tuned GPT-3.5
+- Infrastructure: Multi-region
+- Caching: Aggressive caching
+- Cost: ~$4,500/month ✅
+```
+
+### Scenario 3: Cost Optimization
+
+```markdown
+Current State:
+- Model: GPT-4o (all tasks)
+- Cost: $2,000/month
+- Volume: 50K requests/day
+
+Optimization:
+1. Model splitting: 90% GPT-4o-mini, 10% GPT-4o
+2. Caching: 60% cache hit rate
+3. Context optimization: 70% reduction with CoD
+
+Result:
+- Cost: $300/month ✅
+- Savings: 85%
+```
+
+## Summary
+
+What you learned in this lecture:
+
+- **Model Optimization Framework**: Prompt vs RAG vs Fine-Tuning comparison
+- **Trade-off Analysis**: Balance between cost, latency, and accuracy
+- **Token Economics**: Input/output cost differences and optimization strategies
+- **Model Selection**: Expensive models for complex tasks, cheap models for routine tasks
+- **Enterprise Security**: Security and scalability best practices
+
+Next step: Achieve cost optimization by applying these strategies in your own projects.

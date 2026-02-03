@@ -1,0 +1,66 @@
+"use client";
+
+import Link from "next/link";
+import { GraduationCap, Search } from "lucide-react";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { MobileSidebar } from "@/components/layout/mobile-sidebar";
+import { Button } from "@/components/ui/button";
+
+interface NavItem {
+  title: string;
+  href: string;
+  level?: number;
+}
+
+interface NavSection {
+  title: string;
+  slug: string;
+  items: NavItem[];
+}
+
+interface HeaderProps {
+  navigation: NavSection[];
+  onSearchOpen?: () => void;
+}
+
+export function Header({ navigation, onSearchOpen }: HeaderProps) {
+  return (
+    <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="flex h-16 items-center px-4 lg:px-6">
+        <MobileSidebar navigation={navigation} />
+        
+        <Link href="/" className="flex items-center gap-2 ml-2 lg:ml-0">
+          <GraduationCap className="h-6 w-6" />
+          <span className="font-semibold text-lg hidden sm:inline-block">
+            AI & LLM Lectures
+          </span>
+        </Link>
+
+        <div className="flex-1" />
+
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            className="hidden sm:flex items-center gap-2 text-muted-foreground"
+            onClick={onSearchOpen}
+          >
+            <Search className="h-4 w-4" />
+            <span className="text-sm">Search...</span>
+            <kbd className="pointer-events-none hidden h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground sm:flex">
+              <span className="text-xs">⌘</span>K
+            </kbd>
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="sm:hidden"
+            onClick={onSearchOpen}
+          >
+            <Search className="h-5 w-5" />
+          </Button>
+          <ThemeToggle />
+        </div>
+      </div>
+    </header>
+  );
+}

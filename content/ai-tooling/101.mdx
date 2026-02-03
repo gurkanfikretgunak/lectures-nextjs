@@ -1,0 +1,296 @@
+---
+title: "AI Tooling 101"
+description: "Introduction to AI development tools and frameworks"
+category: "ai-tooling"
+level: 101
+order: 1
+---
+
+# Introduction to AI Tooling
+
+Welcome to AI Tooling 101! This lecture introduces essential tools and frameworks for AI development.
+
+## The AI Development Stack
+
+<Mermaid chart={`
+flowchart TB
+    subgraph Apps [Application Layer]
+        ChatBot[Chatbots]
+        Assistant[AI Assistants]
+        Agent[AI Agents]
+    end
+    
+    subgraph Framework [Framework Layer]
+        LangChain[LangChain]
+        LlamaIndex[LlamaIndex]
+        Semantic[Semantic Kernel]
+    end
+    
+    subgraph Infra [Infrastructure Layer]
+        API[LLM APIs]
+        Vector[Vector DBs]
+        Cache[Caching]
+    end
+    
+    subgraph Models [Model Layer]
+        OpenAI[OpenAI]
+        Anthropic[Anthropic]
+        Local[Local Models]
+    end
+    
+    Apps --> Framework
+    Framework --> Infra
+    Infra --> Models
+`} />
+
+## LLM Provider APIs
+
+### OpenAI
+
+```python
+from openai import OpenAI
+
+client = OpenAI(api_key="your-key")
+
+response = client.chat.completions.create(
+    model="gpt-4",
+    messages=[
+        {"role": "system", "content": "You are a helpful assistant."},
+        {"role": "user", "content": "Explain quantum computing."}
+    ],
+    temperature=0.7,
+    max_tokens=500
+)
+
+print(response.choices[0].message.content)
+```
+
+### Anthropic (Claude)
+
+```python
+from anthropic import Anthropic
+
+client = Anthropic(api_key="your-key")
+
+response = client.messages.create(
+    model="claude-3-opus-20240229",
+    max_tokens=1024,
+    messages=[
+        {"role": "user", "content": "Explain quantum computing."}
+    ]
+)
+
+print(response.content[0].text)
+```
+
+### Local Models (Ollama)
+
+```python
+import ollama
+
+response = ollama.chat(
+    model='llama2',
+    messages=[
+        {'role': 'user', 'content': 'Explain quantum computing.'}
+    ]
+)
+
+print(response['message']['content'])
+```
+
+## LangChain Framework
+
+<Mermaid chart={`
+flowchart LR
+    subgraph LangChain [LangChain Components]
+        Models[Models]
+        Prompts[Prompts]
+        Chains[Chains]
+        Agents[Agents]
+        Memory[Memory]
+    end
+    
+    Prompts --> Models
+    Models --> Chains
+    Chains --> Agents
+    Memory --> Agents
+`} />
+
+### Basic Chain
+
+```python
+from langchain_openai import ChatOpenAI
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.output_parsers import StrOutputParser
+
+# Create components
+llm = ChatOpenAI(model="gpt-4")
+prompt = ChatPromptTemplate.from_messages([
+    ("system", "You are a helpful assistant."),
+    ("user", "{input}")
+])
+output_parser = StrOutputParser()
+
+# Build chain
+chain = prompt | llm | output_parser
+
+# Run
+result = chain.invoke({"input": "What is AI?"})
+print(result)
+```
+
+### RAG Chain
+
+```python
+from langchain_community.vectorstores import Chroma
+from langchain_openai import OpenAIEmbeddings
+from langchain_core.runnables import RunnablePassthrough
+
+# Setup retriever
+vectorstore = Chroma(embedding_function=OpenAIEmbeddings())
+retriever = vectorstore.as_retriever()
+
+# RAG prompt
+rag_prompt = ChatPromptTemplate.from_template("""
+Answer based on context:
+Context: {context}
+Question: {question}
+""")
+
+# Build RAG chain
+rag_chain = (
+    {"context": retriever, "question": RunnablePassthrough()}
+    | rag_prompt
+    | llm
+    | output_parser
+)
+```
+
+## Vector Databases
+
+### Why Vector DBs?
+
+<Mermaid chart={`
+flowchart LR
+    Text[Text] --> Embed[Embedding Model]
+    Embed --> Vector[Vector: 1536 dims]
+    Vector --> Store[(Vector DB)]
+    
+    Query[Query] --> EmbedQ[Embed Query]
+    EmbedQ --> Search[Similarity Search]
+    Store --> Search
+    Search --> Results[Top K Results]
+`} />
+
+### Popular Options
+
+| Database | Type | Best For |
+|----------|------|----------|
+| Pinecone | Cloud | Production scale |
+| Chroma | Local/Cloud | Development |
+| Weaviate | Self-hosted | Enterprise |
+| Qdrant | Self-hosted | Performance |
+| pgvector | Postgres ext | Existing Postgres |
+
+### Chroma Example
+
+```python
+import chromadb
+from chromadb.utils import embedding_functions
+
+# Initialize
+client = chromadb.Client()
+embedding_fn = embedding_functions.OpenAIEmbeddingFunction(
+    api_key="your-key"
+)
+
+# Create collection
+collection = client.create_collection(
+    name="documents",
+    embedding_function=embedding_fn
+)
+
+# Add documents
+collection.add(
+    documents=["AI is transforming technology", "ML is a subset of AI"],
+    ids=["doc1", "doc2"]
+)
+
+# Query
+results = collection.query(
+    query_texts=["What is artificial intelligence?"],
+    n_results=2
+)
+```
+
+## Development Tools
+
+### IDE Extensions
+
+- **GitHub Copilot**: AI code completion
+- **Cursor**: AI-first code editor
+- **Continue**: Open source AI assistant
+
+### Testing & Monitoring
+
+```python
+# Using LangSmith for tracing
+import os
+os.environ["LANGCHAIN_TRACING_V2"] = "true"
+os.environ["LANGCHAIN_API_KEY"] = "your-key"
+
+# Your LangChain code is now traced automatically
+chain = prompt | llm | output_parser
+result = chain.invoke({"input": "Hello"})
+```
+
+### Prompt Management
+
+<Mermaid chart={`
+flowchart TB
+    Dev[Development] --> Test[Testing]
+    Test --> Version[Version Control]
+    Version --> Deploy[Deployment]
+    Deploy --> Monitor[Monitoring]
+    Monitor --> Iterate[Iterate]
+    Iterate --> Dev
+`} />
+
+## Environment Setup
+
+### Project Structure
+
+```
+ai-project/
+├── .env                 # API keys (gitignored)
+├── requirements.txt     # Dependencies
+├── src/
+│   ├── chains/         # LangChain chains
+│   ├── prompts/        # Prompt templates
+│   ├── utils/          # Utilities
+│   └── main.py
+├── data/
+│   └── documents/      # Source documents
+├── tests/
+└── notebooks/          # Experimentation
+```
+
+### Essential Dependencies
+
+```txt
+# requirements.txt
+langchain>=0.1.0
+langchain-openai>=0.0.5
+chromadb>=0.4.0
+python-dotenv>=1.0.0
+```
+
+## Summary
+
+Key tools for AI development:
+- LLM APIs (OpenAI, Anthropic, local models)
+- Frameworks (LangChain, LlamaIndex)
+- Vector databases for semantic search
+- Development and monitoring tools
+
+Next: Explore practical tooling cases in AI Tooling 102.

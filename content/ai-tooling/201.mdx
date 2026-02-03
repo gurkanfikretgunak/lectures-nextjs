@@ -1,0 +1,362 @@
+---
+title: "AI Tooling 201"
+description: "Advanced AI tooling and production systems"
+category: "ai-tooling"
+level: 201
+order: 3
+---
+
+# Advanced AI Tooling
+
+Welcome to AI Tooling 201! This lecture covers advanced tooling for production AI systems.
+
+## Production Architecture
+
+<Mermaid chart={`
+flowchart TB
+    subgraph Gateway [API Gateway]
+        LB[Load Balancer]
+        Auth[Authentication]
+        Rate[Rate Limiting]
+    end
+    
+    subgraph Services [AI Services]
+        Router[Request Router]
+        Cache[(Response Cache)]
+        Queue[Message Queue]
+    end
+    
+    subgraph Workers [Processing]
+        W1[Worker 1]
+        W2[Worker 2]
+        W3[Worker 3]
+    end
+    
+    subgraph Models [Model Layer]
+        Primary[Primary LLM]
+        Fallback[Fallback LLM]
+        Local[Local Model]
+    end
+    
+    Gateway --> Services
+    Services --> Workers
+    Workers --> Models
+`} />
+
+## LangGraph: Stateful Workflows
+
+LangGraph enables complex, stateful AI workflows with cycles and branching.
+
+<Mermaid chart={`
+flowchart LR
+    Start[Start] --> Classify[Classify Input]
+    Classify --> Simple{Simple?}
+    Simple -->|Yes| Direct[Direct Response]
+    Simple -->|No| Research[Research]
+    Research --> Draft[Draft Response]
+    Draft --> Review[Review]
+    Review --> Good{Good?}
+    Good -->|Yes| End[End]
+    Good -->|No| Research
+`} />
+
+### Implementation
+
+```python
+from langgraph.graph import StateGraph, END
+from typing import TypedDict, Literal
+
+class AgentState(TypedDict):
+    messages: list
+    classification: str
+    draft: str
+    review_count: int
+
+def classify_input(state: AgentState) -> AgentState:
+    # Classify the complexity of the input
+    messages = state["messages"]
+    # Use LLM to classify
+    classification = llm.invoke(f"Classify: {messages[-1]}")
+    return {"classification": classification}
+
+def generate_direct(state: AgentState) -> AgentState:
+    response = llm.invoke(state["messages"][-1])
+    return {"draft": response}
+
+def research(state: AgentState) -> AgentState:
+    # Perform research using tools
+    results = search_tool.invoke(state["messages"][-1])
+    return {"draft": results}
+
+def review(state: AgentState) -> AgentState:
+    review_prompt = f"Review this draft: {state['draft']}"
+    review_result = llm.invoke(review_prompt)
+    return {
+        "draft": review_result,
+        "review_count": state.get("review_count", 0) + 1
+    }
+
+def should_continue(state: AgentState) -> Literal["research", "end"]:
+    if "APPROVED" in state["draft"] or state["review_count"] >= 3:
+        return "end"
+    return "research"
+
+# Build graph
+workflow = StateGraph(AgentState)
+
+workflow.add_node("classify", classify_input)
+workflow.add_node("direct", generate_direct)
+workflow.add_node("research", research)
+workflow.add_node("review", review)
+
+workflow.set_entry_point("classify")
+workflow.add_conditional_edges(
+    "classify",
+    lambda s: "direct" if s["classification"] == "simple" else "research"
+)
+workflow.add_edge("direct", END)
+workflow.add_edge("research", "review")
+workflow.add_conditional_edges("review", should_continue)
+
+app = workflow.compile()
+```
+
+## Observability & Monitoring
+
+### LangSmith Integration
+
+<Mermaid chart={`
+flowchart TB
+    App[Application] --> SDK[LangSmith SDK]
+    SDK --> Traces[Trace Collection]
+    Traces --> Store[(Trace Store)]
+    Store --> Dashboard[Dashboard]
+    Dashboard --> Metrics[Metrics]
+    Dashboard --> Debug[Debugging]
+    Dashboard --> Eval[Evaluations]
+`} />
+
+```python
+import os
+from langsmith import Client
+from langsmith.run_helpers import traceable
+
+# Configure
+os.environ["LANGCHAIN_TRACING_V2"] = "true"
+os.environ["LANGCHAIN_PROJECT"] = "production-app"
+
+client = Client()
+
+@traceable(name="process_query")
+def process_query(query: str) -> str:
+    """Traced function for processing queries."""
+    # Your LLM logic here
+    result = chain.invoke({"input": query})
+    return result
+
+# Custom metrics
+@traceable(
+    name="qa_with_metrics",
+    metadata={"version": "1.0.0"}
+)
+def qa_with_metrics(question: str) -> dict:
+    start = time.time()
+    answer = qa_chain.invoke(question)
+    latency = time.time() - start
+    
+    return {
+        "answer": answer,
+        "latency_ms": latency * 1000,
+        "tokens_used": count_tokens(answer)
+    }
+```
+
+### Custom Evaluation
+
+```python
+from langsmith.evaluation import evaluate, LangChainStringEvaluator
+
+# Define evaluators
+evaluators = [
+    LangChainStringEvaluator("qa"),       # QA accuracy
+    LangChainStringEvaluator("criteria", 
+        config={"criteria": "helpfulness"}
+    ),
+]
+
+# Run evaluation
+results = evaluate(
+    lambda inputs: qa_chain.invoke(inputs["question"]),
+    data="my-test-dataset",
+    evaluators=evaluators
+)
+```
+
+## Caching Strategies
+
+<Mermaid chart={`
+flowchart TB
+    Query[Query] --> Hash[Hash Query]
+    Hash --> Check{In Cache?}
+    Check -->|Yes| Return[Return Cached]
+    Check -->|No| LLM[Call LLM]
+    LLM --> Store[Store in Cache]
+    Store --> Return2[Return Response]
+`} />
+
+### Semantic Caching
+
+```python
+from langchain.cache import InMemoryCache
+from langchain.globals import set_llm_cache
+from langchain_community.cache import RedisSemanticCache
+
+# Simple cache
+set_llm_cache(InMemoryCache())
+
+# Semantic cache (finds similar queries)
+semantic_cache = RedisSemanticCache(
+    redis_url="redis://localhost:6379",
+    embedding=OpenAIEmbeddings(),
+    score_threshold=0.95  # Similarity threshold
+)
+set_llm_cache(semantic_cache)
+```
+
+### Multi-tier Caching
+
+```python
+class MultiTierCache:
+    def __init__(self):
+        self.l1_cache = {}  # In-memory
+        self.l2_cache = Redis()  # Redis
+        self.semantic = SemanticCache()  # Vector similarity
+    
+    def get(self, query: str) -> str | None:
+        # L1: Exact match in memory
+        if query in self.l1_cache:
+            return self.l1_cache[query]
+        
+        # L2: Exact match in Redis
+        cached = self.l2_cache.get(query)
+        if cached:
+            self.l1_cache[query] = cached
+            return cached
+        
+        # L3: Semantic similarity
+        similar = self.semantic.find_similar(query, threshold=0.95)
+        if similar:
+            self.l1_cache[query] = similar
+            self.l2_cache.set(query, similar)
+            return similar
+        
+        return None
+```
+
+## Model Fallbacks & Routing
+
+<Mermaid chart={`
+flowchart TB
+    Request[Request] --> Primary[Try Primary Model]
+    Primary --> Success{Success?}
+    Success -->|Yes| Return[Return Response]
+    Success -->|No| Fallback[Try Fallback]
+    Fallback --> Success2{Success?}
+    Success2 -->|Yes| Return
+    Success2 -->|No| Local[Use Local Model]
+    Local --> Return
+`} />
+
+```python
+from langchain_core.runnables import RunnableWithFallbacks
+
+primary = ChatOpenAI(model="gpt-4")
+fallback = ChatOpenAI(model="gpt-3.5-turbo")
+local = ChatOllama(model="llama2")
+
+chain_with_fallback = primary.with_fallbacks([fallback, local])
+
+# Will try each model in order until one succeeds
+result = chain_with_fallback.invoke("Hello!")
+```
+
+## Async & Parallel Processing
+
+```python
+import asyncio
+from langchain_core.runnables import RunnableParallel
+
+# Parallel chains
+parallel = RunnableParallel(
+    summary=summary_chain,
+    sentiment=sentiment_chain,
+    keywords=keyword_chain
+)
+
+# Run all in parallel
+results = await parallel.ainvoke({"text": document})
+
+# Batch processing
+async def process_batch(queries: list[str]):
+    tasks = [chain.ainvoke({"input": q}) for q in queries]
+    results = await asyncio.gather(*tasks, return_exceptions=True)
+    return results
+```
+
+## Security Best Practices
+
+### Input Validation
+
+```python
+import re
+from pydantic import BaseModel, validator
+
+class QueryInput(BaseModel):
+    query: str
+    max_tokens: int = 500
+    
+    @validator("query")
+    def validate_query(cls, v):
+        # Check length
+        if len(v) > 10000:
+            raise ValueError("Query too long")
+        
+        # Block injection attempts
+        dangerous_patterns = [
+            r"ignore\s+previous\s+instructions",
+            r"system\s*:",
+            r"<\|.*\|>"
+        ]
+        for pattern in dangerous_patterns:
+            if re.search(pattern, v, re.IGNORECASE):
+                raise ValueError("Potentially malicious input")
+        
+        return v
+```
+
+### Output Filtering
+
+```python
+class OutputFilter:
+    def __init__(self):
+        self.pii_patterns = [
+            r"\b\d{3}-\d{2}-\d{4}\b",  # SSN
+            r"\b\d{16}\b",              # Credit card
+        ]
+    
+    def filter(self, text: str) -> str:
+        for pattern in self.pii_patterns:
+            text = re.sub(pattern, "[REDACTED]", text)
+        return text
+```
+
+## Summary
+
+Advanced AI tooling for production:
+- LangGraph for stateful workflows
+- Comprehensive observability
+- Multi-tier caching strategies
+- Model fallbacks and routing
+- Security best practices
+
+Next: Explore advanced production cases in AI Tooling 202.

@@ -1,0 +1,391 @@
+---
+title: "Resources 201"
+description: "Advanced resources for AI research and production"
+category: "resources"
+level: 201
+order: 2
+---
+
+# Advanced AI & LLM Resources
+
+This resource guide provides advanced materials for AI researchers and production engineers.
+
+## Advanced Research
+
+### Key Research Areas
+
+<Mermaid chart={`
+flowchart TB
+    subgraph Alignment [AI Alignment]
+        RLHF[RLHF]
+        Constitutional[Constitutional AI]
+        DPO[Direct Preference Optimization]
+    end
+    
+    subgraph Efficiency [Efficiency]
+        Quantization[Quantization]
+        Pruning[Pruning]
+        Distillation[Distillation]
+    end
+    
+    subgraph Architecture [Architecture]
+        MoE[Mixture of Experts]
+        SSM[State Space Models]
+        Mamba[Mamba]
+    end
+    
+    subgraph Application [Applications]
+        RAG[RAG Systems]
+        Agents[AI Agents]
+        Multimodal[Multimodal]
+    end
+`} />
+
+### Must-Read Papers (2023-2024)
+
+| Paper | Topic | Key Insight |
+|-------|-------|-------------|
+| DPO | Alignment | Simpler RLHF alternative |
+| Mistral 7B | Efficiency | Sliding window attention |
+| Mixtral | Architecture | Sparse MoE |
+| Mamba | Architecture | Linear complexity |
+| RAG Survey | Application | Retrieval patterns |
+
+### Research Labs to Follow
+
+```yaml
+OpenAI:
+  focus: GPT models, safety research
+  publications: arxiv.org/search/?searchtype=author&query=OpenAI
+
+Anthropic:
+  focus: Constitutional AI, interpretability
+  publications: anthropic.com/research
+
+DeepMind:
+  focus: Reasoning, multimodal
+  publications: deepmind.google/research
+
+Meta AI:
+  focus: Open models, efficiency
+  publications: ai.meta.com/research
+```
+
+## Production Infrastructure
+
+### MLOps Tools
+
+<Mermaid chart={`
+flowchart LR
+    subgraph Dev [Development]
+        Notebooks[Notebooks]
+        Experiment[Experiments]
+    end
+    
+    subgraph Train [Training]
+        Distributed[Distributed Training]
+        Hyperopt[Hyperparameter Tuning]
+    end
+    
+    subgraph Deploy [Deployment]
+        Serve[Model Serving]
+        Monitor[Monitoring]
+    end
+    
+    subgraph Ops [Operations]
+        Version[Model Registry]
+        Pipeline[Pipelines]
+    end
+    
+    Dev --> Train --> Deploy --> Ops
+    Ops --> Dev
+`} />
+
+### Tool Comparison
+
+| Category | Tool | Best For |
+|----------|------|----------|
+| Experiment Tracking | MLflow, W&B | Research teams |
+| Model Serving | vLLM, TGI | LLM inference |
+| Orchestration | Airflow, Prefect | Pipelines |
+| Monitoring | Prometheus, Grafana | Production |
+| Vector DB | Pinecone, Qdrant | RAG systems |
+
+### Infrastructure Code
+
+```python
+# vLLM Serving Example
+from vllm import LLM, SamplingParams
+
+llm = LLM(
+    model="meta-llama/Llama-2-7b-chat-hf",
+    tensor_parallel_size=2,  # Multi-GPU
+    gpu_memory_utilization=0.9
+)
+
+sampling_params = SamplingParams(
+    temperature=0.7,
+    top_p=0.95,
+    max_tokens=256
+)
+
+outputs = llm.generate(["Hello, how are you?"], sampling_params)
+```
+
+```python
+# Text Generation Inference (TGI)
+# Docker deployment
+"""
+docker run --gpus all -p 8080:80 \
+    -v /data:/data \
+    ghcr.io/huggingface/text-generation-inference:latest \
+    --model-id meta-llama/Llama-2-7b-chat-hf \
+    --num-shard 2 \
+    --max-input-length 4096 \
+    --max-total-tokens 8192
+"""
+```
+
+## Evaluation Frameworks
+
+### Benchmarks
+
+<Mermaid chart={`
+flowchart TB
+    subgraph Knowledge [Knowledge Tests]
+        MMLU[MMLU]
+        TriviaQA[TriviaQA]
+    end
+    
+    subgraph Reasoning [Reasoning Tests]
+        GSM8K[GSM8K - Math]
+        BBH[Big Bench Hard]
+    end
+    
+    subgraph Code [Code Tests]
+        HumanEval[HumanEval]
+        MBPP[MBPP]
+    end
+    
+    subgraph Chat [Chat Tests]
+        MTBench[MT-Bench]
+        AlpacaEval[AlpacaEval]
+    end
+`} />
+
+### Evaluation Code
+
+```python
+from lm_eval import evaluator, tasks
+
+# Run evaluation suite
+results = evaluator.simple_evaluate(
+    model="hf",
+    model_args="pretrained=meta-llama/Llama-2-7b",
+    tasks=["mmlu", "gsm8k", "humaneval"],
+    num_fewshot=5,
+    batch_size="auto"
+)
+
+print(results["results"])
+```
+
+### Custom Evaluation
+
+```python
+from langsmith import Client
+from langsmith.evaluation import evaluate
+
+client = Client()
+
+# Define custom evaluator
+def relevance_evaluator(run, example):
+    """Check if response is relevant to question."""
+    prediction = run.outputs["output"]
+    reference = example.outputs["answer"]
+    
+    # Use LLM to evaluate
+    evaluation = llm.invoke(f"""
+    Question: {example.inputs['question']}
+    Expected topics: {reference}
+    Actual response: {prediction}
+    
+    Is the response relevant? Score 0-1:
+    """)
+    
+    return {"key": "relevance", "score": float(evaluation.content)}
+
+# Run evaluation
+results = evaluate(
+    lambda inputs: chain.invoke(inputs["question"]),
+    data="my-dataset",
+    evaluators=[relevance_evaluator]
+)
+```
+
+## Security & Safety
+
+### Security Checklist
+
+```markdown
+## LLM Security Checklist
+
+### Input Validation
+- [ ] Length limits enforced
+- [ ] Injection patterns blocked
+- [ ] Rate limiting implemented
+- [ ] Input sanitization
+
+### Output Safety
+- [ ] PII detection/redaction
+- [ ] Content filtering
+- [ ] Output length limits
+- [ ] Format validation
+
+### Infrastructure
+- [ ] API key rotation
+- [ ] Audit logging
+- [ ] Access controls
+- [ ] Encryption at rest/transit
+
+### Monitoring
+- [ ] Anomaly detection
+- [ ] Cost alerts
+- [ ] Error tracking
+- [ ] Usage analytics
+```
+
+### Safety Tools
+
+```python
+# Guardrails AI
+from guardrails import Guard
+from guardrails.validators import (
+    ToxicLanguage,
+    PIIFilter,
+    ValidLength
+)
+
+guard = Guard.from_string(
+    validators=[
+        ToxicLanguage(on_fail="fix"),
+        PIIFilter(on_fail="fix"),
+        ValidLength(min=10, max=1000)
+    ]
+)
+
+# Validate output
+validated = guard.validate(llm_output)
+```
+
+## Advanced Architectures
+
+### RAG Patterns
+
+<Mermaid chart={`
+flowchart TB
+    subgraph Basic [Basic RAG]
+        Q1[Query] --> R1[Retrieve] --> G1[Generate]
+    end
+    
+    subgraph Advanced [Advanced RAG]
+        Q2[Query] --> Rewrite[Query Rewrite]
+        Rewrite --> R2[Retrieve]
+        R2 --> Rerank[Rerank]
+        Rerank --> G2[Generate]
+        G2 --> Cite[Add Citations]
+    end
+    
+    subgraph Agentic [Agentic RAG]
+        Q3[Query] --> Plan[Plan Retrieval]
+        Plan --> Multi[Multi-Source Retrieve]
+        Multi --> Synthesize[Synthesize]
+        Synthesize --> Verify[Verify Facts]
+        Verify --> G3[Generate]
+    end
+`} />
+
+### Agent Patterns
+
+```python
+# ReAct Agent Pattern
+REACT_PROMPT = """
+Answer the question using available tools.
+
+Tools:
+{tools}
+
+Question: {question}
+
+Use this format:
+Thought: reason about what to do
+Action: tool_name[tool_input]
+Observation: result of the action
+... repeat until you have the answer ...
+Thought: I now know the answer
+Final Answer: your answer
+"""
+```
+
+## Scaling Guidelines
+
+### Cost Optimization
+
+| Strategy | Savings | Trade-off |
+|----------|---------|-----------|
+| Caching | 50-90% | Freshness |
+| Smaller models | 80-95% | Quality |
+| Batching | 30-50% | Latency |
+| Prompt optimization | 20-40% | Development time |
+
+### Performance Targets
+
+```yaml
+Production SLAs:
+  latency:
+    p50: 500ms
+    p95: 2000ms
+    p99: 5000ms
+  
+  availability:
+    target: 99.9%
+    error_budget: 43.8 min/month
+  
+  quality:
+    accuracy: 90%+
+    relevance: 85%+
+    safety: 99%+
+```
+
+## Community & Conferences
+
+### Key Conferences
+
+| Conference | Focus | When |
+|------------|-------|------|
+| NeurIPS | Research | December |
+| ICML | Machine Learning | July |
+| ACL | NLP | Variable |
+| EMNLP | NLP | October |
+
+### Open Source Projects
+
+```
+Contributing to:
+├── langchain-ai/langchain
+├── huggingface/transformers
+├── vllm-project/vllm
+├── microsoft/guidance
+└── stanfordnlp/dspy
+```
+
+## Summary
+
+Advanced AI development requires:
+- Deep understanding of current research
+- Production-grade infrastructure
+- Comprehensive evaluation
+- Security-first approach
+- Active community engagement
+
+These resources enable building state-of-the-art AI systems.

@@ -1,0 +1,587 @@
+---
+title: "Prompting 203 - Architecture-as-Code & Token Economics"
+description: "Programmable governance, token efficiency, and context window optimization"
+category: "prompting"
+level: 203
+order: 5
+---
+
+# Architecture-as-Code & Token Economics
+
+This advanced lecture covers programmable governance patterns, token efficiency strategies, and context window optimization techniques for production AI systems.
+
+## 1. Programmable Governance: Architecture-as-Code
+
+Architecture-as-Code enables you to encode your engineering standards and architectural decisions directly into your codebase, making them enforceable by LLMs.
+
+<Mermaid chart={`
+flowchart TB
+    Standards[Engineering Standards] --> Code[Code as Documentation]
+    Code --> LLM[LLM Understanding]
+    LLM --> Validation[Architectural Validation]
+    Validation --> Enforcement[Automated Enforcement]
+    
+    subgraph Patterns [Governance Patterns]
+        Copilot[GitHub Copilot Instructions]
+        ReactLM[React-LM Patterns]
+        Boundaries[Architectural Boundaries]
+    end
+    
+    Patterns --> Standards
+`} />
+
+### 1.1. GitHub Copilot Instructions
+
+GitHub Copilot Instructions (`.github/copilot-instructions.md`) serve as a "Constitution" for your LLM, dictating corporate standards and best practices.
+
+**Implementation:**
+
+Create `.github/copilot-instructions.md` in your repository root:
+
+```markdown
+# Project Architecture Standards
+
+## Code Style
+- Use TypeScript with strict mode
+- Prefer functional components over class components
+- Use named exports over default exports
+
+## File Organization
+- Components: `src/components/{ComponentName}/index.tsx`
+- Hooks: `src/hooks/use{FeatureName}.ts`
+- Utils: `src/utils/{utilityName}.ts`
+
+## Naming Conventions
+- Components: PascalCase (e.g., `UserProfile`)
+- Hooks: camelCase with "use" prefix (e.g., `useUserData`)
+- Constants: UPPER_SNAKE_CASE (e.g., `API_BASE_URL`)
+
+## Architectural Rules
+- Never import from `../` more than 2 levels deep
+- Domain layer must never import from Infrastructure layer
+- Use dependency injection for external services
+```
+
+**Benefits:**
+
+- Consistent code generation across team
+- Reduced code review time
+- Enforced architectural boundaries
+- Self-documenting codebase
+
+### 1.2. React Architecture Standardization (React-LM)
+
+React-LM patterns ensure LLMs understand React state hierarchy and component relationships with 100% accuracy, allowing AI to catch errors like "prop drilling" or incorrect context usage at design time.
+
+**React-LM Pattern Example:**
+
+```typescript
+// ✅ Good: React-LM Pattern
+// Component structure is clear and AI-friendly
+
+/**
+ * @react-lm-pattern: State Management
+ * - Local state: useState for component-specific data
+ * - Shared state: Context API for cross-component data
+ * - Server state: React Query for async data
+ */
+
+interface UserProfileProps {
+  userId: string;
+  // @react-lm-boundary: Props should be explicit, no prop drilling
+}
+
+export function UserProfile({ userId }: UserProfileProps) {
+  // @react-lm-state: Local state for UI-only concerns
+  const [isEditing, setIsEditing] = useState(false);
+  
+  // @react-lm-context: Shared state via Context API
+  const { user } = useUserContext();
+  
+  // @react-lm-query: Server state via React Query
+  const { data: profile } = useUserProfile(userId);
+  
+  return (
+    <div>
+      {/* Component implementation */}
+    </div>
+  );
+}
+```
+
+**Anti-Pattern Detection:**
+
+```typescript
+// ❌ Bad: Prop drilling - AI should flag this
+function ComponentA() {
+  const data = fetchData();
+  return <ComponentB data={data} />;
+}
+
+function ComponentB({ data }) {
+  return <ComponentC data={data} />;
+}
+
+function ComponentC({ data }) {
+  return <div>{data}</div>; // Prop drilling detected
+}
+
+// ✅ Good: Context API - AI should suggest this
+const DataContext = createContext();
+
+function ComponentA() {
+  const data = fetchData();
+  return (
+    <DataContext.Provider value={data}>
+      <ComponentB />
+    </DataContext.Provider>
+  );
+}
+
+function ComponentC() {
+  const data = useContext(DataContext);
+  return <div>{data}</div>;
+}
+```
+
+### 1.3. Architectural Boundaries
+
+Define folder structure and inter-layer dependency restrictions to prevent architectural violations.
+
+**Layer Architecture:**
+
+```
+src/
+├── domain/           # Business logic (no external dependencies)
+│   ├── entities/
+│   ├── use-cases/
+│   └── interfaces/
+├── infrastructure/   # External services (can depend on domain)
+│   ├── api/
+│   ├── storage/
+│   └── services/
+└── presentation/     # UI layer (can depend on domain & infrastructure)
+    ├── components/
+    ├── hooks/
+    └── pages/
+```
+
+**Dependency Rules:**
+
+```typescript
+// ✅ Allowed: Presentation → Domain
+import { UserEntity } from '@/domain/entities';
+
+// ✅ Allowed: Infrastructure → Domain
+import { UserRepository } from '@/domain/interfaces';
+
+// ❌ Forbidden: Domain → Infrastructure
+import { ApiClient } from '@/infrastructure/api'; // Error!
+
+// ❌ Forbidden: Domain → Presentation
+import { Button } from '@/presentation/components'; // Error!
+```
+
+**Enforcement with ESLint:**
+
+```javascript
+// .eslintrc.js
+module.exports = {
+  rules: {
+    'no-restricted-imports': [
+      'error',
+      {
+        patterns: [
+          {
+            group: ['@/infrastructure/*', '@/presentation/*'],
+            message: 'Domain layer cannot import from infrastructure or presentation layers',
+            from: '@/domain/**',
+          },
+        ],
+      },
+    ],
+  },
+};
+```
+
+## 2. Token Economics and Atomic Structures
+
+Understanding token economics is crucial for cost optimization and performance in LLM applications.
+
+<Mermaid chart={`
+flowchart LR
+    Text[Source Text] --> Tokenize[Tokenization]
+    Tokenize --> Tokens[Token Array]
+    Tokens --> Cost[Cost Calculation]
+    Tokens --> Context[Context Window]
+    
+    subgraph Optimization [Optimization Strategies]
+        Naming[Efficient Naming]
+        Structure[Atomic Structures]
+        Comments[Minimal Comments]
+    end
+    
+    Optimization --> Text
+`} />
+
+### 2.1. Tokenization Logic
+
+Models don't process words directly—they process numerical vectors converted into "token" fragments.
+
+**How Tokenization Works:**
+
+```python
+# Example: GPT tokenization
+text = "calculateAverage"
+# Tokens: ["calculate", "Average"] (2 tokens)
+
+text = "calculate_average"
+# Tokens: ["calculate", "_", "average"] (3 tokens)
+
+text = "calcAvg"
+# Tokens: ["calc", "Avg"] (2 tokens)
+
+# Shorter names can sometimes use fewer tokens!
+```
+
+**Token Counting:**
+
+```python
+import tiktoken
+
+# Count tokens for different naming styles
+encoder = tiktoken.encoding_for_model("gpt-4")
+
+names = [
+    "calculateUserProfileAverage",
+    "calcUserProfileAvg",
+    "calc_user_profile_avg",
+    "calcUserProfAvg"
+]
+
+for name in names:
+    tokens = encoder.encode(name)
+    print(f"{name}: {len(tokens)} tokens")
+```
+
+### 2.2. Writing Strategy
+
+Unnecessary boilerplate code and overly long comment lines create semantic noise and increase Context Window costs.
+
+**Inefficient Code:**
+
+```typescript
+// ❌ Bad: Verbose, token-heavy
+/**
+ * This function calculates the average value from an array of numbers.
+ * It takes an array of numbers as input and returns the average.
+ * If the array is empty, it returns 0.
+ * @param numbers - An array of numbers to calculate the average from
+ * @returns The average value of the numbers in the array
+ */
+function calculateAverageValueFromArrayOfNumbers(numbers: number[]): number {
+  if (numbers.length === 0) {
+    return 0;
+  }
+  let sum = 0;
+  for (let i = 0; i < numbers.length; i++) {
+    sum = sum + numbers[i];
+  }
+  return sum / numbers.length;
+}
+```
+
+**Efficient Code:**
+
+```typescript
+// ✅ Good: Concise, token-efficient
+/** Calculate average of numbers. Returns 0 if empty. */
+function avg(nums: number[]): number {
+  return nums.length ? nums.reduce((a, b) => a + b) / nums.length : 0;
+}
+```
+
+**Comment Strategy:**
+
+```typescript
+// ❌ Bad: Excessive comments
+// Initialize the counter variable to zero
+let counter = 0;
+
+// Increment the counter by one
+counter++;
+
+// Check if counter is greater than ten
+if (counter > 10) {
+  // Log the counter value
+  console.log(counter);
+}
+
+// ✅ Good: Self-documenting code
+let counter = 0;
+counter++;
+if (counter > 10) {
+  console.log(counter);
+}
+
+// Only comment when explaining "why", not "what"
+// Use modulo to handle wraparound for circular buffer
+const index = (current + offset) % buffer.length;
+```
+
+### 2.3. Efficiency: Token-Optimized Naming
+
+Since models parse variable names token-by-token, develop naming standards that are both readable and token-efficient.
+
+**Naming Comparison:**
+
+| Style | Example | Tokens | Readability | Efficiency |
+|-------|---------|--------|-------------|------------|
+| Verbose | `calculateUserProfileAverage` | 4 | High | Low |
+| Abbreviated | `calcUserProfAvg` | 4 | Medium | Medium |
+| Short | `calcAvg` | 2 | Low | High |
+| Balanced | `calcUserAvg` | 3 | Medium-High | High |
+
+**Best Practices:**
+
+```typescript
+// ✅ Good: Balanced approach
+// Short, common words use fewer tokens
+const user = getUser();
+const avg = calculateAvg(scores);
+const max = Math.max(...values);
+
+// Common abbreviations are understood
+const config = getConfig();
+const props = componentProps;
+const ctx = useContext();
+
+// ✅ Good: Domain-specific abbreviations
+// In finance: PnL (Profit and Loss), ROI (Return on Investment)
+const pnl = calculatePnL(trades);
+const roi = calculateROI(investment);
+
+// ❌ Bad: Over-abbreviation loses meaning
+const u = getUser(); // Too short
+const cua = calcUserAvg(); // Unclear abbreviation
+```
+
+## 3. Context Window and Memory Management
+
+Managing Context Window as an engineering constraint is essential for production AI systems.
+
+<Mermaid chart={`
+flowchart TB
+    Input[Input Data] --> Window[Context Window]
+    Window --> Capacity{Within Capacity?}
+    Capacity -->|Yes| Process[Process]
+    Capacity -->|No| Chunk[Chunk Data]
+    Chunk --> Process
+    
+    subgraph Optimization [Optimization Techniques]
+        Priority[Priority Placement]
+        Chunking[File Chunking]
+        Summarization[Summarization]
+    end
+    
+    Optimization --> Window
+`} />
+
+### 3.1. Memory Capacity
+
+A model's Context Window is the maximum amount of data it can process in a single operation—treat it as an engineering constraint.
+
+**Context Window Limits:**
+
+| Model | Context Window | Use Case |
+|-------|---------------|----------|
+| GPT-3.5 Turbo | 4K tokens | Simple tasks |
+| GPT-4 | 8K tokens | Standard tasks |
+| GPT-4 Turbo | 128K tokens | Long documents |
+| Claude 3 Opus | 200K tokens | Very long documents |
+
+**Cost Implications:**
+
+```python
+# Context window usage affects cost
+# GPT-4: ~$0.03 per 1K input tokens, ~$0.06 per 1K output tokens
+
+def calculate_cost(input_tokens, output_tokens):
+    input_cost = (input_tokens / 1000) * 0.03
+    output_cost = (output_tokens / 1000) * 0.06
+    return input_cost + output_cost
+
+# Example: 50K input tokens, 5K output tokens
+cost = calculate_cost(50000, 5000)
+# Cost: $1.50 + $0.30 = $1.80 per request
+```
+
+### 3.2. "Lost in the Middle" Phenomenon
+
+Models tend to miss details in the middle of large context windows. Place the most critical instructions at the beginning or end of your prompt.
+
+**Ineffective Prompt Structure:**
+
+```text
+# ❌ Bad: Critical info in the middle
+You are a helpful assistant.
+
+Here's some background information:
+[5000 tokens of context]
+
+IMPORTANT: Always validate user input before processing.
+
+More context:
+[5000 more tokens]
+
+Please help the user.
+```
+
+**Effective Prompt Structure:**
+
+```text
+# ✅ Good: Critical info at the start
+You are a helpful assistant.
+
+CRITICAL INSTRUCTIONS:
+1. Always validate user input before processing
+2. Never execute code without sanitization
+3. Return errors in JSON format
+
+Context:
+[10000 tokens of context]
+
+Please help the user with the above context.
+```
+
+**Priority Placement Strategy:**
+
+```python
+def build_prompt(critical_instructions, context, task):
+    """
+    Build prompt with critical instructions at start and end.
+    """
+    return f"""
+{critical_instructions}
+
+{context}
+
+Remember:
+{critical_instructions}
+
+Task: {task}
+"""
+```
+
+### 3.3. File Chunking
+
+Break down massive files into atomic chunks so the model can process them effectively.
+
+**Chunking Strategies:**
+
+```python
+from typing import List
+
+def chunk_file_by_lines(
+    content: str, 
+    max_lines: int = 100,
+    overlap: int = 10
+) -> List[str]:
+    """
+    Chunk file by lines with overlap for context preservation.
+    """
+    lines = content.split('\n')
+    chunks = []
+    
+    for i in range(0, len(lines), max_lines - overlap):
+        chunk = '\n'.join(lines[i:i + max_lines])
+        chunks.append(chunk)
+    
+    return chunks
+
+def chunk_file_by_tokens(
+    content: str,
+    max_tokens: int = 1000,
+    tokenizer
+) -> List[str]:
+    """
+    Chunk file by token count for precise context window management.
+    """
+    tokens = tokenizer.encode(content)
+    chunks = []
+    
+    for i in range(0, len(tokens), max_tokens):
+        chunk_tokens = tokens[i:i + max_tokens]
+        chunk = tokenizer.decode(chunk_tokens)
+        chunks.append(chunk)
+    
+    return chunks
+
+def chunk_file_semantically(
+    content: str,
+    max_tokens: int = 1000
+) -> List[str]:
+    """
+    Chunk file by semantic boundaries (paragraphs, sections).
+    """
+    # Split by double newlines (paragraphs)
+    paragraphs = content.split('\n\n')
+    chunks = []
+    current_chunk = []
+    current_tokens = 0
+    
+    for para in paragraphs:
+        para_tokens = len(para.split())  # Approximate
+        if current_tokens + para_tokens > max_tokens:
+            chunks.append('\n\n'.join(current_chunk))
+            current_chunk = [para]
+            current_tokens = para_tokens
+        else:
+            current_chunk.append(para)
+            current_tokens += para_tokens
+    
+    if current_chunk:
+        chunks.append('\n\n'.join(current_chunk))
+    
+    return chunks
+```
+
+**Chunking Best Practices:**
+
+| Strategy | Best For | Pros | Cons |
+|----------|----------|------|------|
+| Fixed Size | General text | Simple, predictable | May split concepts |
+| Token-based | Precise control | Exact token count | Requires tokenizer |
+| Semantic | Documents | Preserves meaning | Variable sizes |
+| Overlapping | Long contexts | Maintains continuity | Redundant tokens |
+
+## Implementation Checklist
+
+### Architecture-as-Code
+- [ ] Create `.github/copilot-instructions.md`
+- [ ] Implement React-LM patterns
+- [ ] Define architectural boundaries
+- [ ] Set up ESLint rules for layer enforcement
+
+### Token Economics
+- [ ] Audit codebase for verbose naming
+- [ ] Implement token-efficient naming standards
+- [ ] Remove unnecessary comments
+- [ ] Optimize boilerplate code
+
+### Context Window Management
+- [ ] Measure current context window usage
+- [ ] Implement chunking strategy
+- [ ] Restructure prompts with priority placement
+- [ ] Monitor token costs
+
+## Summary
+
+Key takeaways:
+
+1. **Programmable Governance**: Encode standards in code for LLM enforcement
+2. **Token Efficiency**: Balance readability with token costs
+3. **Context Management**: Treat context window as an engineering constraint
+4. **Architectural Boundaries**: Prevent violations through automated rules
+
+These patterns enable production-ready AI systems that are both cost-effective and maintainable.

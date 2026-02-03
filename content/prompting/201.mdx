@@ -1,0 +1,295 @@
+---
+title: "Prompting 201"
+description: "Advanced prompt engineering techniques"
+category: "prompting"
+level: 201
+order: 3
+---
+
+# Advanced Prompting Techniques
+
+Welcome to Prompting 201! This lecture covers advanced techniques for complex AI interactions.
+
+## Chain-of-Thought Prompting
+
+Chain-of-Thought (CoT) prompting encourages the model to show its reasoning process step by step.
+
+<Mermaid chart={`
+flowchart LR
+    Problem[Complex Problem] --> Step1[Step 1: Understand]
+    Step1 --> Step2[Step 2: Break Down]
+    Step2 --> Step3[Step 3: Solve Parts]
+    Step3 --> Step4[Step 4: Combine]
+    Step4 --> Solution[Final Solution]
+`} />
+
+### Standard vs CoT Prompting
+
+```python
+# Standard Prompting
+standard = "What is 23 * 17?"
+
+# Chain-of-Thought Prompting
+cot = """
+What is 23 * 17?
+
+Let's solve this step by step:
+1. First, I'll break down 17 into 10 + 7
+2. Calculate 23 * 10 = 230
+3. Calculate 23 * 7 = 161
+4. Add the results: 230 + 161 = 391
+
+Therefore, 23 * 17 = 391
+"""
+```
+
+### Zero-Shot CoT
+
+Simply adding "Let's think step by step" can improve reasoning:
+
+```python
+prompt = """
+A store has 45 apples. They sell 12 in the morning and receive 
+a shipment of 30 in the afternoon. They then sell 18 more. 
+How many apples remain?
+
+Let's think step by step.
+"""
+```
+
+### Multi-Language Example
+
+Here's an example of the same prompt pattern in different languages. Click on the language tabs to switch:
+
+<MultiLanguageCode
+  python={`# Python example
+from dataclasses import dataclass
+
+@dataclass
+class PromptConfig:
+    question: str
+    use_cot: bool
+
+def create_prompt(config: PromptConfig) -> str:
+    cot_suffix = "\\n\\nLet's think step by step." if config.use_cot else ""
+    return f"{config.question}{cot_suffix}"
+
+prompt = create_prompt(PromptConfig(
+    question="A store has 45 apples. They sell 12 in the morning and receive a shipment of 30 in the afternoon. They then sell 18 more. How many apples remain?",
+    use_cot=True
+))
+
+print(prompt)`}
+  typescript={`// TypeScript example
+interface PromptConfig {
+  question: string;
+  useCoT: boolean;
+}
+
+function createPrompt(config: PromptConfig): string {
+  const cotSuffix = config.useCoT ? "\\n\\nLet's think step by step." : "";
+  return \`\${config.question}\${cotSuffix}\`;
+}
+
+const prompt = createPrompt({
+  question: "A store has 45 apples. They sell 12 in the morning and receive a shipment of 30 in the afternoon. They then sell 18 more. How many apples remain?",
+  useCoT: true
+});
+
+console.log(prompt);`}
+  csharp={`// C# example
+public class PromptConfig
+{
+    public string Question { get; set; }
+    public bool UseCoT { get; set; }
+}
+
+public static string CreatePrompt(PromptConfig config)
+{
+    var cotSuffix = config.UseCoT ? "\\n\\nLet's think step by step." : "";
+    return $\"{config.Question}{cotSuffix}\";
+}
+
+var prompt = CreatePrompt(new PromptConfig
+{
+    Question = "A store has 45 apples. They sell 12 in the morning and receive a shipment of 30 in the afternoon. They then sell 18 more. How many apples remain?",
+    UseCoT = true
+});
+
+Console.WriteLine(prompt);`}
+  dart={`// Dart example
+class PromptConfig {
+  final String question;
+  final bool useCoT;
+
+  PromptConfig({
+    required this.question,
+    required this.useCoT,
+  });
+}
+
+String createPrompt(PromptConfig config) {
+  final cotSuffix = config.useCoT ? "\\n\\nLet's think step by step." : "";
+  return '\${config.question}\$cotSuffix';
+}
+
+void main() {
+  final prompt = createPrompt(PromptConfig(
+    question: "A store has 45 apples. They sell 12 in the morning and receive a shipment of 30 in the afternoon. They then sell 18 more. How many apples remain?",
+    useCoT: true,
+  ));
+  
+  print(prompt);
+}`}
+/>
+
+## Self-Consistency
+
+Generate multiple reasoning paths and select the most consistent answer.
+
+<Mermaid chart={`
+flowchart TB
+    Q[Question] --> P1[Path 1]
+    Q --> P2[Path 2]
+    Q --> P3[Path 3]
+    P1 --> A1[Answer: X]
+    P2 --> A2[Answer: X]
+    P3 --> A3[Answer: Y]
+    A1 --> Vote[Majority Vote]
+    A2 --> Vote
+    A3 --> Vote
+    Vote --> Final[Final: X]
+`} />
+
+```python
+self_consistency_prompt = """
+Solve this problem using three different approaches:
+
+Problem: {problem}
+
+Approach 1: [Solve]
+Approach 2: [Solve differently]
+Approach 3: [Solve with another method]
+
+Most consistent answer:
+"""
+```
+
+## Tree of Thoughts
+
+Explore multiple reasoning branches for complex problems.
+
+<Mermaid chart={`
+flowchart TB
+    Root[Problem] --> B1[Branch 1]
+    Root --> B2[Branch 2]
+    Root --> B3[Branch 3]
+    B1 --> B1a[Sub-solution 1a]
+    B1 --> B1b[Sub-solution 1b]
+    B2 --> B2a[Sub-solution 2a]
+    B3 --> B3a[Sub-solution 3a]
+    B1a --> Eval[Evaluate]
+    B1b --> Eval
+    B2a --> Eval
+    B3a --> Eval
+    Eval --> Best[Best Path]
+`} />
+
+## ReAct: Reasoning + Acting
+
+Combine reasoning with actions in an interleaved manner.
+
+```python
+react_prompt = """
+Answer the question using the following format:
+
+Question: {question}
+
+Thought: [Your reasoning about what to do]
+Action: [The action to take - Search, Calculate, etc.]
+Observation: [Result of the action]
+... (repeat as needed)
+Thought: [Final reasoning]
+Answer: [Your final answer]
+"""
+```
+
+## Prompt Chaining
+
+Break complex tasks into sequential prompts.
+
+<Mermaid chart={`
+flowchart LR
+    Input[Complex Task] --> P1[Prompt 1: Analyze]
+    P1 --> O1[Output 1]
+    O1 --> P2[Prompt 2: Plan]
+    P2 --> O2[Output 2]
+    O2 --> P3[Prompt 3: Execute]
+    P3 --> Final[Final Result]
+`} />
+
+```python
+# Step 1: Analyze the problem
+analysis_prompt = """
+Analyze this business problem and identify key factors:
+{problem}
+"""
+
+# Step 2: Generate solutions based on analysis
+solution_prompt = """
+Based on this analysis:
+{analysis_output}
+
+Generate 3 potential solutions.
+"""
+
+# Step 3: Evaluate and recommend
+evaluation_prompt = """
+Given these solutions:
+{solutions}
+
+Evaluate each and recommend the best approach with justification.
+"""
+```
+
+## Meta-Prompting
+
+Use prompts to generate or improve other prompts.
+
+```python
+meta_prompt = """
+You are a prompt engineering expert.
+
+Task: Create an optimized prompt for the following use case:
+Use Case: {use_case}
+
+Your prompt should include:
+1. Clear role definition
+2. Specific task instructions
+3. Output format specification
+4. Example if helpful
+
+Generated Prompt:
+"""
+```
+
+## Advanced Techniques Summary
+
+| Technique | Best For | Complexity |
+|-----------|----------|------------|
+| Chain-of-Thought | Reasoning tasks | Medium |
+| Self-Consistency | Math, logic | High |
+| Tree of Thoughts | Creative problems | High |
+| ReAct | Tasks with tools | High |
+| Prompt Chaining | Multi-step tasks | Medium |
+| Meta-Prompting | Prompt optimization | Medium |
+
+## Summary
+
+Advanced prompting techniques enable:
+- Better reasoning through step-by-step thinking
+- Higher accuracy through multiple paths
+- Complex task handling through chaining
+- Self-improvement through meta-prompting
+
+Next, explore advanced study cases in Prompting 202.

@@ -1,0 +1,173 @@
+---
+title: "LLM 101"
+description: "Introduction to Large Language Models"
+category: "llm"
+level: 101
+order: 1
+---
+
+# Introduction to Large Language Models
+
+Welcome to LLM 101! This lecture introduces the fundamentals of Large Language Models.
+
+## What are Large Language Models?
+
+Large Language Models (LLMs) are AI systems trained on vast amounts of text data to understand and generate human-like language. They're the foundation of modern AI assistants, code generators, and creative tools.
+
+<Mermaid chart={`
+flowchart LR
+    Data[Training Data] --> Model[Neural Network]
+    Model --> Weights[Learned Patterns]
+    Weights --> LLM[Language Model]
+    LLM --> Gen[Text Generation]
+`} />
+
+## How LLMs Work
+
+### The Transformer Architecture
+
+LLMs are built on the Transformer architecture, introduced in the paper "Attention is All You Need" (2017).
+
+<Mermaid chart={`
+flowchart TB
+    Input[Input Text] --> Embed[Embedding Layer]
+    Embed --> PE[Positional Encoding]
+    PE --> Attn[Self-Attention]
+    Attn --> FF[Feed Forward]
+    FF --> Norm[Layer Norm]
+    Norm --> Output[Output Probabilities]
+`} />
+
+### Key Components
+
+1. **Tokenization**: Breaking text into smaller pieces (tokens)
+2. **Embeddings**: Converting tokens to numerical vectors
+3. **Attention**: Learning relationships between tokens
+4. **Generation**: Predicting the next token
+
+```python
+# Simple tokenization example
+text = "Hello, world!"
+tokens = ["Hello", ",", " world", "!"]
+token_ids = [15496, 11, 995, 0]
+```
+
+## The Training Process
+
+<Mermaid chart={`
+flowchart TB
+    subgraph Training [Training Pipeline]
+        Data[Text Data] --> Clean[Preprocessing]
+        Clean --> Token[Tokenization]
+        Token --> Train[Training Loop]
+        Train --> Loss[Calculate Loss]
+        Loss --> Update[Update Weights]
+        Update --> Train
+    end
+`} />
+
+### Pre-training
+
+Models learn from massive text corpora:
+- Web pages
+- Books
+- Code repositories
+- Scientific papers
+
+### Fine-tuning
+
+Models are specialized for specific tasks:
+- Instruction following
+- Code generation
+- Conversation
+
+## Key Concepts
+
+### Context Window
+
+The maximum amount of text the model can process at once.
+
+| Model | Context Window |
+|-------|----------------|
+| GPT-3.5 | 4K tokens |
+| GPT-4 | 8K-128K tokens |
+| Claude | 100K+ tokens |
+
+### Temperature
+
+Controls randomness in generation:
+
+```python
+# Low temperature (0.1) - More focused
+"The capital of France is Paris."
+
+# High temperature (1.0) - More creative
+"The capital of France is Paris, the city of lights and romance..."
+```
+
+### Tokens vs Words
+
+```python
+# Not always 1:1
+text = "ChatGPT is amazing!"
+# Tokens: ["Chat", "G", "PT", " is", " amazing", "!"]
+# 6 tokens for 4 words
+```
+
+## Types of LLMs
+
+<Mermaid chart={`
+flowchart TB
+    LLMs[LLM Types]
+    LLMs --> Base[Base Models]
+    LLMs --> Instruct[Instruction-Tuned]
+    LLMs --> Chat[Chat Models]
+    LLMs --> Code[Code Models]
+    
+    Base --> GPT3[GPT-3 Base]
+    Instruct --> GPT35[GPT-3.5]
+    Chat --> Claude[Claude]
+    Code --> Codex[Codex/Copilot]
+`} />
+
+### Base Models
+- Trained only on text prediction
+- Need careful prompting
+- Good for completion tasks
+
+### Instruction-Tuned Models
+- Fine-tuned to follow instructions
+- Better at specific tasks
+- Examples: GPT-3.5, Claude
+
+### Chat Models
+- Optimized for conversation
+- Maintain context across turns
+- Handle multi-turn dialogues
+
+## Capabilities and Limitations
+
+### What LLMs Can Do
+- Generate coherent text
+- Answer questions
+- Summarize content
+- Translate languages
+- Write code
+- Creative writing
+
+### Limitations
+- Can hallucinate facts
+- Limited to training data cutoff
+- No true understanding
+- Can be biased
+- Cannot learn in real-time
+
+## Summary
+
+Key takeaways:
+- LLMs are neural networks trained on massive text data
+- They predict the next token based on context
+- Different types serve different purposes
+- Understanding limitations is crucial for effective use
+
+Next: Explore practical LLM applications in LLM 102.

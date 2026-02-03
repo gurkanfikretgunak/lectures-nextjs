@@ -1,0 +1,4 @@
+password:
+  enabled: true
+  value: "your-password-here"
+  message: "Enter password to access the lectures"

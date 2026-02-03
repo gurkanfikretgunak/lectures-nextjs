@@ -1,0 +1,236 @@
+---
+title: "Prompting 101"
+description: "Introduction to prompt engineering fundamentals"
+category: "prompting"
+level: 101
+order: 1
+---
+
+# Introduction to Prompting
+
+Welcome to Prompting 101! This lecture covers the fundamentals of prompt engineering - the art of communicating effectively with AI language models.
+
+## What is Prompt Engineering?
+
+Prompt engineering is the practice of designing and optimizing text inputs (prompts) to get desired outputs from AI language models. It's a crucial skill for anyone working with Large Language Models (LLMs).
+
+<Mermaid chart={`
+flowchart LR
+    User[User Intent] --> Prompt[Prompt Design]
+    Prompt --> LLM[Language Model]
+    LLM --> Output[Generated Response]
+    Output --> Eval[Evaluation]
+    Eval -->|Iterate| Prompt
+`} />
+
+## Key Components of a Prompt
+
+### 1. Instruction
+
+The instruction tells the model what task to perform. Be clear and specific.
+
+<MultiLanguageCode
+  python={`# Good instruction
+prompt = "Summarize the following article in 3 bullet points:"
+
+# Vague instruction (avoid this)
+vague_prompt = "Do something with this text:"`}
+  typescript={`// Good instruction
+const prompt = "Summarize the following article in 3 bullet points:";
+
+// Vague instruction (avoid this)
+const vaguePrompt = "Do something with this text:";`}
+  csharp={`// Good instruction
+var prompt = "Summarize the following article in 3 bullet points:";
+
+// Vague instruction (avoid this)
+var vaguePrompt = "Do something with this text:";`}
+  dart={`// Good instruction
+final prompt = "Summarize the following article in 3 bullet points:";
+
+// Vague instruction (avoid this)
+final vaguePrompt = "Do something with this text:";`}
+/>
+
+### 2. Context
+
+Context provides background information that helps the model understand the task better.
+
+<MultiLanguageCode
+  python={`prompt = """
+You are a technical writer specializing in software documentation.
+Your audience is beginner developers.
+
+Task: Explain what an API is in simple terms.
+"""`}
+  typescript={`const prompt = \`
+You are a technical writer specializing in software documentation.
+Your audience is beginner developers.
+
+Task: Explain what an API is in simple terms.
+\`;`}
+  csharp={`var prompt = @"
+You are a technical writer specializing in software documentation.
+Your audience is beginner developers.
+
+Task: Explain what an API is in simple terms.
+";`}
+  dart={`final prompt = """
+You are a technical writer specializing in software documentation.
+Your audience is beginner developers.
+
+Task: Explain what an API is in simple terms.
+""";`}
+/>
+
+### 3. Input Data
+
+The actual content the model should process.
+
+### 4. Output Format
+
+Specify how you want the response structured.
+
+<MultiLanguageCode
+  python={`prompt = """
+List the main programming paradigms.
+Format: Return as a numbered list with a brief description for each.
+"""`}
+  typescript={`const prompt = \`
+List the main programming paradigms.
+Format: Return as a numbered list with a brief description for each.
+\`;`}
+  csharp={`var prompt = @"
+List the main programming paradigms.
+Format: Return as a numbered list with a brief description for each.
+";`}
+  dart={`final prompt = """
+List the main programming paradigms.
+Format: Return as a numbered list with a brief description for each.
+""";`}
+/>
+
+## The Anatomy of an Effective Prompt
+
+<Mermaid chart={`
+flowchart TB
+    subgraph Prompt [Effective Prompt Structure]
+        Role[Role/Persona]
+        Context[Context/Background]
+        Task[Clear Task]
+        Format[Output Format]
+        Examples[Examples - Optional]
+    end
+    
+    Role --> Context
+    Context --> Task
+    Task --> Format
+    Format --> Examples
+`} />
+
+## Best Practices
+
+1. **Be Specific**: Vague prompts lead to vague outputs
+2. **Provide Context**: Help the model understand the situation
+3. **Use Examples**: Show, don't just tell
+4. **Iterate**: Refine your prompts based on outputs
+5. **Test Variations**: Try different phrasings
+
+## Common Prompt Patterns
+
+### The Instruction Pattern
+
+<MultiLanguageCode
+  python={`instruction = """
+Convert the following text to uppercase:
+Text: hello world
+"""`}
+  typescript={`const instruction = \`
+Convert the following text to uppercase:
+Text: hello world
+\`;`}
+  csharp={`var instruction = @"
+Convert the following text to uppercase:
+Text: hello world
+";`}
+  dart={`final instruction = """
+Convert the following text to uppercase:
+Text: hello world
+""";`}
+/>
+
+### The Role Pattern
+
+<MultiLanguageCode
+  python={`role_prompt = """
+You are an expert Python developer with 10 years of experience.
+Review the following code and suggest improvements:
+"""`}
+  typescript={`const rolePrompt = \`
+You are an expert TypeScript developer with 10 years of experience.
+Review the following code and suggest improvements:
+\`;`}
+  csharp={`var rolePrompt = @"
+You are an expert C# developer with 10 years of experience.
+Review the following code and suggest improvements:
+";`}
+  dart={`final rolePrompt = """
+You are an expert Dart developer with 10 years of experience.
+Review the following code and suggest improvements:
+""";`}
+/>
+
+### The Few-Shot Pattern
+
+<MultiLanguageCode
+  python={`few_shot = """
+Convert temperatures from Celsius to Fahrenheit.
+
+Examples:
+- 0°C → 32°F
+- 100°C → 212°F
+- 25°C → 77°F
+
+Now convert: 37°C → ?
+"""`}
+  typescript={`const fewShot = \`
+Convert temperatures from Celsius to Fahrenheit.
+
+Examples:
+- 0°C → 32°F
+- 100°C → 212°F
+- 25°C → 77°F
+
+Now convert: 37°C → ?
+\`;`}
+  csharp={`var fewShot = @"
+Convert temperatures from Celsius to Fahrenheit.
+
+Examples:
+- 0°C → 32°F
+- 100°C → 212°F
+- 25°C → 77°F
+
+Now convert: 37°C → ?
+";`}
+  dart={`final fewShot = """
+Convert temperatures from Celsius to Fahrenheit.
+
+Examples:
+- 0°C → 32°F
+- 100°C → 212°F
+- 25°C → 77°F
+
+Now convert: 37°C → ?
+""";`}
+/>
+
+## Summary
+
+In this lecture, you learned:
+- What prompt engineering is and why it matters
+- The key components of an effective prompt
+- Best practices for crafting prompts
+- Common prompt patterns to use
+
+Next, we'll explore real-world study cases in Prompting 102.

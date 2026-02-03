@@ -1,0 +1,517 @@
+---
+title: "Prompt Engineering Library"
+description: "Few-shot Prompting and Active Prompting techniques to make LLMs copy your style and establish question-answer loops"
+category: "reasoning"
+level: 202
+order: 2
+---
+
+# Prompt Engineering Library
+
+This lecture enables LLMs to learn your project's style and produce interactive solutions for complex problems using PromptingGuide.ai approaches.
+
+## Prompt Engineering Library Overview
+
+<Mermaid chart={`
+flowchart TB
+    subgraph Techniques [Prompt Techniques]
+        FewShot[Few-shot Prompting<br/>Golden Standard Examples]
+        Active[Active Prompting<br/>Question-Answer Loop]
+    end
+    
+    subgraph Benefits [Benefits]
+        Style[Style Copying]
+        Quality[Quality Increase]
+        Interactive[Interactive Solution]
+        Clarification[Uncertainty Resolution]
+    end
+    
+    FewShot --> Style
+    FewShot --> Quality
+    Active --> Interactive
+    Active --> Clarification
+`} />
+
+## Few-shot Prompting: Golden Standard Code Examples
+
+Few-shot prompting enables the model to copy your style by providing your project's "golden standard" code examples to the LLM as context.
+
+### How Few-shot Prompting Works
+
+<Mermaid chart={`
+flowchart LR
+    Examples[Golden Standard Examples] --> Context[Create Context]
+    Context --> LLM[Send to LLM]
+    LLM --> Output[Style-Consistent Output]
+`} />
+
+### Basic Few-shot Example
+
+```python
+few_shot_basic = """
+Write a new function following these examples:
+
+Example 1:
+\`\`\`python
+def calculate_total(items):
+    \"\"\"
+    Calculate total price of items.
+    
+    Args:
+        items: List of items with 'price' key
+        
+    Returns:
+        float: Total price
+    \"\"\"
+    return sum(item['price'] for item in items)
+\`\`\`
+
+Example 2:
+\`\`\`python
+def filter_by_category(products, category):
+    \"\"\"
+    Filter products by category.
+    
+    Args:
+        products: List of product dicts
+        category: Category name to filter by
+        
+    Returns:
+        list: Filtered products
+    \"\"\"
+    return [p for p in products if p.get('category') == category]
+\`\`\`
+
+Now write a function in similar style:
+- Function name: `get_user_orders`
+- Parameters: user_id, status (optional)
+- Add description, use type hints
+"""
+```
+
+### Teaching Project Style
+
+```python
+project_style_few_shot = """
+Learn our project's code style:
+
+Example 1 - Error Handling:
+\`\`\`python
+async def fetch_user_data(user_id: int) -> User:
+    try:
+        async with db.transaction():
+            user = await User.get(user_id)
+            if not user:
+                raise NotFoundError(f"User {user_id} not found")
+            return user
+    except DatabaseError as e:
+        logger.error(f"Database error fetching user {user_id}: {e}")
+        raise ServiceError("Failed to fetch user data") from e
+\`\`\`
+
+Example 2 - Service Layer Pattern:
+\`\`\`python
+class UserService:
+    def __init__(self, repo: UserRepository):
+        self.repo = repo
+    
+    async def create_user(self, data: UserCreate) -> User:
+        # Validation
+        if await self.repo.exists(email=data.email):
+            raise ConflictError("Email already exists")
+        
+        # Business logic
+        hashed_password = hash_password(data.password)
+        user_data = {**data.dict(), "password": hashed_password}
+        
+        # Persistence
+        return await self.repo.create(user_data)
+\`\`\`
+
+Example 3 - API Endpoint:
+\`\`\`python
+@router.post("/users", response_model=UserResponse)
+async def create_user(
+    data: UserCreate,
+    service: UserService = Depends(get_user_service)
+):
+    try:
+        user = await service.create_user(data)
+        return UserResponse.from_orm(user)
+    except ConflictError as e:
+        raise HTTPException(status_code=409, detail=str(e))
+\`\`\`
+
+Write a new ProductService and endpoint following this style.
+"""
+```
+
+### Domain-Specific Few-shot Examples
+
+```python
+domain_few_shot = """
+Code examples for e-commerce domain:
+
+Example 1 - Order Processing:
+\`\`\`python
+class OrderProcessor:
+    async def process_order(self, order: Order) -> OrderResult:
+        # 1. Inventory check
+        if not await self.check_inventory(order.items):
+            return OrderResult.failed("Insufficient inventory")
+        
+        # 2. Payment processing
+        payment_result = await self.payment_service.charge(
+            order.total_amount,
+            order.payment_method
+        )
+        if not payment_result.success:
+            return OrderResult.failed("Payment failed")
+        
+        # 3. Order creation
+        order = await self.order_repo.create(order)
+        
+        # 4. Inventory update
+        await self.update_inventory(order.items)
+        
+        # 5. Notification
+        await self.notify_user(order.user_id, order.id)
+        
+        return OrderResult.success(order)
+\`\`\`
+
+Example 2 - Price Calculation:
+\`\`\`python
+class PriceCalculator:
+    def calculate_total(
+        self,
+        items: List[CartItem],
+        discount_code: Optional[str] = None
+    ) -> PriceBreakdown:
+        subtotal = sum(item.price * item.quantity for item in items)
+        
+        # Apply discount
+        discount = 0
+        if discount_code:
+            discount = self.discount_service.apply(
+                discount_code,
+                subtotal
+            )
+        
+        # Calculate tax
+        tax = subtotal * self.tax_rate
+        
+        # Shipping
+        shipping = self.shipping_service.calculate(items)
+        
+        total = subtotal - discount + tax + shipping
+        
+        return PriceBreakdown(
+            subtotal=subtotal,
+            discount=discount,
+            tax=tax,
+            shipping=shipping,
+            total=total
+        )
+\`\`\`
+
+Write a ShoppingCartService following these patterns.
+"""
+```
+
+### Test-Driven Few-shot Examples
+
+```python
+test_driven_few_shot = """
+Test-first approach examples:
+
+Example 1:
+\`\`\`python
+# Test
+def test_calculate_discount():
+    calculator = DiscountCalculator()
+    assert calculator.calculate(100, "SAVE10") == 90
+    assert calculator.calculate(100, "INVALID") == 100
+
+# Implementation
+class DiscountCalculator:
+    def calculate(self, amount: float, code: str) -> float:
+        discounts = {"SAVE10": 0.1, "SAVE20": 0.2}
+        discount_rate = discounts.get(code, 0)
+        return amount * (1 - discount_rate)
+\`\`\`
+
+Example 2:
+\`\`\`python
+# Test
+async def test_user_registration():
+    service = UserService(mock_repo)
+    user = await service.register("test@example.com", "password123")
+    assert user.email == "test@example.com"
+    assert user.password != "password123"  # Should be hashed
+
+# Implementation
+class UserService:
+    async def register(self, email: str, password: str) -> User:
+        hashed = hash_password(password)
+        return await self.repo.create(email=email, password=hashed)
+\`\`\`
+
+Write an EmailValidator service using test-first approach.
+"""
+```
+
+## Active Prompting: Question-Answer Loop
+
+Active Prompting establishes a "question-answer" loop that enables the LLM to ask you questions and resolve uncertainties for complex problems.
+
+### Active Prompting Architecture
+
+<Mermaid chart={`
+flowchart TB
+    Problem[Complex Problem] --> LLM[LLM Analyzes]
+    LLM --> Questions[Identify Uncertainties]
+    Questions --> Q1[Question 1]
+    Questions --> Q2[Question 2]
+    Questions --> Q3[Question 3]
+    
+    Q1 --> Answer1[User Answers]
+    Q2 --> Answer2[User Answers]
+    Q3 --> Answer3[User Answers]
+    
+    Answer1 --> Refine[Refine Solution]
+    Answer2 --> Refine
+    Answer3 --> Refine
+    
+    Refine --> Solution[Final Solution]
+`} />
+
+### Basic Active Prompting Example
+
+```python
+active_prompting_basic = """
+Design an authentication system.
+
+But first, I need to ask you questions to resolve uncertainties:
+
+1. Which authentication method do you want to use?
+   - Email/Password
+   - OAuth (Google, GitHub, etc.)
+   - JWT tokens
+   - Session-based
+
+2. What are the password requirements?
+   - Minimum length?
+   - Special character requirement?
+   - Uppercase/lowercase requirement?
+
+3. How long should Token/Session be?
+   - Access token: ?
+   - Refresh token: ?
+   - Session timeout: ?
+
+4. Is multi-factor authentication (MFA) required?
+
+5. Rate limiting requirements?
+   - Login attempts per minute?
+   - Password reset attempts?
+
+Please answer these questions so I can design the optimal solution.
+"""
+```
+
+### Advanced Active Prompting: Architectural Decisions
+
+```python
+architecture_active = """
+Design a microservices architecture.
+
+First, questions to clarify architectural decisions:
+
+1. Service Boundaries:
+   - Will we use domain-driven design?
+   - How will services communicate? (REST, gRPC, Message Queue)
+   - Will each service have its own database?
+
+2. Data Management:
+   - Is eventual consistency acceptable?
+   - Are distributed transactions needed?
+   - Will we use Saga pattern?
+
+3. Security:
+   - How will service-to-service authentication work?
+   - Will we use API Gateway?
+   - Centralized or distributed authentication?
+
+4. Observability:
+   - Is distributed tracing needed? (Jaeger, Zipkin)
+   - Centralized logging? (ELK, Loki)
+   - Metrics collection? (Prometheus)
+
+5. Deployment:
+   - Container orchestration? (Kubernetes, Docker Swarm)
+   - CI/CD pipeline requirements?
+   - Is blue-green deployment needed?
+
+Answer these questions so I can design the optimal architecture.
+"""
+```
+
+### Performance Optimization with Active Prompting
+
+```python
+performance_active = """
+Optimize an API endpoint.
+
+To understand performance requirements:
+
+1. Current Performance:
+   - What is the current response time?
+   - Which endpoints are slowest?
+   - What are database query times?
+
+2. Expected Traffic:
+   - Peak request rate? (req/s)
+   - Total daily request count?
+   - Traffic pattern? (steady, spikes)
+
+3. Usage Scenarios:
+   - Read-heavy or write-heavy?
+   - Are there real-time requirements?
+   - Is batch processing needed?
+
+4. Constraints:
+   - Database connection limit?
+   - Memory constraints?
+   - Network bandwidth?
+
+5. Priorities:
+   - Is latency or throughput important?
+   - Consistency or availability?
+   - Is cost optimization needed?
+
+Share this information, and I can suggest the optimal optimization strategy.
+"""
+```
+
+### Interactive Problem Solving
+
+```python
+interactive_solving = """
+Design a caching strategy.
+
+My questions:
+
+1. Cache Scope:
+   - What will be cached? (Database queries, API responses, computed values)
+   - Cache granularity? (per-user, global, per-tenant)
+
+2. Invalidation Strategy:
+   - Time-based TTL?
+   - Event-based invalidation?
+   - Tag-based invalidation?
+
+3. Cache Layer:
+   - In-memory (Redis, Memcached)?
+   - Distributed cache?
+   - Cache-aside, write-through, write-behind?
+
+4. Consistency Requirements:
+   - Is stale data acceptable?
+   - What happens on cache miss?
+   - Cache warming strategy?
+
+5. Monitoring:
+   - Cache hit rate targets?
+   - Memory usage limits?
+   - Eviction policies?
+
+Answer each question, and let's design the optimal strategy step by step.
+"""
+```
+
+## Combined Approach: Few-shot + Active Prompting
+
+Use both techniques together for the strongest results:
+
+```python
+combined_approach = """
+Learn project style (Few-shot) and resolve uncertainties (Active):
+
+[Few-shot: Project examples]
+Example 1: Error handling pattern
+Example 2: Service layer structure
+Example 3: API endpoint style
+
+[Active: Questions]
+Add a new feature following this style, but first:
+
+1. Which domain does this feature belong to? (User, Product, Order, etc.)
+2. What business rules apply?
+3. Which edge cases should be handled?
+4. Test coverage requirements?
+5. Performance requirements?
+
+Answer, and I'll write code matching the example style.
+"""
+```
+
+## Practical Scenarios
+
+### Scenario 1: New Feature Development
+
+```python
+feature_development = """
+Add a new "wishlist" feature.
+
+[Few-shot Context]
+Project examples: CartService, OrderService patterns
+
+[Active Questions]
+1. Does wishlist belong to a user, or is it shareable?
+2. What happens if wishlist items are out of stock?
+3. Is price change notification needed?
+4. Is there a wishlist limit? (max item count)
+5. Should there be direct add-to-cart from wishlist?
+
+Answer, and implement following the example patterns.
+"""
+```
+
+### Scenario 2: Refactoring
+
+```python
+refactoring_scenario = """
+Refactor existing code.
+
+[Few-shot: New style examples]
+- Modern async/await pattern
+- Type hints usage
+- Error handling approach
+
+[Active: Refactoring questions]
+1. Which parts of existing code are problematic?
+2. Are breaking changes acceptable?
+3. Is test coverage available?
+4. Is there performance regression risk?
+5. Is migration strategy needed?
+
+Answer questions, and create step-by-step refactoring plan.
+"""
+```
+
+## Summary
+
+What you learned in this lecture:
+
+- **Few-shot Prompting**: Using your project's "golden standard" code examples to make LLM learn your style
+- **Active Prompting**: Resolving uncertainties through question-answer loops for complex problems
+- **Combined Approach**: Using both techniques together for both style consistency and correct solution guarantee
+
+With these techniques:
+- LLM learns your project's code style
+- Produces interactive solutions for complex problems
+- Proactively resolves uncertainties
+- Increases code quality and consistency
+
+Next step: Gain practical experience by applying these patterns in your real projects.

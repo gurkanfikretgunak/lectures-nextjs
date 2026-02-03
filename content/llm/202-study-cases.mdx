@@ -1,0 +1,1357 @@
+---
+title: "LLM 202 - Study Cases"
+description: "Advanced LLM implementation study cases"
+category: "llm"
+level: 202
+order: 4
+---
+
+# Advanced LLM Study Cases
+
+This lecture presents complex implementation cases for production LLM systems.
+
+## Case Study 1: Building a RAG System
+
+### Challenge
+
+Create a Retrieval-Augmented Generation system for enterprise knowledge bases that handles millions of documents with sub-second query latency.
+
+<Mermaid chart={`
+flowchart TB
+    Query[User Query] --> Embed[Embed Query]
+    Embed --> Search[Vector Search]
+    Search --> Retrieve[Top-K Documents]
+    Retrieve --> Rerank[Rerank Results]
+    Rerank --> Context[Build Context]
+    Context --> LLM[LLM Generation]
+    LLM --> Response[Final Response]
+    
+    subgraph Index [Indexing Pipeline]
+        Docs[Documents] --> Chunk[Chunk Text]
+        Chunk --> EmbedD[Embed Chunks]
+        EmbedD --> Store[(Vector DB)]
+    end
+    
+    Store --> Search
+`} />
+
+### Implementation
+
+```python
+from typing import List, Optional
+import numpy as np
+from dataclasses import dataclass
+
+@dataclass
+class Document:
+    content: str
+    metadata: dict
+    embedding: Optional[np.ndarray] = None
+
+class RAGSystem:
+    def __init__(self, embedder, vector_db, llm, reranker=None):
+        self.embedder = embedder
+        self.vector_db = vector_db
+        self.llm = llm
+        self.reranker = reranker  # Optional cross-encoder for reranking
+    
+    def query(self, question: str, k: int = 5, rerank_k: int = 3) -> str:
+        # Step 1: Embed the question
+        query_embedding = self.embedder.embed(question)
+        
+        # Step 2: Retrieve relevant documents (retrieve more for reranking)
+        documents = self.vector_db.search(
+            query_embedding, 
+            top_k=k * 2 if self.reranker else k
+        )
+        
+        # Step 3: Optional reranking for better precision
+        if self.reranker:
+            documents = self.reranker.rerank(
+                question, 
+                documents, 
+                top_k=rerank_k
+            )
+        
+        # Step 4: Build context with metadata
+        context = "\n\n".join([
+            f"Document {i+1} (Source: {doc.metadata.get('source', 'unknown')}):\n{doc.content}"
+            for i, doc in enumerate(documents)
+        ])
+        
+        # Step 5: Generate response with citations
+        prompt = f"""
+        Answer based on the provided context only.
+        If the answer isn't in the context, say "I don't know."
+        Cite sources using [Document N] format.
+        
+        Context:
+        {context}
+        
+        Question: {question}
+        
+        Answer:
+        """
+        
+        response = self.llm.generate(prompt)
+        return self._add_citations(response, documents)
+    
+    def _add_citations(self, response: str, documents: List[Document]) -> str:
+        # Post-process to add proper citations
+        # Implementation depends on citation strategy
+        return response
+```
+
+### Chunking Strategies
+
+| Strategy | Best For | Chunk Size | Overlap | Pros | Cons |
+|----------|----------|------------|---------|------|------|
+| Fixed Size | General text | 500-1000 tokens | 50-100 tokens | Simple, fast | May split concepts |
+| Sentence | Short docs | 3-5 sentences | 1 sentence | Preserves meaning | Inconsistent sizes |
+| Semantic | Technical docs | Variable | Adaptive | Context-aware | More complex |
+| Recursive | Code | AST-based | Function level | Structure-aware | Language-specific |
+| Sliding Window | Long docs | 512 tokens | 256 tokens | Good coverage | Redundant chunks |
+
+### Advanced Features
+
+**Hybrid Search**: Combine vector similarity with keyword matching
+
+```python
+def hybrid_search(self, query: str, k: int = 5):
+    # Vector search
+    vector_results = self.vector_db.search(query_embedding, top_k=k*2)
+    
+    # Keyword search (BM25)
+    keyword_results = self.bm25_search(query, top_k=k*2)
+    
+    # Reciprocal Rank Fusion
+    combined = self.rrf_merge(vector_results, keyword_results, k=k)
+    return combined
+```
+
+**Query Expansion**: Improve retrieval with query rewriting
+
+```python
+def expand_query(self, query: str) -> List[str]:
+    # Generate query variations
+    variations = self.llm.generate(
+        f"Generate 3 alternative phrasings for: {query}"
+    )
+    return [query] + variations
+```
+
+### Performance Optimization
+
+| Optimization | Impact | Implementation |
+|--------------|--------|----------------|
+| Caching | 10x faster | Cache frequent queries |
+| Batch Embedding | 5x throughput | Process multiple queries |
+| Quantization | 4x smaller | Use int8 embeddings |
+| Approximate Search | 100x faster | HNSW indexing |
+
+## Case Study 2: Multi-Model Routing
+
+### Challenge
+
+Route queries to different LLMs based on complexity, cost, and latency requirements while maintaining quality.
+
+<Mermaid chart={`
+flowchart TB
+    Query[Query] --> Classify[Classify Complexity]
+    Classify --> Simple{Simple?}
+    Simple -->|Yes| Small[Small Model: Fast]
+    Simple -->|No| Complex{Complex?}
+    Complex -->|Medium| Medium[Medium Model]
+    Complex -->|High| Large[Large Model: Smart]
+    Small --> Response[Response]
+    Medium --> Response
+    Large --> Response
+    
+    Response --> Monitor[Monitor Quality]
+    Monitor --> Feedback[Update Router]
+`} />
+
+### Implementation
+
+```python
+from enum import Enum
+from dataclasses import dataclass
+from typing import Dict, Callable
+
+class ComplexityLevel(Enum):
+    SIMPLE = "simple"
+    MEDIUM = "medium"
+    COMPLEX = "complex"
+
+@dataclass
+class ModelConfig:
+    name: str
+    model: Callable
+    cost_per_1k_tokens: float
+    avg_latency_ms: int
+    max_tokens: int
+
+class ModelRouter:
+    def __init__(self):
+        self.models = {
+            ComplexityLevel.SIMPLE: ModelConfig(
+                name="gpt-3.5-turbo",
+                model=SmallFastModel(),
+                cost_per_1k_tokens=0.001,
+                avg_latency_ms=200,
+                max_tokens=4096
+            ),
+            ComplexityLevel.MEDIUM: ModelConfig(
+                name="gpt-4",
+                model=MediumModel(),
+                cost_per_1k_tokens=0.01,
+                avg_latency_ms=800,
+                max_tokens=8192
+            ),
+            ComplexityLevel.COMPLEX: ModelConfig(
+                name="gpt-4-turbo",
+                model=LargeSmartModel(),
+                cost_per_1k_tokens=0.1,
+                avg_latency_ms=2000,
+                max_tokens=128000
+            ),
+        }
+        self.classifier = ComplexityClassifier()
+        self.fallback_enabled = True
+    
+    def route(self, query: str, context: dict = None) -> str:
+        # Classify query complexity
+        complexity = self.classifier.classify(query, context)
+        
+        # Select model
+        model_config = self.models[complexity]
+        
+        # Check if query fits model constraints
+        if len(query) > model_config.max_tokens:
+            if self.fallback_enabled:
+                # Fallback to larger model
+                model_config = self.models[ComplexityLevel.COMPLEX]
+            else:
+                raise ValueError("Query too long")
+        
+        # Generate response
+        try:
+            response = model_config.model.generate(query)
+            self._log_usage(complexity, query, response)
+            return response
+        except Exception as e:
+            # Fallback on error
+            if complexity != ComplexityLevel.COMPLEX:
+                return self.models[ComplexityLevel.COMPLEX].model.generate(query)
+            raise
+    
+    def _log_usage(self, complexity: ComplexityLevel, query: str, response: str):
+        # Track costs and performance
+        tokens = self._count_tokens(query + response)
+        cost = tokens / 1000 * self.models[complexity].cost_per_1k_tokens
+        # Log to monitoring system
+        pass
+```
+
+### Complexity Classification
+
+```python
+class ComplexityClassifier:
+    def classify(self, query: str, context: dict = None) -> ComplexityLevel:
+        # Rule-based classification
+        simple_keywords = ["what is", "define", "explain briefly"]
+        complex_keywords = ["analyze", "compare", "synthesize", "create"]
+        
+        query_lower = query.lower()
+        
+        if any(kw in query_lower for kw in simple_keywords):
+            return ComplexityLevel.SIMPLE
+        
+        if any(kw in query_lower for kw in complex_keywords):
+            return ComplexityLevel.COMPLEX
+        
+        # LLM-based classification for ambiguous cases
+        if len(query) > 500:
+            return ComplexityLevel.COMPLEX
+        
+        # Use small LLM to classify
+        classification = self.classifier_llm.classify(query)
+        return ComplexityLevel[classification.upper()]
+```
+
+### Cost Savings
+
+| Traffic Type | % Queries | Model Used | Cost/Query | Cost Reduction |
+|--------------|-----------|------------|------------|----------------|
+| Simple FAQs | 60% | Small | $0.0001 | 99% |
+| Medium Tasks | 30% | Medium | $0.001 | 90% |
+| Complex Analysis | 10% | Large | $0.01 | 0% |
+| **Overall** | - | - | **$0.0007** | **85%** |
+
+### Advanced Routing Strategies
+
+**Confidence-Based Routing**: Route to larger model if confidence is low
+
+```python
+def route_with_confidence(self, query: str) -> tuple[str, float]:
+    complexity, confidence = self.classifier.classify_with_confidence(query)
+    
+    if confidence < 0.7 and complexity == ComplexityLevel.SIMPLE:
+        # Low confidence on simple classification -> use medium model
+        complexity = ComplexityLevel.MEDIUM
+    
+    model_config = self.models[complexity]
+    response = model_config.model.generate(query)
+    
+    return response, confidence
+```
+
+**A/B Testing**: Continuously optimize routing decisions
+
+```python
+def route_with_ab_test(self, query: str) -> str:
+    if self.should_ab_test(query):
+        # Route to both models and compare
+        simple_response = self.models[ComplexityLevel.SIMPLE].model.generate(query)
+        complex_response = self.models[ComplexityLevel.COMPLEX].model.generate(query)
+        
+        # Evaluate quality (could use LLM-as-judge)
+        quality_diff = self.evaluate_quality(query, simple_response, complex_response)
+        
+        # Log for analysis
+        self.log_ab_result(query, simple_response, complex_response, quality_diff)
+        
+        return complex_response if quality_diff > 0.2 else simple_response
+    
+    return self.route(query)
+```
+
+## Case Study 3: LLM Fine-tuning Pipeline
+
+### Challenge
+
+Fine-tune an LLM for domain-specific tasks with limited data while maintaining general capabilities.
+
+<Mermaid chart={`
+flowchart TB
+    subgraph Data [Data Preparation]
+        Raw[Raw Data] --> Clean[Clean & Filter]
+        Clean --> Format[Format for Training]
+        Format --> Augment[Data Augmentation]
+        Augment --> Split[Train/Val/Test Split]
+    end
+    
+    subgraph Train [Training]
+        Base[Base Model] --> LoRA[LoRA Adapters]
+        LoRA --> FT[Fine-tune]
+        Split --> FT
+        FT --> Eval[Evaluate]
+        Eval --> Check{Good?}
+        Check -->|No| Hyper[Hypersearch]
+        Hyper --> FT
+    end
+    
+    subgraph Deploy [Deployment]
+        Check -->|Yes| Merge[Merge Adapters]
+        Merge --> Quant[Quantize]
+        Quant --> Test[Integration Tests]
+        Test --> Serve[Serve Model]
+    end
+`} />
+
+### Training Configuration
+
+```python
+from peft import LoraConfig, get_peft_model
+from transformers import TrainingArguments, Trainer
+
+training_config = {
+    "base_model": "meta-llama/Llama-2-7b-hf",
+    "lora_config": {
+        "r": 16,              # LoRA rank (higher = more capacity)
+        "alpha": 32,          # Scaling factor (usually 2*r)
+        "target_modules": [
+            "q_proj", "k_proj", "v_proj", "o_proj",
+            "gate_proj", "up_proj", "down_proj"  # For Llama
+        ],
+        "dropout": 0.05,
+        "bias": "none",
+        "task_type": "CAUSAL_LM",
+    },
+    "training": {
+        "output_dir": "./results",
+        "num_train_epochs": 3,
+        "per_device_train_batch_size": 4,
+        "gradient_accumulation_steps": 8,
+        "learning_rate": 2e-4,
+        "warmup_ratio": 0.03,
+        "lr_scheduler_type": "cosine",
+        "logging_steps": 10,
+        "save_steps": 500,
+        "evaluation_strategy": "steps",
+        "eval_steps": 500,
+        "save_total_limit": 3,
+        "fp16": True,  # Use mixed precision
+        "gradient_checkpointing": True,  # Save memory
+    },
+    "data": {
+        "max_length": 2048,
+        "train_samples": 10000,
+        "val_samples": 1000,
+        "test_samples": 500,
+    }
+}
+
+# Initialize LoRA
+lora_config = LoraConfig(**training_config["lora_config"])
+model = get_peft_model(base_model, lora_config)
+
+# Training arguments
+training_args = TrainingArguments(**training_config["training"])
+
+# Create trainer
+trainer = Trainer(
+    model=model,
+    args=training_args,
+    train_dataset=train_dataset,
+    eval_dataset=val_dataset,
+    data_collator=data_collator,
+)
+```
+
+### Data Preparation
+
+```python
+def prepare_training_data(raw_data: List[dict]) -> Dataset:
+    """
+    Convert raw data to instruction-following format
+    """
+    formatted_data = []
+    
+    for item in raw_data:
+        # Format as instruction-response pairs
+        formatted_item = {
+            "instruction": item["question"],
+            "input": item.get("context", ""),
+            "output": item["answer"],
+        }
+        
+        # Create prompt template
+        prompt = self.create_prompt(
+            formatted_item["instruction"],
+            formatted_item["input"]
+        )
+        
+        formatted_data.append({
+            "text": f"{prompt}{formatted_item['output']}<|endoftext|>"
+        })
+    
+    return Dataset.from_list(formatted_data)
+
+def create_prompt(self, instruction: str, input: str = "") -> str:
+    if input:
+        return f"""Below is an instruction that describes a task, paired with an input that provides further context. Write a response that appropriately completes the request.
+
+### Instruction:
+{instruction}
+
+### Input:
+{input}
+
+### Response:
+"""
+    else:
+        return f"""Below is an instruction that describes a task. Write a response that appropriately completes the request.
+
+### Instruction:
+{instruction}
+
+### Response:
+"""
+```
+
+### Evaluation Metrics
+
+```python
+class FineTuningEvaluator:
+    def evaluate(self, model, test_dataset):
+        results = {}
+        
+        # Task-specific accuracy
+        results["accuracy"] = self.calculate_accuracy(model, test_dataset)
+        
+        # Perplexity (lower is better)
+        results["perplexity"] = self.calculate_perplexity(model, test_dataset)
+        
+        # Human evaluation (if available)
+        results["human_score"] = self.human_evaluation(model, test_dataset)
+        
+        # General capability preservation
+        results["general_qa"] = self.evaluate_on_general_qa(model)
+        
+        return results
+```
+
+### Results
+
+| Metric | Before | After | Improvement |
+|--------|--------|-------|-------------|
+| Task Accuracy | 45% | 89% | +98% |
+| Response Quality | 3.2/5 | 4.6/5 | +44% |
+| Latency | 150ms | 155ms | +3% |
+| Model Size | 7B | 7B + 20MB | +0.3% |
+| General Capability | 100% | 95% | -5% |
+
+### Deployment Considerations
+
+**Model Merging**: Merge LoRA adapters for faster inference
+
+```python
+# Merge adapters into base model
+merged_model = model.merge_and_unload()
+
+# Save merged model
+merged_model.save_pretrained("./merged_model")
+```
+
+**Quantization**: Reduce model size and latency
+
+```python
+from transformers import BitsAndBytesConfig
+
+quantization_config = BitsAndBytesConfig(
+    load_in_4bit=True,
+    bnb_4bit_compute_dtype=torch.float16,
+    bnb_4bit_use_double_quant=True,
+    bnb_4bit_quant_type="nf4"
+)
+
+model = AutoModelForCausalLM.from_pretrained(
+    model_path,
+    quantization_config=quantization_config
+)
+```
+
+## Case Study 4: LLM Evaluation Framework
+
+### Challenge
+
+Build a comprehensive evaluation system for LLM outputs that combines automated metrics, LLM-as-judge, and human evaluation.
+
+<Mermaid chart={`
+flowchart TB
+    Output[LLM Output] --> Auto[Automated Metrics]
+    Output --> LLM_Eval[LLM-as-Judge]
+    Output --> Human[Human Eval]
+    
+    Auto --> BLEU[BLEU/ROUGE]
+    Auto --> Exact[Exact Match]
+    Auto --> Semantic[Semantic Sim]
+    Auto --> Perplexity[Perplexity]
+    
+    LLM_Eval --> Helpful[Helpfulness]
+    LLM_Eval --> Harm[Harmlessness]
+    LLM_Eval --> Honest[Honesty]
+    LLM_Eval --> Coherence[Coherence]
+    
+    Human --> Quality[Quality Score]
+    Human --> Pref[Preference]
+    Human --> Correctness[Correctness]
+    
+    BLEU --> Aggregate[Aggregate Score]
+    Helpful --> Aggregate
+    Quality --> Aggregate
+    
+    Aggregate --> Dashboard[Evaluation Dashboard]
+`} />
+
+### Implementation
+
+```python
+from typing import Dict, List, Optional
+from dataclasses import dataclass
+import numpy as np
+
+@dataclass
+class EvaluationResult:
+    metric_name: str
+    score: float
+    confidence: Optional[float] = None
+    explanation: Optional[str] = None
+
+class LLMEvaluator:
+    def __init__(self, judge_llm, reference_llm=None):
+        self.judge_llm = judge_llm
+        self.reference_llm = reference_llm
+    
+    def evaluate(self, question: str, response: str, 
+                 reference: Optional[str] = None,
+                 context: Optional[str] = None) -> Dict[str, EvaluationResult]:
+        results = {}
+        
+        # Automated metrics (if reference available)
+        if reference:
+            results["bleu"] = EvaluationResult(
+                metric_name="BLEU",
+                score=self.calc_bleu(response, reference)
+            )
+            results["rouge_l"] = EvaluationResult(
+                metric_name="ROUGE-L",
+                score=self.calc_rouge_l(response, reference)
+            )
+            results["semantic_sim"] = EvaluationResult(
+                metric_name="Semantic Similarity",
+                score=self.semantic_similarity(response, reference),
+                confidence=0.9
+            )
+            results["exact_match"] = EvaluationResult(
+                metric_name="Exact Match",
+                score=1.0 if response.strip() == reference.strip() else 0.0
+            )
+        
+        # LLM-as-judge metrics
+        results["helpfulness"] = self.llm_judge(
+            question, response, context, "helpfulness"
+        )
+        results["coherence"] = self.llm_judge(
+            question, response, context, "coherence"
+        )
+        results["factuality"] = self.llm_judge(
+            question, response, context, "factuality"
+        )
+        results["harmlessness"] = self.llm_judge(
+            question, response, context, "harmlessness"
+        )
+        
+        # Aggregate score
+        results["overall"] = self.aggregate_scores(results)
+        
+        return results
+    
+    def llm_judge(self, question: str, response: str, 
+                  context: Optional[str], criterion: str) -> EvaluationResult:
+        prompt = f"""You are an expert evaluator. Rate this response on {criterion} (1-10).
+
+Question: {question}
+
+{f'Context: {context}' if context else ''}
+
+Response: {response}
+
+Evaluation Criteria for {criterion}:
+{self._get_criteria(criterion)}
+
+Provide:
+1. Score (1-10): [number]
+2. Confidence (0-1): [number]
+3. Explanation: [brief explanation]
+
+Format as JSON:
+{{"score": <number>, "confidence": <number>, "explanation": "<text>"}}
+"""
+        
+        result_json = self.judge_llm.generate(prompt)
+        result = json.loads(result_json)
+        
+        return EvaluationResult(
+            metric_name=criterion.title(),
+            score=result["score"] / 10,  # Normalize to 0-1
+            confidence=result.get("confidence", 0.8),
+            explanation=result.get("explanation")
+        )
+    
+    def _get_criteria(self, criterion: str) -> str:
+        criteria = {
+            "helpfulness": "Does the response answer the question? Is it useful?",
+            "coherence": "Is the response well-structured and logical?",
+            "factuality": "Is the response factually correct?",
+            "harmlessness": "Is the response safe and appropriate?",
+        }
+        return criteria.get(criterion, "")
+    
+    def aggregate_scores(self, results: Dict[str, EvaluationResult]) -> EvaluationResult:
+        # Weighted average of all scores
+        weights = {
+            "helpfulness": 0.3,
+            "coherence": 0.2,
+            "factuality": 0.3,
+            "harmlessness": 0.2,
+        }
+        
+        weighted_sum = 0
+        total_weight = 0
+        
+        for metric_name, result in results.items():
+            if metric_name in weights:
+                weight = weights[metric_name]
+                weighted_sum += result.score * weight
+                total_weight += weight
+        
+        overall_score = weighted_sum / total_weight if total_weight > 0 else 0
+        
+        return EvaluationResult(
+            metric_name="Overall",
+            score=overall_score,
+            confidence=np.mean([r.confidence for r in results.values() if r.confidence])
+        )
+```
+
+### Batch Evaluation
+
+```python
+def evaluate_batch(self, test_set: List[Dict]) -> Dict:
+    """
+    Evaluate multiple examples and compute aggregate statistics
+    """
+    all_results = []
+    
+    for example in test_set:
+        result = self.evaluate(
+            question=example["question"],
+            response=example["response"],
+            reference=example.get("reference"),
+            context=example.get("context")
+        )
+        all_results.append(result)
+    
+    # Aggregate statistics
+    metrics_summary = {}
+    for metric_name in all_results[0].keys():
+        scores = [r[metric_name].score for r in all_results]
+        metrics_summary[metric_name] = {
+            "mean": np.mean(scores),
+            "std": np.std(scores),
+            "min": np.min(scores),
+            "max": np.max(scores),
+            "median": np.median(scores)
+        }
+    
+    return {
+        "individual_results": all_results,
+        "summary": metrics_summary,
+        "total_examples": len(test_set)
+    }
+```
+
+### Human Evaluation Integration
+
+```python
+class HumanEvaluator:
+    def collect_human_feedback(self, question: str, response: str, 
+                              reference: Optional[str] = None) -> Dict:
+        """
+        Collect human evaluation scores
+        """
+        return {
+            "quality_score": self._ask_rating("Rate quality (1-5):"),
+            "preference": self._ask_preference(response, reference),
+            "correctness": self._ask_correctness(question, response),
+            "comments": self._ask_comments()
+        }
+    
+    def compare_responses(self, question: str, responses: List[str]) -> Dict:
+        """
+        Side-by-side comparison of multiple responses
+        """
+        # Present responses to human evaluator
+        # Return preference ranking
+        pass
+```
+
+## Case Study 5: Streaming & Real-time LLM
+
+### Challenge
+
+Implement low-latency streaming for real-time applications with proper error handling and connection management.
+
+<Mermaid chart={`
+sequenceDiagram
+    participant User
+    participant Server
+    participant LLM
+    participant Cache
+    
+    User->>Server: Send Query
+    Server->>Cache: Check Cache
+    Cache-->>Server: Cache Miss
+    Server->>LLM: Start Generation
+    LLM-->>Server: Token 1
+    Server-->>User: Token 1 (SSE)
+    LLM-->>Server: Token 2
+    Server-->>User: Token 2 (SSE)
+    Note over User,LLM: Continues streaming...
+    LLM-->>Server: [END]
+    Server->>Cache: Store Result
+    Server-->>User: Complete
+`} />
+
+### Implementation
+
+```python
+import asyncio
+import json
+import time
+from typing import AsyncGenerator
+from fastapi import FastAPI
+from fastapi.responses import StreamingResponse
+from sse_starlette.sse import EventSourceResponse
+
+app = FastAPI()
+
+class StreamingLLM:
+    def __init__(self, llm, cache=None):
+        self.llm = llm
+        self.cache = cache
+    
+    async def stream_response(
+        self, 
+        query: str,
+        max_tokens: int = 1000,
+        temperature: float = 0.7
+    ) -> AsyncGenerator[dict, None]:
+        """
+        Stream LLM response token by token
+        """
+        # Check cache first
+        if self.cache:
+            cached = await self.cache.get(query)
+            if cached:
+                # Stream cached response
+                for token in cached.split():
+                    yield {
+                        "type": "token",
+                        "content": token + " ",
+                        "timestamp": time.time()
+                    }
+                yield {"type": "done"}
+                return
+        
+        # Start streaming from LLM
+        full_response = ""
+        token_count = 0
+        
+        try:
+            async for token in self.llm.generate_stream(
+                query, 
+                max_tokens=max_tokens,
+                temperature=temperature
+            ):
+                full_response += token
+                token_count += 1
+                
+                yield {
+                    "type": "token",
+                    "content": token,
+                    "token_count": token_count,
+                    "timestamp": time.time()
+                }
+                
+                # Yield control for other tasks
+                await asyncio.sleep(0)
+                
+                # Safety check
+                if token_count >= max_tokens:
+                    yield {
+                        "type": "warning",
+                        "content": "Max tokens reached"
+                    }
+                    break
+            
+            # Cache the complete response
+            if self.cache:
+                await self.cache.set(query, full_response)
+            
+            yield {
+                "type": "done",
+                "total_tokens": token_count,
+                "full_response": full_response
+            }
+            
+        except Exception as e:
+            yield {
+                "type": "error",
+                "content": str(e)
+            }
+
+# FastAPI endpoint
+@app.get("/stream")
+async def stream_endpoint(query: str):
+    streaming_llm = StreamingLLM(llm, cache)
+    
+    async def event_generator():
+        async for event in streaming_llm.stream_response(query):
+            if event["type"] == "token":
+                yield {
+                    "event": "token",
+                    "data": json.dumps({
+                        "content": event["content"],
+                        "token_count": event.get("token_count", 0)
+                    })
+                }
+            elif event["type"] == "done":
+                yield {
+                    "event": "done",
+                    "data": json.dumps({
+                        "total_tokens": event["total_tokens"]
+                    })
+                }
+            elif event["type"] == "error":
+                yield {
+                    "event": "error",
+                    "data": json.dumps({"error": event["content"]})
+                }
+    
+    return EventSourceResponse(event_generator())
+```
+
+### Client-Side Implementation
+
+```javascript
+// JavaScript client for streaming
+async function streamLLMResponse(query) {
+    const eventSource = new EventSource(`/stream?query=${encodeURIComponent(query)}`);
+    let fullResponse = '';
+    
+    eventSource.addEventListener('token', (event) => {
+        const data = JSON.parse(event.data);
+        fullResponse += data.content;
+        
+        // Update UI incrementally
+        updateUI(fullResponse);
+    });
+    
+    eventSource.addEventListener('done', (event) => {
+        const data = JSON.parse(event.data);
+        console.log(`Complete: ${data.total_tokens} tokens`);
+        eventSource.close();
+    });
+    
+    eventSource.addEventListener('error', (event) => {
+        const data = JSON.parse(event.data);
+        console.error('Streaming error:', data.error);
+        eventSource.close();
+    });
+}
+```
+
+### Performance Metrics
+
+| Metric | Batch | Streaming | Improvement |
+|--------|-------|-----------|-------------|
+| Time to First Token | 2000ms | 50ms | 40x faster |
+| Total Time | 2000ms | 2100ms | Similar |
+| User Perceived Latency | High | Low | Much better |
+| Memory Usage | High | Low | Better |
+| Error Recovery | None | Partial | Better |
+
+### Advanced Features
+
+**Backpressure Handling**: Control stream rate based on client capacity
+
+```python
+async def stream_with_backpressure(self, query: str, max_queue_size: int = 10):
+    queue = asyncio.Queue(maxsize=max_queue_size)
+    
+    async def producer():
+        async for token in self.llm.generate_stream(query):
+            await queue.put(token)
+        await queue.put(None)  # Signal end
+    
+    async def consumer():
+        while True:
+            token = await queue.get()
+            if token is None:
+                break
+            yield token
+            queue.task_done()
+    
+    # Start producer in background
+    asyncio.create_task(producer())
+    
+    # Consume with backpressure
+    async for token in consumer():
+        yield token
+```
+
+**Stream Interruption**: Allow users to cancel mid-stream
+
+```python
+class CancellableStream:
+    def __init__(self):
+        self.cancelled = False
+    
+    async def stream(self, query: str):
+        async for token in self.llm.generate_stream(query):
+            if self.cancelled:
+                yield {"type": "cancelled"}
+                break
+            yield {"type": "token", "content": token}
+    
+    def cancel(self):
+        self.cancelled = True
+```
+
+## Case Study 6: Multi-Agent LLM System
+
+### Challenge
+
+Build a system where multiple specialized LLM agents collaborate to solve complex tasks.
+
+<Mermaid chart={`
+flowchart TB
+    Task[Complex Task] --> Coordinator[Coordinator Agent]
+    Coordinator --> Plan[Create Plan]
+    Plan --> Agent1[Research Agent]
+    Plan --> Agent2[Analysis Agent]
+    Plan --> Agent3[Writing Agent]
+    
+    Agent1 --> Results1[Research Results]
+    Agent2 --> Results2[Analysis]
+    Agent3 --> Results3[Draft]
+    
+    Results1 --> Synthesizer[Synthesizer Agent]
+    Results2 --> Synthesizer
+    Results3 --> Synthesizer
+    
+    Synthesizer --> Final[Final Output]
+`} />
+
+### Implementation
+
+```python
+from typing import List, Dict
+from dataclasses import dataclass
+from enum import Enum
+
+class AgentRole(Enum):
+    RESEARCHER = "researcher"
+    ANALYST = "analyst"
+    WRITER = "writer"
+    COORDINATOR = "coordinator"
+
+@dataclass
+class Agent:
+    role: AgentRole
+    llm: object
+    capabilities: List[str]
+    prompt_template: str
+
+class MultiAgentSystem:
+    def __init__(self):
+        self.agents = {
+            AgentRole.RESEARCHER: Agent(
+                role=AgentRole.RESEARCHER,
+                llm=ResearchLLM(),
+                capabilities=["web_search", "document_analysis"],
+                prompt_template=self._research_prompt()
+            ),
+            AgentRole.ANALYST: Agent(
+                role=AgentRole.ANALYST,
+                llm=AnalysisLLM(),
+                capabilities=["data_analysis", "reasoning"],
+                prompt_template=self._analysis_prompt()
+            ),
+            AgentRole.WRITER: Agent(
+                role=AgentRole.WRITER,
+                llm=WritingLLM(),
+                capabilities=["content_generation", "editing"],
+                prompt_template=self._writing_prompt()
+            ),
+            AgentRole.COORDINATOR: Agent(
+                role=AgentRole.COORDINATOR,
+                llm=CoordinatorLLM(),
+                capabilities=["planning", "orchestration"],
+                prompt_template=self._coordinator_prompt()
+            )
+        }
+    
+    async def solve(self, task: str) -> str:
+        # Step 1: Coordinator creates plan
+        plan = await self._create_plan(task)
+        
+        # Step 2: Execute plan with agents
+        results = {}
+        for step in plan["steps"]:
+            agent_role = AgentRole[step["agent"].upper()]
+            agent = self.agents[agent_role]
+            
+            result = await agent.llm.generate(
+                agent.prompt_template.format(
+                    task=task,
+                    context=results,
+                    step=step
+                )
+            )
+            results[step["name"]] = result
+        
+        # Step 3: Synthesize final output
+        final_output = await self._synthesize(task, results)
+        
+        return final_output
+    
+    async def _create_plan(self, task: str) -> Dict:
+        coordinator = self.agents[AgentRole.COORDINATOR]
+        plan_prompt = f"""
+        Break down this task into steps, assigning each to an appropriate agent:
+        
+        Task: {task}
+        
+        Available agents:
+        - RESEARCHER: Gathers information and facts
+        - ANALYST: Analyzes data and draws conclusions
+        - WRITER: Creates written content
+        
+        Create a step-by-step plan in JSON format.
+        """
+        
+        plan_json = await coordinator.llm.generate(plan_prompt)
+        return json.loads(plan_json)
+    
+    async def _synthesize(self, task: str, results: Dict) -> str:
+        synthesis_prompt = f"""
+        Synthesize these results into a final answer:
+        
+        Task: {task}
+        
+        Results:
+        {json.dumps(results, indent=2)}
+        
+        Create a coherent final response.
+        """
+        
+        return await self.agents[AgentRole.COORDINATOR].llm.generate(synthesis_prompt)
+```
+
+## Case Study 7: LLM Caching & Optimization
+
+### Challenge
+
+Implement intelligent caching to reduce costs and latency for repeated queries.
+
+<Mermaid chart={`
+flowchart TB
+    Query[User Query] --> Normalize[Normalize Query]
+    Normalize --> Embed[Embed Query]
+    Embed --> Cache[Check Cache]
+    Cache --> Hit{Cache Hit?}
+    Hit -->|Yes| Return[Return Cached]
+    Hit -->|No| Generate[Generate Response]
+    Generate --> Store[Store in Cache]
+    Store --> Return
+`} />
+
+### Implementation
+
+```python
+import hashlib
+import json
+from typing import Optional
+from datetime import datetime, timedelta
+import redis
+
+class LLMCache:
+    def __init__(self, ttl: int = 3600, similarity_threshold: float = 0.95):
+        self.redis_client = redis.Redis(host='localhost', port=6379, db=0)
+        self.ttl = ttl  # Time to live in seconds
+        self.similarity_threshold = similarity_threshold
+        self.embedder = Embedder()
+    
+    def get(self, query: str) -> Optional[str]:
+        # Try exact match first
+        cache_key = self._exact_key(query)
+        cached = self.redis_client.get(cache_key)
+        if cached:
+            return json.loads(cached)["response"]
+        
+        # Try semantic similarity
+        return self._semantic_search(query)
+    
+    def set(self, query: str, response: str):
+        cache_key = self._exact_key(query)
+        cache_value = {
+            "response": response,
+            "timestamp": datetime.now().isoformat(),
+            "query": query
+        }
+        self.redis_client.setex(
+            cache_key,
+            self.ttl,
+            json.dumps(cache_value)
+        )
+        
+        # Also store embedding for semantic search
+        embedding = self.embedder.embed(query)
+        embedding_key = f"embedding:{cache_key}"
+        self.redis_client.setex(
+            embedding_key,
+            self.ttl,
+            json.dumps(embedding.tolist())
+        )
+    
+    def _exact_key(self, query: str) -> str:
+        normalized = query.lower().strip()
+        return f"llm_cache:{hashlib.md5(normalized.encode()).hexdigest()}"
+    
+    def _semantic_search(self, query: str) -> Optional[str]:
+        query_embedding = self.embedder.embed(query)
+        
+        # Search for similar cached queries
+        # (Simplified - in production, use vector DB)
+        for key in self.redis_client.scan_iter("embedding:*"):
+            cached_embedding = json.loads(self.redis_client.get(key))
+            similarity = self._cosine_similarity(query_embedding, cached_embedding)
+            
+            if similarity >= self.similarity_threshold:
+                # Found similar query, return its response
+                original_key = key.replace("embedding:", "")
+                cached = json.loads(self.redis_client.get(original_key))
+                return cached["response"]
+        
+        return None
+    
+    def _cosine_similarity(self, vec1, vec2):
+        # Calculate cosine similarity
+        dot_product = np.dot(vec1, vec2)
+        norm1 = np.linalg.norm(vec1)
+        norm2 = np.linalg.norm(vec2)
+        return dot_product / (norm1 * norm2)
+```
+
+### Cache Strategies
+
+| Strategy | Use Case | Pros | Cons |
+|----------|----------|------|------|
+| Exact Match | Identical queries | Fast, simple | Misses variations |
+| Semantic Similarity | Similar queries | Higher hit rate | More complex |
+| Query Normalization | Variations | Better coverage | May over-cache |
+| Response Clustering | Grouped responses | Efficient storage | Less precise |
+
+## Case Study 8: LLM Safety & Guardrails
+
+### Challenge
+
+Implement safety mechanisms to prevent harmful outputs and ensure responsible AI usage.
+
+<Mermaid chart={`
+flowchart TB
+    Query[User Query] --> Input[Input Guardrails]
+    Input --> Safe{Safe?}
+    Safe -->|No| Block[Block Request]
+    Safe -->|Yes| Generate[Generate Response]
+    Generate --> Output[Output Guardrails]
+    Output --> Check{Check Output}
+    Check -->|Unsafe| Filter[Filter/Modify]
+    Check -->|Safe| Return[Return Response]
+    Filter --> Return
+`} />
+
+### Implementation
+
+```python
+class SafetyGuardrails:
+    def __init__(self):
+        self.classifier = SafetyClassifier()
+        self.moderation_llm = ModerationLLM()
+        self.blocked_patterns = self._load_blocked_patterns()
+    
+    def check_input(self, query: str) -> tuple[bool, Optional[str]]:
+        """
+        Check if input is safe. Returns (is_safe, reason_if_unsafe)
+        """
+        # Check against blocked patterns
+        for pattern in self.blocked_patterns:
+            if pattern.lower() in query.lower():
+                return False, f"Contains blocked pattern: {pattern}"
+        
+        # Classify with safety model
+        safety_score = self.classifier.classify(query)
+        
+        if safety_score["toxicity"] > 0.8:
+            return False, "High toxicity detected"
+        
+        if safety_score["violence"] > 0.8:
+            return False, "Violent content detected"
+        
+        return True, None
+    
+    def check_output(self, response: str, original_query: str) -> tuple[str, bool]:
+        """
+        Check and filter output. Returns (filtered_response, was_modified)
+        """
+        # Check for harmful content
+        safety_score = self.classifier.classify(response)
+        
+        if safety_score["toxicity"] > 0.7:
+            # Replace with safe response
+            return self._generate_safe_response(original_query), True
+        
+        # Check for prompt injection attempts
+        if self._detect_prompt_injection(response):
+            return "I cannot process that request.", True
+        
+        # Check for PII leakage
+        pii_detected = self._detect_pii(response)
+        if pii_detected:
+            response = self._redact_pii(response)
+            return response, True
+        
+        return response, False
+    
+    def _detect_prompt_injection(self, text: str) -> bool:
+        """
+        Detect attempts to inject prompts into the output
+        """
+        injection_patterns = [
+            "ignore previous instructions",
+            "forget everything",
+            "you are now",
+            "system:",
+            "assistant:",
+        ]
+        
+        text_lower = text.lower()
+        return any(pattern in text_lower for pattern in injection_patterns)
+    
+    def _detect_pii(self, text: str) -> bool:
+        """
+        Detect personally identifiable information
+        """
+        # Simple regex patterns (use proper PII detection in production)
+        import re
+        email_pattern = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
+        ssn_pattern = r'\b\d{3}-\d{2}-\d{4}\b'
+        
+        return bool(re.search(email_pattern, text) or re.search(ssn_pattern, text))
+    
+    def _redact_pii(self, text: str) -> str:
+        """
+        Redact PII from text
+        """
+        import re
+        text = re.sub(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b', '[EMAIL]', text)
+        text = re.sub(r'\b\d{3}-\d{2}-\d{4}\b', '[SSN]', text)
+        return text
+```
+
+## Summary
+
+Advanced LLM systems require:
+
+- **Efficient retrieval and context management** (RAG) for knowledge-intensive tasks
+- **Smart routing** for cost optimization without sacrificing quality
+- **Careful fine-tuning** for domain adaptation while preserving general capabilities
+- **Comprehensive evaluation frameworks** combining automated and human assessment
+- **Optimized serving** with streaming for real-time user experience
+- **Multi-agent coordination** for complex multi-step tasks
+- **Intelligent caching** to reduce costs and improve latency
+- **Robust safety mechanisms** to prevent harmful outputs
+
+### Key Principles
+
+1. **Measure Everything**: Track costs, latency, quality, and user satisfaction
+2. **Fail Gracefully**: Implement fallbacks and error handling
+3. **Iterate Continuously**: Use evaluation feedback to improve
+4. **Design for Scale**: Consider caching, batching, and optimization from the start
+5. **Safety First**: Build guardrails and monitoring into production systems
+
+These patterns enable production-ready LLM applications that are efficient, reliable, and safe at scale.

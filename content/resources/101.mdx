@@ -1,0 +1,270 @@
+---
+title: "Resources 101"
+description: "Essential resources for AI and LLM learning"
+category: "resources"
+level: 101
+order: 1
+---
+
+# Essential AI & LLM Resources
+
+This resource guide provides essential materials for getting started with AI and LLM development.
+
+## Learning Platforms
+
+<Mermaid chart={`
+flowchart TB
+    subgraph Free [Free Resources]
+        Coursera[Coursera]
+        YouTube[YouTube]
+        Papers[Research Papers]
+        Blogs[Tech Blogs]
+    end
+    
+    subgraph Paid [Paid Resources]
+        Udemy[Udemy]
+        DeepLearning[DeepLearning.AI]
+        Pluralsight[Pluralsight]
+    end
+    
+    subgraph Hands [Hands-On]
+        Kaggle[Kaggle]
+        Colab[Google Colab]
+        HuggingFace[Hugging Face]
+    end
+`} />
+
+### Recommended Courses
+
+| Course | Platform | Level | Focus |
+|--------|----------|-------|-------|
+| CS229 Machine Learning | Stanford/YouTube | Beginner | ML Fundamentals |
+| Deep Learning Specialization | Coursera | Intermediate | Neural Networks |
+| LLM Course | Hugging Face | Intermediate | LLMs |
+| Prompt Engineering | DeepLearning.AI | Beginner | Prompting |
+
+## Documentation
+
+### LLM Providers
+
+```
+OpenAI Documentation
+├── API Reference
+├── Best Practices
+├── Safety Guidelines
+└── Cookbook Examples
+URL: https://platform.openai.com/docs
+```
+
+```
+Anthropic Documentation
+├── Claude API
+├── Constitutional AI
+├── Prompt Design
+└── Safety Research
+URL: https://docs.anthropic.com
+```
+
+### Frameworks
+
+```
+LangChain
+├── Getting Started
+├── Modules
+│   ├── Models
+│   ├── Prompts
+│   ├── Chains
+│   └── Agents
+├── Integrations
+└── Examples
+URL: https://python.langchain.com/docs
+```
+
+```
+LlamaIndex
+├── Data Connectors
+├── Index Structures
+├── Query Engines
+└── Applications
+URL: https://docs.llamaindex.ai
+```
+
+## Key Research Papers
+
+### Foundational Papers
+
+<Mermaid chart={`
+timeline
+    title Evolution of LLMs
+    2017 : Attention Is All You Need (Transformer)
+    2018 : BERT
+         : GPT-1
+    2019 : GPT-2
+    2020 : GPT-3
+    2022 : ChatGPT
+         : Constitutional AI
+    2023 : GPT-4
+         : Claude 2
+    2024 : Claude 3
+         : Gemini
+`} />
+
+| Paper | Year | Key Contribution |
+|-------|------|------------------|
+| Attention Is All You Need | 2017 | Transformer architecture |
+| BERT | 2018 | Bidirectional pre-training |
+| GPT-3 | 2020 | Few-shot learning |
+| InstructGPT | 2022 | RLHF alignment |
+| Constitutional AI | 2022 | AI safety approach |
+
+### Reading List
+
+1. **Attention Is All You Need** (Vaswani et al.)
+   - Introduces transformer architecture
+   - Foundation for modern LLMs
+
+2. **Language Models are Few-Shot Learners** (GPT-3)
+   - Scaling laws
+   - In-context learning
+
+3. **Training Language Models to Follow Instructions** (InstructGPT)
+   - RLHF methodology
+   - Alignment techniques
+
+## Development Tools
+
+### IDEs & Extensions
+
+```yaml
+Cursor:
+  type: AI-native IDE
+  features:
+    - AI code completion
+    - Chat interface
+    - Code generation
+  url: https://cursor.sh
+
+GitHub Copilot:
+  type: VS Code extension
+  features:
+    - Code suggestions
+    - Multi-language support
+    - Context awareness
+  url: https://github.com/features/copilot
+
+Continue:
+  type: Open source
+  features:
+    - Local model support
+    - Customizable
+    - Privacy-focused
+  url: https://continue.dev
+```
+
+### APIs & Services
+
+| Service | Purpose | Pricing Model |
+|---------|---------|---------------|
+| OpenAI API | LLM access | Per token |
+| Anthropic API | Claude access | Per token |
+| Hugging Face | Model hosting | Free tier + paid |
+| Pinecone | Vector DB | Free tier + usage |
+| LangSmith | Observability | Free tier + paid |
+
+## Community Resources
+
+### Discord Servers
+
+- **LangChain Discord**: Framework discussions
+- **Hugging Face Discord**: Model sharing
+- **OpenAI Discord**: API support
+
+### GitHub Repositories
+
+```
+Essential Repos:
+├── langchain-ai/langchain
+├── run-llama/llama_index
+├── openai/openai-cookbook
+├── anthropics/anthropic-cookbook
+└── huggingface/transformers
+```
+
+### Blogs & Newsletters
+
+<Mermaid chart={`
+flowchart LR
+    subgraph Blogs [Technical Blogs]
+        OpenAI[OpenAI Blog]
+        Anthropic[Anthropic Research]
+        HF[Hugging Face Blog]
+        LangChain[LangChain Blog]
+    end
+    
+    subgraph News [Newsletters]
+        TLDR[TLDR AI]
+        Import[Import AI]
+        TheSequence[The Sequence]
+    end
+`} />
+
+## Practice Environments
+
+### Notebooks & Playgrounds
+
+| Platform | Best For | Cost |
+|----------|----------|------|
+| Google Colab | Experimentation | Free GPU hours |
+| Kaggle | Competitions | Free compute |
+| Hugging Face Spaces | Demos | Free tier |
+| Replit | Quick prototypes | Free tier |
+
+### Datasets
+
+```
+Common Datasets:
+├── Natural Questions (Q&A)
+├── SQuAD (Reading Comprehension)
+├── MMLU (Knowledge Testing)
+├── HumanEval (Code Generation)
+└── MT-Bench (Chat Evaluation)
+```
+
+## Quick Reference
+
+### Token Estimation
+
+```python
+# Rule of thumb: 1 token ≈ 4 characters in English
+def estimate_tokens(text: str) -> int:
+    return len(text) // 4
+
+# More accurate with tiktoken
+import tiktoken
+encoder = tiktoken.encoding_for_model("gpt-4")
+tokens = encoder.encode(text)
+```
+
+### Cost Estimation
+
+```python
+def estimate_cost(input_tokens: int, output_tokens: int, model: str) -> float:
+    rates = {
+        "gpt-4": {"input": 0.03, "output": 0.06},
+        "gpt-3.5-turbo": {"input": 0.0005, "output": 0.0015},
+        "claude-3-opus": {"input": 0.015, "output": 0.075},
+    }
+    rate = rates.get(model, rates["gpt-3.5-turbo"])
+    return (input_tokens * rate["input"] + output_tokens * rate["output"]) / 1000
+```
+
+## Summary
+
+Essential resources for AI development:
+- Quality learning platforms and courses
+- Framework documentation
+- Foundational research papers
+- Development tools and environments
+- Active community participation
+
+Continue to Resources 201 for advanced materials.

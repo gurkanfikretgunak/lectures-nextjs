@@ -1,0 +1,1265 @@
+---
+title: "Prompting 102 - Study Cases"
+description: "Practical study cases for prompt engineering"
+category: "prompting"
+level: 102
+order: 2
+---
+
+# Prompting Study Cases
+
+This lecture presents real-world study cases demonstrating effective prompt engineering techniques.
+
+## Case Study 1: Code Review Assistant
+
+### The Challenge
+
+Create a prompt that helps review Python code for best practices, bugs, and improvements while providing actionable feedback.
+
+### Solution
+
+<Mermaid chart={`
+flowchart TB
+    Code[Input Code] --> Prompt[Review Prompt]
+    Prompt --> Analysis[Code Analysis]
+    Analysis --> Bugs[Bug Detection]
+    Analysis --> Style[Style Issues]
+    Analysis --> Perf[Performance]
+    Analysis --> Security[Security Issues]
+    Bugs --> Report[Review Report]
+    Style --> Report
+    Perf --> Report
+    Security --> Report
+`} />
+
+### Basic Prompt
+
+<MultiLanguageCode
+  python={`code_review_prompt = """
+You are a senior Python developer conducting a code review.
+
+Review Guidelines:
+1. Check for potential bugs and edge cases
+2. Evaluate code style (PEP 8 compliance)
+3. Assess performance implications
+4. Suggest improvements with examples
+
+Code to Review:
+\`\`\`python
+def calculate_average(numbers):
+    total = 0
+    for n in numbers:
+        total = total + n
+    return total / len(numbers)
+\`\`\`
+
+Provide your review in this format:
+## Bugs/Issues
+## Style Recommendations  
+## Performance Suggestions
+## Improved Code
+"""`}
+  typescript={`const codeReviewPrompt = \`
+You are a senior TypeScript developer conducting a code review.
+
+Review Guidelines:
+1. Check for potential bugs and edge cases
+2. Evaluate code style (TypeScript best practices)
+3. Assess performance implications
+4. Suggest improvements with examples
+
+Code to Review:
+\`\`\`typescript
+function calculateAverage(numbers: number[]): number {
+    let total = 0;
+    for (const n of numbers) {
+        total = total + n;
+    }
+    return total / numbers.length;
+}
+\`\`\`
+
+Provide your review in this format:
+## Bugs/Issues
+## Style Recommendations  
+## Performance Suggestions
+## Improved Code
+\`;`}
+  csharp={`var codeReviewPrompt = @"
+You are a senior C# developer conducting a code review.
+
+Review Guidelines:
+1. Check for potential bugs and edge cases
+2. Evaluate code style (C# conventions)
+3. Assess performance implications
+4. Suggest improvements with examples
+
+Code to Review:
+\`\`\`csharp
+public static double CalculateAverage(List<int> numbers)
+{
+    int total = 0;
+    foreach (var n in numbers)
+    {
+        total = total + n;
+    }
+    return total / numbers.Count;
+}
+\`\`\`
+
+Provide your review in this format:
+## Bugs/Issues
+## Style Recommendations  
+## Performance Suggestions
+## Improved Code
+";`}
+  dart={`final codeReviewPrompt = """
+You are a senior Dart developer conducting a code review.
+
+Review Guidelines:
+1. Check for potential bugs and edge cases
+2. Evaluate code style (Dart style guide)
+3. Assess performance implications
+4. Suggest improvements with examples
+
+Code to Review:
+\`\`\`dart
+double calculateAverage(List<int> numbers) {
+    int total = 0;
+    for (var n in numbers) {
+        total = total + n;
+    }
+    return total / numbers.length;
+}
+\`\`\`
+
+Provide your review in this format:
+## Bugs/Issues
+## Style Recommendations  
+## Performance Suggestions
+## Improved Code
+""";`}
+/>
+
+### Enhanced Prompt with Examples
+
+```python
+advanced_code_review_prompt = """
+You are a senior Python developer with 10+ years of experience conducting a thorough code review.
+
+Code to Review:
+\`\`\`python
+{code}
+\`\`\`
+
+Review the code systematically:
+
+1. **Bug Detection**
+   - Check for logic errors
+   - Identify edge cases (empty inputs, None values, type mismatches)
+   - Look for potential runtime exceptions
+   - Verify boundary conditions
+
+2. **Code Style & Best Practices**
+   - PEP 8 compliance
+   - Pythonic idioms (list comprehensions, generator expressions)
+   - Naming conventions
+   - Function length and complexity
+   - Documentation (docstrings)
+
+3. **Performance Analysis**
+   - Time complexity (Big O)
+   - Space complexity
+   - Unnecessary operations
+   - Opportunities for optimization
+
+4. **Security Concerns**
+   - Input validation
+   - SQL injection risks (if applicable)
+   - XSS vulnerabilities (if applicable)
+   - Sensitive data exposure
+
+5. **Maintainability**
+   - Code readability
+   - Modularity
+   - Error handling
+   - Testability
+
+Provide your review in this structured format:
+
+## Critical Issues
+[List any bugs or critical issues]
+
+## Style & Best Practices
+[Style recommendations with examples]
+
+## Performance
+[Performance analysis and suggestions]
+
+## Security
+[Security concerns if any]
+
+## Suggested Improvements
+[Refactored code with explanations]
+"""
+```
+
+### Example Output
+
+When using the prompt above, here's an example review output:
+
+**Code to Review:**
+```python
+def calculate_average(numbers):
+    total = 0
+    for n in numbers:
+        total = total + n
+    return total / len(numbers)
+```
+
+**Review Output:**
+
+#### Critical Issues
+
+1. **Division by zero**: If `numbers` is empty, `len(numbers)` is 0, causing `ZeroDivisionError`
+2. **Type handling**: No validation that `numbers` is iterable or contains numeric values
+
+#### Style & Best Practices
+
+1. Use built-in `sum()` function instead of manual loop
+2. Missing type hints and docstring
+3. Variable name `n` is not descriptive
+
+#### Performance
+
+1. Current: O(n) time, O(1) space - acceptable
+2. Could use generator if dealing with large datasets
+
+#### Security
+
+1. No input validation - could raise unexpected exceptions
+
+## Suggested Improvements
+```python
+from typing import List, Union
+
+def calculate_average(numbers: List[Union[int, float]]) -> float:
+    """
+    Calculate the average of a list of numbers.
+    
+    Args:
+        numbers: List of numeric values
+        
+    Returns:
+        The average of the numbers
+        
+    Raises:
+        ValueError: If the list is empty
+        TypeError: If the list contains non-numeric values
+    """
+    if not numbers:
+        raise ValueError("Cannot calculate average of empty list")
+    
+    if not all(isinstance(n, (int, float)) for n in numbers):
+        raise TypeError("All elements must be numeric")
+    
+    return sum(numbers) / len(numbers)
+```
+
+### Results
+
+The structured prompt produces comprehensive code reviews with:
+
+1. **Identified edge cases**: Empty list handling, type validation
+2. **Style improvements**: Using `sum()`, type hints, docstrings
+3. **Performance optimizations**: Algorithm efficiency analysis
+4. **Security considerations**: Input validation and error handling
+5. **Refactored code examples**: Complete solutions with explanations
+
+### Prompt Variations
+
+**Quick Review (for simple code):**
+
+<MultiLanguageCode
+  python={`quick_review = """
+Quickly review this code for obvious bugs:
+{code}
+
+Respond with: "OK" or list critical issues.
+"""`}
+  typescript={`const quickReview = \`
+Quickly review this code for obvious bugs:
+\${code}
+
+Respond with: "OK" or list critical issues.
+\`;`}
+  csharp={`var quickReview = @"
+Quickly review this code for obvious bugs:
+{code}
+
+Respond with: ""OK"" or list critical issues.
+";`}
+  dart={`final quickReview = """
+Quickly review this code for obvious bugs:
+\$code
+
+Respond with: "OK" or list critical issues.
+""";`}
+/>
+
+**Detailed Review (for production code):**
+
+<MultiLanguageCode
+  python={`detailed_review = """
+Conduct a comprehensive code review including:
+- Unit test suggestions
+- Integration considerations
+- Documentation requirements
+- Refactoring opportunities
+
+Code:
+{code}
+"""`}
+  typescript={`const detailedReview = \`
+Conduct a comprehensive code review including:
+- Unit test suggestions
+- Integration considerations
+- Documentation requirements
+- Refactoring opportunities
+
+Code:
+\${code}
+\`;`}
+  csharp={`var detailedReview = @"
+Conduct a comprehensive code review including:
+- Unit test suggestions
+- Integration considerations
+- Documentation requirements
+- Refactoring opportunities
+
+Code:
+{code}
+";`}
+  dart={`final detailedReview = """
+Conduct a comprehensive code review including:
+- Unit test suggestions
+- Integration considerations
+- Documentation requirements
+- Refactoring opportunities
+
+Code:
+\$code
+""";`}
+/>
+
+## Case Study 2: Content Summarization
+
+### The Challenge
+
+Summarize long technical documents while preserving key information and maintaining readability.
+
+<Mermaid chart={`
+flowchart LR
+    Doc[Long Document] --> Extract[Key Points Extraction]
+    Extract --> Compress[Information Compression]
+    Compress --> Format[Format Output]
+    Format --> Summary[Concise Summary]
+`} />
+
+### Basic Prompt Template
+
+```python
+summarization_prompt = """
+Summarize the following technical document.
+
+Requirements:
+- Keep technical accuracy
+- Highlight key concepts
+- Use bullet points for main ideas
+- Include any important numbers/statistics
+- Maximum 200 words
+
+Document:
+{document_text}
+
+Summary:
+"""
+```
+
+### Advanced Summarization Prompts
+
+**Executive Summary:**
+```python
+executive_summary_prompt = """
+Create an executive summary of this document for C-level executives.
+
+Focus on:
+- Key decisions needed
+- Financial implications
+- Risks and opportunities
+- Action items
+
+Document:
+{document}
+
+Executive Summary (max 150 words):
+"""
+```
+
+**Technical Summary:**
+```python
+technical_summary_prompt = """
+Summarize this technical document for software engineers.
+
+Include:
+- Core concepts and architecture
+- Implementation details
+- Code examples (if relevant)
+- Dependencies and requirements
+- Key takeaways
+
+Document:
+{document}
+
+Technical Summary:
+"""
+```
+
+**Multi-Level Summary:**
+```python
+multi_level_summary = """
+Create three summaries of different lengths:
+
+1. **One-sentence summary** (for quick reference)
+2. **Paragraph summary** (for overview)
+3. **Detailed summary** (for comprehensive understanding)
+
+Document:
+{document}
+
+Summaries:
+"""
+```
+
+### Summarization Techniques
+
+| Technique | Use Case | Example |
+|-----------|----------|---------|
+| Extractive | Preserve exact facts | "The system processes 1M requests/day" |
+| Abstractive | Condense concepts | "High-throughput processing system" |
+| Hierarchical | Multi-level detail | One-liner → Paragraph → Full summary |
+| Question-based | Answer specific queries | "What is the main finding?" |
+
+### Example Output
+
+**Input:** 2000-word technical paper on microservices
+
+**Output:**
+```markdown
+## One-Sentence Summary
+Microservices architecture improves scalability but requires careful service design and monitoring.
+
+## Paragraph Summary
+Microservices break applications into independent services that communicate via APIs. Key benefits include independent deployment, technology diversity, and improved scalability. However, challenges include distributed system complexity, network latency, and service coordination. Best practices include API versioning, circuit breakers, and comprehensive monitoring.
+
+## Detailed Summary
+[Full structured summary with sections]
+```
+
+## Case Study 3: Multi-Language Translation
+
+### The Challenge
+
+Translate content while maintaining tone, cultural context, and technical accuracy.
+
+### Basic Translation Prompt
+
+```python
+translation_prompt = """
+You are a professional translator specializing in {source_lang} 
+to {target_lang} translation.
+
+Translation Guidelines:
+- Preserve the original tone (formal/informal)
+- Adapt cultural references appropriately
+- Maintain technical terminology accuracy
+- Flag any untranslatable concepts
+
+Original ({source_lang}):
+{text}
+
+Translation ({target_lang}):
+"""
+```
+
+### Advanced Translation Prompts
+
+**Context-Aware Translation:**
+```python
+context_translation = """
+Translate this text from {source_lang} to {target_lang}.
+
+Context: {context}
+Target Audience: {audience}
+Tone: {tone}
+
+Special Instructions:
+- Technical terms: {technical_terms_guidance}
+- Cultural references: {cultural_guidance}
+- Formatting: Preserve markdown/HTML structure
+
+Original Text:
+{text}
+
+Translation:
+"""
+```
+
+**Technical Translation:**
+```python
+technical_translation = """
+Translate this technical documentation from {source_lang} to {target_lang}.
+
+Requirements:
+- Keep code snippets unchanged
+- Maintain technical accuracy
+- Use standard terminology from {domain}
+- Preserve formatting and structure
+- Translate comments in code
+
+Documentation:
+{documentation}
+
+Translated Documentation:
+"""
+```
+
+**Creative Translation:**
+```python
+creative_translation = """
+Translate this creative content from {source_lang} to {target_lang}.
+
+Preserve:
+- Literary style and voice
+- Metaphors and idioms (adapt if needed)
+- Emotional tone
+- Rhythm and flow
+
+Original:
+{text}
+
+Translation:
+"""
+```
+
+### Translation Quality Checklist
+
+```python
+translation_quality_prompt = """
+Review this translation for quality:
+
+Original ({source_lang}):
+{original}
+
+Translation ({target_lang}):
+{translation}
+
+Check:
+1. Accuracy: Does it convey the same meaning?
+2. Naturalness: Does it sound natural in {target_lang}?
+3. Completeness: Is anything missing?
+4. Tone: Is the tone preserved?
+5. Terminology: Are technical terms correct?
+
+Provide feedback:
+"""
+```
+
+## Case Study 4: Data Extraction
+
+### The Challenge
+
+Extract structured data from unstructured text with high accuracy.
+
+<Mermaid chart={`
+flowchart TB
+    Raw[Unstructured Text] --> Parse[Parse Content]
+    Parse --> Identify[Identify Entities]
+    Identify --> Validate[Validate Data]
+    Validate --> Structure[Structure Data]
+    Structure --> JSON[JSON Output]
+`} />
+
+### Basic Extraction Prompt
+
+```python
+extraction_prompt = """
+Extract the following information from the text and return as JSON:
+- Company names
+- Dates mentioned
+- Monetary values
+- Key people
+
+Text:
+"On March 15, 2024, Acme Corp announced a $50 million 
+investment led by CEO John Smith."
+
+Output format:
+{
+  "companies": [],
+  "dates": [],
+  "monetary_values": [],
+  "people": []
+}
+"""
+```
+
+### Advanced Extraction Prompts
+
+**Structured Extraction with Validation:**
+```python
+structured_extraction = """
+Extract structured data from this text and return as valid JSON.
+
+Text:
+{text}
+
+Extract:
+1. **Entities**
+   - Organizations (companies, institutions)
+   - People (names, titles)
+   - Locations (cities, countries, addresses)
+   - Products/Services
+
+2. **Temporal Information**
+   - Dates (format as YYYY-MM-DD)
+   - Times
+   - Durations
+
+3. **Financial Information**
+   - Amounts (with currency)
+   - Percentages
+   - Financial metrics
+
+4. **Relationships**
+   - Who works for which organization
+   - What happened when
+   - Financial relationships
+
+Output as JSON with this structure:
+{
+  "entities": {
+    "organizations": [],
+    "people": [],
+    "locations": [],
+    "products": []
+  },
+  "temporal": {
+    "dates": [],
+    "times": [],
+    "durations": []
+  },
+  "financial": {
+    "amounts": [],
+    "percentages": [],
+    "metrics": []
+  },
+  "relationships": []
+}
+
+Ensure all dates are in ISO format and amounts include currency codes.
+"""
+```
+
+**Email Extraction:**
+```python
+email_extraction = """
+Extract key information from this email:
+
+Email:
+{email}
+
+Extract:
+- Sender name and email
+- Recipients
+- Subject
+- Date sent
+- Main action items
+- Attachments mentioned
+- Urgency level (if indicated)
+- Key dates/deadlines
+
+Output as JSON.
+"""
+```
+
+**Invoice Extraction:**
+```python
+invoice_extraction = """
+Extract invoice details from this document:
+
+Document:
+{document}
+
+Extract:
+- Invoice number
+- Issue date
+- Due date
+- Vendor information (name, address, tax ID)
+- Customer information
+- Line items (description, quantity, unit price, total)
+- Subtotal
+- Tax amount and rate
+- Total amount
+- Payment terms
+- Payment methods
+
+Output as structured JSON matching invoice schema.
+"""
+```
+
+### Extraction with Error Handling
+
+```python
+extraction_with_validation = """
+Extract data from this text. If information is missing or unclear, 
+use null or indicate uncertainty.
+
+Text:
+{text}
+
+Extract:
+{fields}
+
+For each field:
+- If found: provide value
+- If not found: use null
+- If uncertain: use value with "?" prefix
+
+Output JSON with confidence scores (0-1) for each extracted field.
+"""
+```
+
+## Case Study 5: Question Answering System
+
+### The Challenge
+
+Build a prompt that answers questions accurately using provided context.
+
+### Basic QA Prompt
+
+<MultiLanguageCode
+  python={`qa_prompt = """
+Answer the question based on the provided context.
+
+Context:
+{context}
+
+Question: {question}
+
+Answer:
+"""`}
+  typescript={`const qaPrompt = \`
+Answer the question based on the provided context.
+
+Context:
+\${context}
+
+Question: \${question}
+
+Answer:
+\`;`}
+  csharp={`var qaPrompt = @"
+Answer the question based on the provided context.
+
+Context:
+{context}
+
+Question: {question}
+
+Answer:
+";`}
+  dart={`final qaPrompt = """
+Answer the question based on the provided context.
+
+Context:
+\$context
+
+Question: \$question
+
+Answer:
+""";`}
+/>
+
+### Advanced QA Prompts
+
+**Multi-Step Reasoning:**
+<MultiLanguageCode
+  python={`reasoning_qa = """
+Answer the question step by step using the provided context.
+
+Context:
+{context}
+
+Question: {question}
+
+Think through this step by step:
+1. What information is needed to answer this question?
+2. What relevant information is in the context?
+3. How can I combine this information?
+4. What is the final answer?
+
+Answer:
+"""`}
+  typescript={`const reasoningQA = \`
+Answer the question step by step using the provided context.
+
+Context:
+\${context}
+
+Question: \${question}
+
+Think through this step by step:
+1. What information is needed to answer this question?
+2. What relevant information is in the context?
+3. How can I combine this information?
+4. What is the final answer?
+
+Answer:
+\`;`}
+  csharp={`var reasoningQA = @"
+Answer the question step by step using the provided context.
+
+Context:
+{context}
+
+Question: {question}
+
+Think through this step by step:
+1. What information is needed to answer this question?
+2. What relevant information is in the context?
+3. How can I combine this information?
+4. What is the final answer?
+
+Answer:
+";`}
+  dart={`final reasoningQA = """
+Answer the question step by step using the provided context.
+
+Context:
+\$context
+
+Question: \$question
+
+Think through this step by step:
+1. What information is needed to answer this question?
+2. What relevant information is in the context?
+3. How can I combine this information?
+4. What is the final answer?
+
+Answer:
+""";`}
+/>
+
+**QA with Citations:**
+```python
+qa_with_citations = """
+Answer the question using the provided context. Cite specific 
+sections that support your answer.
+
+Context:
+{context}
+
+Question: {question}
+
+Answer format:
+Answer: [Your answer]
+
+Supporting Evidence:
+- [Quote 1] (from section X)
+- [Quote 2] (from section Y)
+
+Answer:
+"""
+```
+
+**Uncertainty Handling:**
+```python
+qa_with_uncertainty = """
+Answer the question based on the context. If the answer cannot 
+be determined from the context, say so.
+
+Context:
+{context}
+
+Question: {question}
+
+Provide:
+1. Answer (if possible)
+2. Confidence level (High/Medium/Low)
+3. Reasoning
+4. What information is missing (if any)
+
+Answer:
+"""
+```
+
+## Case Study 6: Text Classification
+
+### The Challenge
+
+Classify text into categories with consistent and accurate results.
+
+### Basic Classification Prompt
+
+```python
+classification_prompt = """
+Classify this text into one of these categories:
+- Positive
+- Negative
+- Neutral
+
+Text: {text}
+
+Category:
+"""
+```
+
+### Advanced Classification
+
+**Multi-Label Classification:**
+```python
+multi_label_classification = """
+Classify this text. It can belong to multiple categories.
+
+Categories:
+- Technology
+- Business
+- Science
+- Health
+- Entertainment
+- Sports
+- Politics
+
+Text: {text}
+
+Output as JSON array of applicable categories:
+"""
+```
+
+**Sentiment Analysis with Explanation:**
+```python
+sentiment_analysis = """
+Analyze the sentiment of this text.
+
+Text: {text}
+
+Provide:
+1. Overall sentiment (Positive/Negative/Neutral)
+2. Sentiment score (0-1, where 1 is most positive)
+3. Key phrases that indicate sentiment
+4. Emotional tone (e.g., angry, happy, concerned)
+
+Output as JSON.
+"""
+```
+
+## Case Study 7: Content Generation
+
+### The Challenge
+
+Generate high-quality content following specific requirements and style.
+
+### Blog Post Generation
+
+```python
+blog_post_prompt = """
+Write a blog post about {topic}.
+
+Requirements:
+- Target audience: {audience}
+- Tone: {tone}
+- Length: {word_count} words
+- Include: Introduction, 3-5 main points, conclusion
+- Use examples and analogies
+- Include a call-to-action
+
+Structure:
+1. Engaging headline
+2. Hook in first paragraph
+3. Main content with subheadings
+4. Conclusion with key takeaways
+
+Topic: {topic}
+
+Blog Post:
+"""
+```
+
+### Email Generation
+
+```python
+email_generation = """
+Write a professional email with the following details:
+
+Purpose: {purpose}
+Recipient: {recipient}
+Tone: {tone}
+Key points to include:
+{points}
+
+Requirements:
+- Clear subject line
+- Professional greeting
+- Well-structured body
+- Appropriate closing
+
+Email:
+"""
+```
+
+### Product Description
+
+```python
+product_description = """
+Write a compelling product description.
+
+Product: {product_name}
+Features: {features}
+Target customers: {target_audience}
+Tone: {tone}
+
+Include:
+- Attention-grabbing headline
+- Key benefits (not just features)
+- Use cases
+- Call-to-action
+
+Product Description:
+"""
+```
+
+## Case Study 8: Prompt Chaining
+
+### The Challenge
+
+Break complex tasks into multiple steps using prompt chaining.
+
+### Multi-Step Analysis
+
+```python
+# Step 1: Extract key information
+extraction_step = """
+Extract key information from this document:
+{document}
+
+Extract:
+- Main topic
+- Key points
+- Important dates/numbers
+- Action items
+
+Output as structured JSON.
+"""
+
+# Step 2: Analyze extracted information
+analysis_step = """
+Analyze this extracted information:
+{extracted_data}
+
+Provide:
+- Summary
+- Insights
+- Recommendations
+- Risks/opportunities
+
+Analysis:
+"""
+
+# Step 3: Generate report
+report_step = """
+Create a comprehensive report based on:
+- Original document summary: {summary}
+- Analysis: {analysis}
+
+Format as executive report with:
+- Executive summary
+- Key findings
+- Recommendations
+- Next steps
+
+Report:
+"""
+```
+
+### Iterative Refinement
+
+```python
+# Initial generation
+initial_prompt = """
+Write a first draft about {topic}:
+"""
+
+# Refinement
+refinement_prompt = """
+Improve this draft:
+{draft}
+
+Focus on:
+- Clarity
+- Structure
+- Examples
+- Engagement
+
+Improved version:
+"""
+
+# Final polish
+polish_prompt = """
+Polish this content for publication:
+{content}
+
+Check:
+- Grammar and spelling
+- Flow and transitions
+- Consistency
+- Formatting
+
+Final version:
+"""
+```
+
+## Prompt Engineering Best Practices
+
+### 1. Be Specific
+
+**Bad:**
+```text
+Summarize this document.
+```
+
+**Good:**
+```text
+Create a 200-word executive summary of this document focusing on 
+key decisions, financial implications, and action items. Use 
+bullet points for main ideas.
+```
+
+### 2. Provide Examples
+
+**Bad:**
+```text
+Extract dates from the text.
+```
+
+**Good:**
+```text
+Extract dates from the text and format them as YYYY-MM-DD.
+
+Example:
+Input: "The meeting is on March 15th, 2024"
+Output: "2024-03-15"
+
+Text: {text}
+```
+
+### 3. Use Structured Output
+
+**Bad:**
+```text
+Review this code.
+```
+
+**Good:**
+```text
+Review this code and provide feedback in this format:
+
+## Bugs
+[List bugs]
+
+## Style Issues
+[List style issues]
+
+## Suggestions
+[Provide suggestions]
+
+Code: {code}
+```
+
+### 4. Set Constraints
+
+**Bad:**
+```text
+Write a summary.
+```
+
+**Good:**
+```text
+Write a summary that:
+- Is exactly 150 words
+- Uses simple language (8th grade level)
+- Includes at least 3 key points
+- Ends with a conclusion
+
+Document: {document}
+```
+
+### 5. Include Role and Context
+
+**Bad:**
+```text
+Translate this text.
+```
+
+**Good:**
+```text
+You are a professional translator with expertise in technical 
+documentation. Translate this text from English to Spanish, 
+maintaining technical accuracy and preserving code examples.
+
+Text: {text}
+```
+
+## Common Prompt Patterns
+
+| Pattern | Use Case | Example |
+|---------|----------|---------|
+| Role + Task | Expert analysis | "You are a senior developer. Review this code..." |
+| Few-Shot Learning | Consistent format | Provide 2-3 examples before the task |
+| Chain of Thought | Complex reasoning | "Think step by step: 1) ... 2) ..." |
+| Output Format | Structured data | "Output as JSON with fields: ..." |
+| Constraints | Quality control | "Maximum 200 words, use simple language" |
+| Iterative Refinement | Quality improvement | Generate → Review → Improve |
+
+## Key Takeaways
+
+| Technique | Use Case | Benefit |
+|-----------|----------|---------|
+| Role Assignment | Code Review, Translation | Expert-level analysis |
+| Structured Output | Data Extraction, Classification | Consistent format |
+| Guidelines & Constraints | Summarization, Generation | Quality control |
+| Examples (Few-Shot) | Complex tasks | Better accuracy |
+| Chain of Thought | Reasoning tasks | Transparent process |
+| Prompt Chaining | Multi-step tasks | Better organization |
+| Iterative Refinement | Content generation | Higher quality |
+
+## Practice Exercises
+
+1. **Test Case Generation**: Create a prompt that generates comprehensive test cases for a function
+2. **Code Explanation**: Design a prompt for explaining code to beginners
+3. **API Documentation**: Build a prompt for generating API documentation from code
+4. **Meeting Notes**: Create a prompt that summarizes meeting transcripts into action items
+5. **Code Refactoring**: Design a prompt that suggests refactoring improvements
+
+## Summary
+
+Effective prompt engineering requires:
+
+- **Clarity**: Be specific about what you want
+- **Structure**: Use clear formatting and organization
+- **Context**: Provide relevant background information
+- **Examples**: Show what good output looks like
+- **Constraints**: Set boundaries for quality control
+- **Iteration**: Refine prompts based on results
+
+These study cases demonstrate how structured prompts with clear instructions, context, output formats, and examples lead to significantly better AI responses. The key is to think about the task from the AI's perspective and provide all the information needed to produce the desired output.

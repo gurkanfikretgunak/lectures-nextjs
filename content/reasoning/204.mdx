@@ -1,0 +1,518 @@
+---
+title: "Agentic Workflow & Multi-File Orchestration"
+description: "Transforming AI from just an assistant to a 'work partner' capable of making independent changes across files"
+category: "reasoning"
+level: 204
+order: 4
+---
+
+# Agentic Workflow & Multi-File Orchestration
+
+Transforming AI from just an assistant to a "work partner" capable of making independent changes across files. This lecture covers multi-file orchestration with VS Code Copilot Edits and Terminal Agents.
+
+## Agentic Workflow Overview
+
+<Mermaid chart={`
+flowchart TB
+    subgraph Workflow [Agentic Workflow]
+        Command[Command] --> Agent[AI Agent]
+        Agent --> MultiFile[Multi-File Changes]
+        Agent --> Terminal[Terminal Integration]
+        Agent --> Validation[Auto Validation]
+    end
+    
+    subgraph Capabilities [Capabilities]
+        Atomic[Atomic Feature<br/>Frontend + Backend + DB]
+        ErrorHandling[Autonomous Error Resolution]
+        Testing[Automatic Testing]
+    end
+    
+    MultiFile --> Atomic
+    Terminal --> ErrorHandling
+    Validation --> Testing
+`} />
+
+## Orchestration: VS Code Copilot Edits Mastery
+
+Make atomic feature developments covering multiple files (Frontend + Backend + Database) with a single command (Cmd+I) using Copilot Edits.
+
+### Basic Copilot Edits Usage
+
+<Mermaid chart={`
+flowchart LR
+    Select[Select Code] --> CmdI[Cmd+I]
+    CmdI --> Edit[Edit Mode]
+    Edit --> Prompt[Write Prompt]
+    Prompt --> Generate[AI Generates]
+    Generate --> Apply[Apply Changes]
+`} />
+
+### Atomic Feature Development: Full Stack
+
+Feature development covering the entire stack with a single prompt:
+
+```markdown
+# Scenario: User Registration Feature
+
+## Prompt (with Cmd+I selected area)
+
+"Add user registration feature:
+1. Frontend: Registration form component (React)
+2. Backend: Registration API endpoint (Express)
+3. Database: User migration and model
+4. Validation: Email and password validation
+5. Error handling: All edge cases
+6. Tests: Unit and integration tests"
+
+## Changes AI Will Make
+
+### 1. Frontend Component
+```typescript
+// components/RegistrationForm.tsx
+- Creates form component
+- Email and password inputs
+- Validation logic
+- Error display
+- Success handling
+```
+
+### 2. Backend API
+```typescript
+// routes/auth.ts
+- POST /api/auth/register endpoint
+- Request validation
+- Password hashing
+- Database insert
+- Error handling
+```
+
+### 3. Database
+```sql
+-- migrations/create_users_table.sql
+- Users table schema
+- Indexes
+- Constraints
+```
+
+### 4. Tests
+```typescript
+// tests/auth.test.ts
+- Registration success case
+- Duplicate email case
+- Invalid input cases
+- Integration tests
+```
+
+All these changes are made atomically with a single prompt!
+```
+
+### Multi-File Refactoring Example
+
+```markdown
+# Scenario: API Response Standardization
+
+## Prompt
+
+"Refactor all API endpoints to new response format:
+- Success: { success: true, data: {...} }
+- Error: { success: false, error: {...} }
+- Standardize status codes
+- Apply to all endpoints"
+
+## Files AI Will Process
+
+1. routes/users.ts - User endpoints
+2. routes/products.ts - Product endpoints  
+3. routes/orders.ts - Order endpoints
+4. middleware/response.ts - Response helper
+5. types/api.ts - Type definitions
+6. tests/api.test.ts - Test updates
+
+All files are updated consistently!
+```
+
+### Cross-Layer Changes
+
+```markdown
+# Scenario: Adding Authentication Middleware
+
+## Prompt
+
+"Add authentication middleware to all protected routes:
+1. Middleware: JWT token validation
+2. Routes: Mark protected routes
+3. Types: Add user to request type
+4. Tests: Middleware tests"
+
+## Changes
+
+### Middleware Layer
+```typescript
+// middleware/auth.ts
+export const authenticate = async (req, res, next) => {
+  // JWT validation
+}
+```
+
+### Route Layer
+```typescript
+// routes/protected.ts
+router.get('/profile', authenticate, getProfile)
+router.post('/orders', authenticate, createOrder)
+```
+
+### Type Layer
+```typescript
+// types/express.d.ts
+interface AuthenticatedRequest extends Request {
+  user: User
+}
+```
+
+### Test Layer
+```typescript
+// tests/middleware.test.ts
+describe('Authentication', () => {
+  // Test cases
+})
+```
+
+All layers are updated synchronously!
+```
+
+## Terminal Agents: Autonomous Error Resolution
+
+Process autonomous error resolution workflows by transferring errors directly from terminal to editor.
+
+### Terminal → Editor Workflow
+
+<Mermaid chart={`
+flowchart TB
+    Terminal[Terminal Error] --> Parse[Error Parse]
+    Parse --> Identify[File/Line Detection]
+    Identify --> Analyze[AI Analysis]
+    Analyze --> Fix[Automatic Fix]
+    Fix --> Validate[Validation]
+    Validate --> Apply[Apply to Editor]
+`} />
+
+### TypeScript Error Handling
+
+```markdown
+# Scenario: TypeScript Compilation Errors
+
+## Terminal Output
+
+```
+src/services/UserService.ts:45:12 - error TS2322: 
+Type 'string' is not assignable to type 'number'.
+
+45     user.id = userId;
+            ~
+```
+
+## AI Agent Process
+
+1. Error Parse: File, line, error type detected
+2. Context Load: Related file and type definitions loaded
+3. Analysis: Root cause analyzed
+4. Fix: Automatic fix suggested
+5. Apply: Applied to editor
+
+## Prompt (Automatic)
+
+"Fix TypeScript error in terminal:
+- File: src/services/UserService.ts
+- Line: 45
+- Issue: Type mismatch (string → number)
+- Solution: Convert userId to number or fix type definition"
+```
+
+### Test Failure Handling
+
+```markdown
+# Scenario: Test Failures
+
+## Terminal Output
+
+```
+FAIL  tests/auth.test.ts
+  Registration
+    ✕ should create user with valid data (15ms)
+
+  ● Registration › should create user with valid data
+
+    Expected: 201
+    Received: 400
+
+      23 |     const response = await request(app)
+      24 |       .post('/api/auth/register')
+    > 25 |       .expect(201);
+         |        ^
+      26 |
+      27 |     expect(response.body).toHaveProperty('id');
+```
+
+## AI Agent Process
+
+1. Analyze test output
+2. Check API endpoint
+3. Detect request/response mismatch
+4. Apply fix
+5. Rerun test
+
+## Automatic Fix
+
+```typescript
+// routes/auth.ts - Fixed
+router.post('/register', async (req, res) => {
+  // Validation
+  // User creation
+  res.status(201).json({ id: user.id }) // ✅ Fixed
+})
+```
+
+### Build Error Resolution
+
+```markdown
+# Scenario: Build Errors
+
+## Terminal Output
+
+```
+Error: Cannot find module '@/components/Button'
+   at src/pages/Home.tsx:12:25
+```
+
+## AI Agent Process
+
+1. Check import path
+2. Verify file existence
+3. Check path alias
+4. Create missing file or fix import
+
+## Automatic Solution
+
+```typescript
+// Before: Incorrect import
+import { Button } from '@/components/Button'
+
+// After: Fixed import
+import { Button } from '@/components/ui/button'
+// or
+import { Button } from './components/Button'
+```
+```
+
+## Advanced Orchestration Patterns
+
+### Pattern 1: Feature Branch Workflow
+
+```markdown
+# Scenario: New Feature Branch
+
+## Prompt
+
+"Create branch for new 'wishlist' feature:
+1. Feature branch: feature/wishlist
+2. Database migration
+3. Backend API
+4. Frontend components
+5. Tests
+6. Documentation"
+
+## AI Workflow
+
+1. Create branch
+2. Write migration file
+3. Add backend endpoints
+4. Create frontend components
+5. Write test suite
+6. Update README
+```
+
+### Pattern 2: Incremental Development
+
+```markdown
+# Scenario: Step-by-Step Development
+
+## Iteration 1: Basic Structure
+
+"Create basic structure for Wishlist:
+- Database model
+- Basic CRUD operations"
+
+## Iteration 2: API Layer
+
+"Add Wishlist API endpoints:
+- GET /wishlist
+- POST /wishlist
+- DELETE /wishlist/:id"
+
+## Iteration 3: Frontend
+
+"Add Wishlist UI components:
+- Wishlist page
+- Add to wishlist button
+- Remove from wishlist"
+
+## Iteration 4: Polish
+
+"Complete Wishlist feature:
+- Error handling
+- Loading states
+- Animations
+- Tests"
+```
+
+### Pattern 3: Migration Strategy
+
+```markdown
+# Scenario: Database Migration
+
+## Prompt
+
+"Add 'phone' column to User table:
+1. Create migration file
+2. Update model
+3. Add API validation
+4. Update frontend form
+5. Update tests"
+
+## AI Orchestration
+
+1. migrations/add_phone_to_users.sql
+2. models/User.ts - phone field
+3. routes/users.ts - phone validation
+4. components/UserForm.tsx - phone input
+5. tests/user.test.ts - phone tests
+
+All layers synchronized!
+```
+
+## Terminal Agent Best Practices
+
+### 1. Error Pattern Recognition
+
+```markdown
+# Error Patterns AI Will Recognize
+
+1. TypeScript Errors
+   - TS2322: Type mismatch
+   - TS2307: Cannot find module
+   - TS2345: Argument type error
+
+2. Runtime Errors
+   - ReferenceError: Variable not defined
+   - TypeError: Cannot read property
+   - SyntaxError: Unexpected token
+
+3. Test Failures
+   - Assertion errors
+   - Timeout errors
+   - Mock errors
+
+4. Build Errors
+   - Module resolution
+   - Dependency errors
+   - Configuration errors
+```
+
+### 2. Context-Aware Fixes
+
+```markdown
+# Context-Aware Error Resolution
+
+Terminal Error → AI Analysis:
+1. Detect error type
+2. Load related files
+3. Find root cause
+4. Select best solution
+5. Check side effects
+6. Apply fix
+```
+
+### 3. Validation Loop
+
+```markdown
+# Automatic Validation Loop
+
+Fix Applied → Validation:
+1. Syntax check
+2. Type check
+3. Test run
+4. Build check
+5. Lint check
+
+All checks pass → Success
+One check fails → Retry with different approach
+```
+
+## Practical Scenarios
+
+### Scenario 1: Full-Stack Feature
+
+```markdown
+Task: Product Review Feature
+
+Prompt:
+"Add product review feature:
+- Database: reviews table
+- Backend: POST /products/:id/reviews
+- Frontend: Review form and list
+- Validation: Rating 1-5, required fields
+- Tests: Unit and integration"
+
+AI Orchestration:
+✅ Creates migration
+✅ Adds model
+✅ Writes API endpoint
+✅ Creates frontend components
+✅ Writes test suite
+✅ Adds documentation
+```
+
+### Scenario 2: Bug Fix Chain
+
+```markdown
+Task: Production Bug Fix
+
+Terminal Error:
+"TypeError: Cannot read property 'price' of undefined"
+
+AI Agent:
+1. Parses error
+2. Finds related file
+3. Detects missing null check
+4. Adds defensive coding
+5. Adds test case
+6. Finds and fixes similar patterns
+```
+
+### Scenario 3: Refactoring Campaign
+
+```markdown
+Task: API Response Standardization
+
+Prompt:
+"Refactor all APIs to new format"
+
+AI:
+1. Scans all route files
+2. Detects response patterns
+3. Converts to standard format
+4. Updates type definitions
+5. Updates tests
+6. Documents breaking changes
+```
+
+## Summary
+
+What you learned in this lecture:
+
+- **Copilot Edits Mastery**: Multi-file atomic feature development with a single command
+- **Terminal Agents**: Autonomous error resolution and terminal → editor workflow
+- **Orchestration Patterns**: Feature branch, incremental, migration strategies
+- **Validation Loops**: Automatic validation and retry mechanisms
+
+Next lecture: We'll learn model selection and token economics with Optimization, Cost & Enterprise Security.

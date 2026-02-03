@@ -1,0 +1,264 @@
+---
+title: "Prompting 202 - Study Cases"
+description: "Advanced prompt engineering study cases"
+category: "prompting"
+level: 202
+order: 4
+---
+
+# Advanced Prompting Study Cases
+
+This lecture presents complex real-world applications of advanced prompting techniques.
+
+## Case Study 1: Automated Code Generation Pipeline
+
+### Challenge
+
+Build a system that generates, tests, and refines code automatically.
+
+<Mermaid chart={`
+flowchart TB
+    Req[Requirements] --> Gen[Code Generation]
+    Gen --> Test[Test Generation]
+    Test --> Run[Run Tests]
+    Run --> Pass{Tests Pass?}
+    Pass -->|Yes| Done[Complete]
+    Pass -->|No| Debug[Debug Prompt]
+    Debug --> Gen
+`} />
+
+### Implementation
+
+```text
+# Stage 1: Code Generation
+code_gen_prompt = """
+You are an expert Python developer.
+
+Requirements:
+<requirements>
+
+Generate production-ready code with:
+- Type hints
+- Error handling
+- Docstrings
+- Edge case handling
+"""
+
+# Stage 2: Test Generation
+test_gen_prompt = """
+Given this code:
+<generated_code>
+
+Generate comprehensive pytest tests covering:
+- Happy path scenarios
+- Edge cases
+- Error conditions
+"""
+
+# Stage 3: Debug and Refine
+debug_prompt = """
+The following tests failed:
+<failed_tests>
+
+Original code:
+<code>
+
+Error messages:
+<errors>
+
+Fix the code to pass all tests. Explain your changes.
+"""
+```
+
+## Case Study 2: Multi-Agent Debate System
+
+### Challenge
+
+Create a system where multiple AI "agents" debate to reach better conclusions.
+
+<Mermaid chart={`
+flowchart LR
+    Topic[Topic] --> A1[Agent 1: Pro]
+    Topic --> A2[Agent 2: Con]
+    Topic --> A3[Agent 3: Neutral]
+    A1 --> D1[Argument]
+    A2 --> D2[Counter]
+    A3 --> D3[Analysis]
+    D1 --> Judge[Judge Agent]
+    D2 --> Judge
+    D3 --> Judge
+    Judge --> Conclusion[Final Conclusion]
+`} />
+
+```text
+debate_system = """
+=== DEBATE ROUND <round> ===
+
+Topic: <topic>
+
+Agent 1 (Proponent):
+You argue IN FAVOR of the topic. Present your strongest argument.
+Previous opponent points to address: <opponent_points>
+
+Agent 2 (Opponent):
+You argue AGAINST the topic. Present your strongest counter-argument.
+Previous proponent points to address: <proponent_points>
+
+Judge:
+Evaluate both arguments for:
+- Logical consistency
+- Evidence quality
+- Persuasiveness
+
+Current winner: [Your assessment]
+"""
+```
+
+## Case Study 3: Autonomous Research Assistant
+
+### Challenge
+
+Build an AI assistant that can research topics autonomously using ReAct.
+
+<Mermaid chart={`
+flowchart TB
+    Query[Research Query] --> Think1[Thought: Plan Research]
+    Think1 --> Act1[Action: Search]
+    Act1 --> Obs1[Observation: Results]
+    Obs1 --> Think2[Thought: Analyze]
+    Think2 --> Act2[Action: Deep Dive]
+    Act2 --> Obs2[Observation: Details]
+    Obs2 --> Think3[Thought: Synthesize]
+    Think3 --> Report[Research Report]
+`} />
+
+```text
+research_agent_prompt = """
+You are a research assistant with access to these tools:
+- search(query): Search for information
+- read(url): Read content from a URL
+- calculate(expression): Perform calculations
+- save(content): Save findings
+
+Research Question: <question>
+
+Use this format:
+Thought: [What I need to find out]
+Action: [tool_name(parameters)]
+Observation: [Result]
+... repeat until complete ...
+Thought: [Final synthesis]
+Report: [Comprehensive answer]
+"""
+```
+
+## Case Study 4: Dynamic Prompt Optimization
+
+### Challenge
+
+Automatically improve prompts based on output quality.
+
+<Mermaid chart={`
+flowchart TB
+    Initial[Initial Prompt] --> Gen[Generate Output]
+    Gen --> Eval[Evaluate Quality]
+    Eval --> Score{Score OK?}
+    Score -->|Yes| Final[Final Prompt]
+    Score -->|No| Analyze[Analyze Failures]
+    Analyze --> Improve[Improve Prompt]
+    Improve --> Gen
+`} />
+
+```text
+optimization_system = """
+=== PROMPT OPTIMIZATION CYCLE ===
+
+Current Prompt:
+<current_prompt>
+
+Generated Outputs (sample):
+<sample_outputs>
+
+Quality Metrics:
+- Accuracy: <accuracy>
+- Relevance: <relevance>
+- Format Compliance: <format_score>
+
+Issues Identified:
+<issues>
+
+Your task: Rewrite the prompt to address these issues.
+
+Improved Prompt:
+"""
+```
+
+## Case Study 5: Complex Document Analysis
+
+### Challenge
+
+Analyze lengthy legal documents using prompt chaining.
+
+```text
+# Chain 1: Extract Key Sections
+extraction_prompt = """
+Document: <document>
+
+Extract and label these sections:
+1. Parties involved
+2. Key terms and definitions
+3. Obligations
+4. Penalties/Consequences
+5. Termination clauses
+
+Format as structured JSON.
+"""
+
+# Chain 2: Risk Analysis
+risk_prompt = """
+Extracted sections: <extracted>
+
+Analyze potential risks for <party>:
+- Legal risks
+- Financial risks
+- Operational risks
+
+Rate each: Low/Medium/High with explanation.
+"""
+
+# Chain 3: Summary & Recommendations
+summary_prompt = """
+Risk analysis: <risks>
+
+Generate an executive summary with:
+1. Key findings (3-5 bullets)
+2. Critical action items
+3. Recommended next steps
+"""
+```
+
+## Results Comparison
+
+| Case Study | Technique | Improvement |
+|------------|-----------|-------------|
+| Code Pipeline | Chaining + CoT | 40% fewer bugs |
+| Debate System | Multi-agent | 25% better decisions |
+| Research | ReAct | 60% faster research |
+| Optimization | Meta-prompting | 35% quality boost |
+| Document Analysis | Chaining | 50% time savings |
+
+## Implementation Tips
+
+1. **Start Simple**: Begin with basic prompts, add complexity
+2. **Measure Everything**: Track success metrics
+3. **Version Control**: Keep prompt versions
+4. **A/B Test**: Compare techniques empirically
+5. **Document Failures**: Learn from what doesn't work
+
+## Summary
+
+Advanced prompting enables:
+- Autonomous multi-step workflows
+- Self-improving systems
+- Complex reasoning tasks
+- Production-ready applications

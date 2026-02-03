@@ -1,0 +1,271 @@
+---
+title: "LLM 201"
+description: "Advanced LLM concepts and architectures"
+category: "llm"
+level: 201
+order: 3
+---
+
+# Advanced LLM Concepts
+
+Welcome to LLM 201! This lecture covers advanced topics in Large Language Model architecture and optimization.
+
+## Transformer Deep Dive
+
+### Multi-Head Attention
+
+The core of transformer architecture that allows the model to focus on different parts of the input simultaneously.
+
+<Mermaid chart={`
+flowchart TB
+    Input[Input] --> Split[Split into Heads]
+    Split --> H1[Head 1]
+    Split --> H2[Head 2]
+    Split --> H3[Head 3]
+    Split --> Hn[Head n]
+    H1 --> Concat[Concatenate]
+    H2 --> Concat
+    H3 --> Concat
+    Hn --> Concat
+    Concat --> Linear[Linear Projection]
+    Linear --> Output[Output]
+`} />
+
+### Attention Mechanism
+
+```python
+# Simplified attention calculation
+def attention(Q, K, V):
+    """
+    Q: Query matrix
+    K: Key matrix
+    V: Value matrix
+    """
+    # Scaled dot-product attention
+    scores = (Q @ K.T) / sqrt(d_k)
+    weights = softmax(scores)
+    output = weights @ V
+    return output
+```
+
+### Position Encoding
+
+Since transformers process all tokens simultaneously, positional information must be added:
+
+```python
+# Sinusoidal position encoding
+def positional_encoding(position, d_model):
+    PE = np.zeros((position, d_model))
+    for pos in range(position):
+        for i in range(0, d_model, 2):
+            PE[pos, i] = sin(pos / (10000 ** (i / d_model)))
+            PE[pos, i+1] = cos(pos / (10000 ** (i / d_model)))
+    return PE
+```
+
+## Model Architectures
+
+<Mermaid chart={`
+flowchart TB
+    subgraph Architectures [LLM Architectures]
+        Enc[Encoder-Only]
+        Dec[Decoder-Only]
+        E2E[Encoder-Decoder]
+    end
+    
+    Enc --> BERT[BERT]
+    Dec --> GPT[GPT Family]
+    E2E --> T5[T5/BART]
+    
+    BERT --> NLU[Understanding Tasks]
+    GPT --> Gen[Generation Tasks]
+    T5 --> Both[Both Tasks]
+`} />
+
+### Decoder-Only (GPT-style)
+
+- Autoregressive generation
+- Causal attention (can only see past tokens)
+- Examples: GPT-4, Claude, LLaMA
+
+### Encoder-Only (BERT-style)
+
+- Bidirectional context
+- Good for classification/understanding
+- Examples: BERT, RoBERTa
+
+### Encoder-Decoder (T5-style)
+
+- Full context for input
+- Autoregressive output
+- Examples: T5, BART
+
+## Scaling Laws
+
+<Mermaid chart={`
+flowchart LR
+    subgraph Scaling [Scaling Dimensions]
+        Params[Parameters]
+        Data[Training Data]
+        Compute[Compute]
+    end
+    
+    Params --> Perf[Performance]
+    Data --> Perf
+    Compute --> Perf
+`} />
+
+### Kaplan Scaling Laws
+
+Performance improves predictably with:
+
+| Factor | Scaling Exponent |
+|--------|------------------|
+| Parameters | ~0.076 |
+| Data | ~0.095 |
+| Compute | ~0.050 |
+
+### Chinchilla Optimal
+
+Training tokens ≈ 20 × Parameters
+
+```
+7B model → 140B tokens
+70B model → 1.4T tokens
+```
+
+## Training Techniques
+
+### Pre-training Objectives
+
+```python
+# Causal Language Modeling (GPT)
+"The cat sat on the" → "mat"
+
+# Masked Language Modeling (BERT)
+"The [MASK] sat on the mat" → "cat"
+
+# Span Corruption (T5)
+"The <X> sat on <Y>" → "<X> cat <Y> the mat"
+```
+
+### Fine-tuning Methods
+
+<Mermaid chart={`
+flowchart TB
+    Base[Base Model] --> Full[Full Fine-tuning]
+    Base --> LoRA[LoRA]
+    Base --> Prefix[Prefix Tuning]
+    Base --> Prompt[Prompt Tuning]
+    
+    Full --> High[High Cost]
+    LoRA --> Low[Low Cost]
+    Prefix --> Low
+    Prompt --> Low
+`} />
+
+### LoRA (Low-Rank Adaptation)
+
+```python
+# Instead of updating full weight matrix W
+# Update: W' = W + A @ B
+# where A is (d × r) and B is (r × d), r << d
+
+class LoRALayer:
+    def __init__(self, in_dim, out_dim, rank=8):
+        self.W = pretrained_weights  # Frozen
+        self.A = nn.Linear(in_dim, rank)
+        self.B = nn.Linear(rank, out_dim)
+    
+    def forward(self, x):
+        return self.W(x) + self.B(self.A(x))
+```
+
+## Inference Optimization
+
+### KV Caching
+
+Avoid recomputing attention for previously seen tokens:
+
+<Mermaid chart={`
+flowchart LR
+    subgraph Without [Without Cache]
+        T1[Token 1] --> C1[Compute All]
+        T2[Token 1,2] --> C2[Compute All]
+        T3[Token 1,2,3] --> C3[Compute All]
+    end
+    
+    subgraph With [With Cache]
+        CT1[Token 1] --> CC1[Compute + Cache]
+        CT2[Token 2] --> CC2[Compute + Cache]
+        CT3[Token 3] --> CC3[Compute + Cache]
+    end
+`} />
+
+### Quantization
+
+Reduce model size and speed up inference:
+
+| Precision | Bits | Size Reduction |
+|-----------|------|----------------|
+| FP32 | 32 | 1x |
+| FP16 | 16 | 2x |
+| INT8 | 8 | 4x |
+| INT4 | 4 | 8x |
+
+```python
+# Pseudo-code for quantization
+def quantize_int8(weights):
+    scale = weights.max() / 127
+    quantized = (weights / scale).round().clamp(-128, 127)
+    return quantized, scale
+```
+
+### Speculative Decoding
+
+Use a small model to draft, large model to verify:
+
+<Mermaid chart={`
+flowchart LR
+    Draft[Small Model] --> Tokens[Draft K Tokens]
+    Tokens --> Verify[Large Model]
+    Verify --> Accept{Accept?}
+    Accept -->|Yes| Keep[Keep Tokens]
+    Accept -->|No| Reject[Reject + Resample]
+`} />
+
+## Emerging Architectures
+
+### Mixture of Experts (MoE)
+
+<Mermaid chart={`
+flowchart TB
+    Input[Input] --> Router[Router Network]
+    Router --> E1[Expert 1]
+    Router --> E2[Expert 2]
+    Router --> E3[Expert 3]
+    E1 --> Combine[Combine Outputs]
+    E2 --> Combine
+    Combine --> Output[Output]
+`} />
+
+- Sparse activation (not all experts used)
+- More parameters with similar compute
+- Examples: Mixtral, GPT-4 (rumored)
+
+### State Space Models
+
+- Alternative to attention
+- Linear complexity with sequence length
+- Examples: Mamba, RWKV
+
+## Summary
+
+Key advanced concepts:
+- Transformer architecture details and variants
+- Scaling laws for training decisions
+- Efficient fine-tuning methods (LoRA, etc.)
+- Inference optimizations for production
+- Emerging architectures beyond transformers
+
+Next: Advanced study cases in LLM 202.
