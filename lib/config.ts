@@ -24,10 +24,11 @@ export function getConfig(): Config {
   const envPasswordValue = process.env.PASSWORD_VALUE;
   const envPasswordMessage = process.env.PASSWORD_MESSAGE;
 
-  if (envPasswordEnabled !== undefined || envPasswordValue) {
+  // Use env vars if PASSWORD_ENABLED is explicitly set OR if PASSWORD_VALUE exists
+  if (envPasswordEnabled !== undefined || (envPasswordValue && envPasswordValue.trim() !== "")) {
     configCache = {
       password: {
-        enabled: envPasswordEnabled === "true" || envPasswordEnabled === "1",
+        enabled: envPasswordEnabled === "true" || envPasswordEnabled === "1" || !!envPasswordValue,
         value: envPasswordValue || "",
         message: envPasswordMessage || "Enter password to access the lectures",
       },
@@ -38,20 +39,29 @@ export function getConfig(): Config {
   // Fallback to config.yaml file (for local development)
   try {
     const configPath = path.join(process.cwd(), "config.yaml");
-    const fileContents = fs.readFileSync(configPath, "utf8");
-    configCache = yaml.load(fileContents) as Config;
-    return configCache!;
-  } catch {
-    // Default config if file doesn't exist
-    console.warn("config.yaml not found and no env vars set, using default config");
-    return {
-      password: {
-        enabled: false,
-        value: "",
-        message: "Enter password to access the lectures",
-      },
-    };
+    if (fs.existsSync(configPath)) {
+      const fileContents = fs.readFileSync(configPath, "utf8");
+      configCache = yaml.load(fileContents) as Config;
+      return configCache!;
+    }
+  } catch (error) {
+    // Log error in development, but don't fail in production
+    if (process.env.NODE_ENV === "development") {
+      console.warn("Error reading config.yaml:", error);
+    }
   }
+
+  // Default config if file doesn't exist and no env vars
+  if (process.env.NODE_ENV === "development") {
+    console.warn("config.yaml not found and no env vars set, password protection disabled");
+  }
+  return {
+    password: {
+      enabled: false,
+      value: "",
+      message: "Enter password to access the lectures",
+    },
+  };
 }
 
 export function getPasswordConfig(): PasswordConfig {
