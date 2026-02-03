@@ -1,0 +1,4 @@
+password:
+  enabled: true
+  value: "masterfabric2026"
+  message: "Enter password to access the lectures"
