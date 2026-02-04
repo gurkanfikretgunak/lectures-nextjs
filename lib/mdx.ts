@@ -146,7 +146,7 @@ export function getLecture(category: string, slug: string, language: "en" | "tr"
       slug,
       content,
     };
-  } catch (error) {
+  } catch {
     return null;
   }
 }

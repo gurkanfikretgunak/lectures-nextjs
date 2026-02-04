@@ -64,7 +64,7 @@ export function Sidebar({ navigation, defaultCollapsed = false, onNavigate }: Si
     return navigation && navigation.length > 0 
       ? navigation.map((section) => section?.slug).filter(Boolean) as string[]
       : [];
-  }, [navigationSlugsKey]);
+  }, [navigation]);
   
   const [openSections, setOpenSections] = useState<string[]>(initialSections);
   
