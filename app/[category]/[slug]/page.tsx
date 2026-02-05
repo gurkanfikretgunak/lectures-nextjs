@@ -116,7 +116,11 @@ export default async function LecturePage({ params }: PageProps) {
         }
         
         h1State.firstH1Seen = true;
-        return mdxComponents.h1({ children });
+        const H1Component = mdxComponents.h1;
+        if (!H1Component) {
+          return <h1>{children}</h1>;
+        }
+        return H1Component({ children });
       },
     };
 
