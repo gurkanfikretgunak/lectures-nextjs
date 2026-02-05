@@ -120,7 +120,7 @@ export default async function LecturePage({ params }: PageProps) {
         if (!H1Component) {
           return <h1>{children}</h1>;
         }
-        return H1Component({ children });
+        return <H1Component>{children}</H1Component>;
       },
     };
 
