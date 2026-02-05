@@ -49,7 +49,7 @@ const categoryIcons: Record<string, React.ComponentType<{ className?: string }>>
   resources: FolderOpen,
 };
 
-export function Sidebar({ navigation, defaultCollapsed = false, onNavigate }: SidebarProps) {
+export function Sidebar({ navigation, defaultCollapsed = true, onNavigate }: SidebarProps) {
   const pathname = usePathname();
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
   
@@ -60,11 +60,10 @@ export function Sidebar({ navigation, defaultCollapsed = false, onNavigate }: Si
   }, [navigation]);
   
   // Memoize initial sections to prevent re-initialization on every render
+  // Start with empty array so all sections are collapsed by default
   const initialSections = useMemo(() => {
-    return navigation && navigation.length > 0 
-      ? navigation.map((section) => section?.slug).filter(Boolean) as string[]
-      : [];
-  }, [navigation]);
+    return [];
+  }, []);
   
   const [openSections, setOpenSections] = useState<string[]>(initialSections);
   
