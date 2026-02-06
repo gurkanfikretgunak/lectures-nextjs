@@ -20,6 +20,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/language-context";
+import { GeneralAssistant } from "@/components/general-assistant";
 
 interface NavItem {
   title: string;
@@ -50,6 +51,7 @@ const categoryIcons: Record<string, React.ComponentType<{ className?: string }>>
 
 export function HomePage({ navigation }: HomePageProps) {
   const [searchOpen, setSearchOpen] = useState(false);
+  const [assistantOpen, setAssistantOpen] = useState(false);
   const { t } = useLanguage();
   
   const categoryDescriptions: Record<string, string> = {
@@ -73,13 +75,18 @@ export function HomePage({ navigation }: HomePageProps) {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header navigation={navigation} onSearchOpen={() => setSearchOpen(true)} />
+      <Header
+        navigation={navigation}
+        onSearchOpen={() => setSearchOpen(true)}
+        onAssistantOpen={() => setAssistantOpen(true)}
+        showAssistantButton={!assistantOpen}
+      />
       <SearchCommand
         items={allLectures}
         open={searchOpen}
         onOpenChange={setSearchOpen}
       />
-      <div className="flex">
+      <div className="flex relative">
         <Sidebar navigation={navigation} />
         <main className="flex-1 min-w-0">
           <div className="max-w-5xl mx-auto px-4 py-12 lg:px-8">
@@ -196,6 +203,12 @@ export function HomePage({ navigation }: HomePageProps) {
           </div>
         </main>
       </div>
+
+      {/* General AI Assistant - Right Side Panel */}
+      <GeneralAssistant
+        isOpen={assistantOpen}
+        onClose={() => setAssistantOpen(false)}
+      />
     </div>
   );
 }

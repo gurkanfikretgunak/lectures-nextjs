@@ -24,7 +24,9 @@ import {
   initEngine,
   streamChat,
   buildSystemPrompt,
+  AVAILABLE_MODELS,
   type LoadProgress,
+  type ModelKey,
 } from "./webllm-engine";
 import type { SimulationStep } from "./simulation-data";
 
@@ -302,7 +304,9 @@ export function AssistantChat({
     if (!supported) {
       setUseBuiltIn(true);
     }
-    isModelCached().then(setCached);
+    // Use default model (llama) for Learn to Prompt
+    const defaultModel: ModelKey = "llama";
+    isModelCached(AVAILABLE_MODELS[defaultModel].id).then(setCached);
   }, []);
 
   // Auto-scroll to bottom when messages change
@@ -339,9 +343,14 @@ export function AssistantChat({
     setInitError(null);
 
     try {
-      const e = await initEngine((progress) => {
-        setLoadProgress(progress);
-      });
+      // Use default model (llama) for Learn to Prompt
+      const defaultModel: ModelKey = "llama";
+      const e = await initEngine(
+        (progress) => {
+          setLoadProgress(progress);
+        },
+        defaultModel
+      );
       setEngine(e);
       setUseBuiltIn(false);
     } catch (err) {
@@ -544,8 +553,8 @@ export function AssistantChat({
                 ? "Model is cached. Click to start instantly."
                 : "Model onbellekte. Aninda baslamak icin tiklayin."
               : language === "en"
-                ? "Download a small AI model (~360MB) for smart AI help, or start with built-in guidance."
-                : "Akilli AI yardimi icin kucuk bir model (~360MB) indirin veya dahili rehberlikle baslayin."}
+                ? "Download an AI model (~1.5GB) for comprehensive AI help, or start with built-in guidance."
+                : "Kapsamli AI yardimi icin bir AI model (~1.5GB) indirin veya dahili rehberlikle baslayin."}
           </p>
         </div>
 
@@ -670,7 +679,7 @@ export function AssistantChat({
           {language === "en" ? "AI Assistant" : "AI Asistan"}
         </span>
         <Badge variant="outline" className="text-[10px] h-4 px-1">
-          {engine ? "SmolLM2" : language === "en" ? "Built-in" : "Dahili"}
+          {engine ? "Llama-3.2" : language === "en" ? "Built-in" : "Dahili"}
         </Badge>
         <div className="ml-auto flex items-center gap-2">
           {/* Reset Chat Button */}

@@ -4,9 +4,64 @@
 
 import type { MLCEngine, ChatCompletionMessageParam } from "@mlc-ai/web-llm";
 
-const MODEL_ID = "SmolLM2-360M-Instruct-q4f32_1-MLC";
+// Available models
+export const AVAILABLE_MODELS = {
+  smol: {
+    id: "SmolLM2-360M-Instruct-q4f32_1-MLC",
+    name: "SmolLM2-360M",
+    size: "~360MB",
+    sizeMB: 360,
+    description: {
+      en: "Small & Fast - Quick responses, lower memory usage",
+      tr: "Kucuk & Hizli - Hizli yanitlar, dusuk bellek kullanimi",
+    },
+    capabilities: {
+      en: [
+        "Fast response times",
+        "Lower memory footprint",
+        "Good for simple questions",
+        "Quick code snippets",
+      ],
+      tr: [
+        "Hizli yanit sureleri",
+        "Dusuk bellek kullanimi",
+        "Basit sorular icin ideal",
+        "Hizli kod parcalari",
+      ],
+    },
+  },
+  llama: {
+    id: "Llama-3.2-1B-Instruct-q0f16-MLC",
+    name: "Llama-3.2-1B",
+    size: "~1.5GB",
+    sizeMB: 1500,
+    description: {
+      en: "Larger & Smarter - Better understanding, more capable",
+      tr: "Buyuk & Akilli - Daha iyi anlama, daha yetenekli",
+    },
+    capabilities: {
+      en: [
+        "Better understanding",
+        "More detailed responses",
+        "Complex problem solving",
+        "Advanced code generation",
+      ],
+      tr: [
+        "Daha iyi anlama",
+        "Daha detayli yanitlar",
+        "Karmasik problem cozme",
+        "Gelismis kod uretimi",
+      ],
+    },
+  },
+} as const;
+
+export type ModelKey = keyof typeof AVAILABLE_MODELS;
+
+const DEFAULT_MODEL: ModelKey = "llama";
 
 let engineInstance: MLCEngine | null = null;
+let currentModelId: string | null = null;
 let engineLoading = false;
 let downloadStartTime: number | null = null;
 let lastProgress: number = 0;
@@ -27,21 +82,40 @@ export function isWebGPUSupported(): boolean {
 }
 
 // Check if model is already cached in IndexedDB
-export async function isModelCached(): Promise<boolean> {
+export async function isModelCached(modelId: string): Promise<boolean> {
   try {
     const { hasModelInCache } = await import("@mlc-ai/web-llm");
-    return await hasModelInCache(MODEL_ID);
+    return await hasModelInCache(modelId);
   } catch {
     return false;
   }
 }
 
+// Reset engine instance (for model switching)
+export function resetEngine(): void {
+  engineInstance = null;
+  currentModelId = null;
+  engineLoading = false;
+}
+
 // Initialize the WebLLM engine (singleton)
 export async function initEngine(
-  onProgress: (progress: LoadProgress) => void
+  onProgress: (progress: LoadProgress) => void,
+  modelKey: ModelKey = DEFAULT_MODEL
 ): Promise<MLCEngine> {
-  // Return existing instance if ready
-  if (engineInstance) return engineInstance;
+  const modelId = AVAILABLE_MODELS[modelKey].id;
+  const modelInfo = AVAILABLE_MODELS[modelKey];
+
+  // Return existing instance if it's the same model
+  if (engineInstance && currentModelId === modelId) {
+    return engineInstance;
+  }
+
+  // If different model, reset first
+  if (engineInstance && currentModelId !== modelId) {
+    engineInstance = null;
+    currentModelId = null;
+  }
 
   // Prevent double initialization
   if (engineLoading) {
@@ -49,17 +123,18 @@ export async function initEngine(
     while (engineLoading) {
       await new Promise((r) => setTimeout(r, 200));
     }
-    if (engineInstance) return engineInstance;
+    if (engineInstance && currentModelId === modelId) return engineInstance;
   }
 
   engineLoading = true;
+  currentModelId = modelId;
 
   try {
     const { CreateMLCEngine, hasModelInCache } = await import(
       "@mlc-ai/web-llm"
     );
 
-    const cached = await hasModelInCache(MODEL_ID);
+    const cached = await hasModelInCache(modelId);
     
     // Reset download tracking
     downloadStartTime = null;
@@ -76,13 +151,13 @@ export async function initEngine(
       downloadStartTime = Date.now();
       lastProgressTime = Date.now();
       onProgress({
-        text: "Preparing to download model (~360MB)...",
+        text: `Preparing to download model (${modelInfo.size})...`,
         progress: 0,
         stage: "downloading",
       });
     }
 
-    const engine = await CreateMLCEngine(MODEL_ID, {
+    const engine = await CreateMLCEngine(modelId, {
       initProgressCallback: (report) => {
         // Parse the progress text to extract more information
         const text = report.text || "";
@@ -116,9 +191,16 @@ export async function initEngine(
           fileSize = sizeMatch[0];
         } else if (progress > 0 && progress < 1 && !cached) {
           // Estimate file size based on progress
-          const totalSize = 360; // ~360MB
-          const downloaded = Math.round(totalSize * progress);
-          fileSize = `${downloaded}MB / ${totalSize}MB`;
+          const totalSizeMB = modelInfo.sizeMB;
+          const downloaded = Math.round(totalSizeMB * progress);
+          // Show in GB if over 1000MB
+          if (downloaded >= 1000) {
+            const downloadedGB = (downloaded / 1000).toFixed(1);
+            const totalGB = (totalSizeMB / 1000).toFixed(1);
+            fileSize = `${downloadedGB}GB / ${totalGB}GB`;
+          } else {
+            fileSize = `${downloaded}MB / ${totalSizeMB}MB`;
+          }
         }
 
         // Calculate estimated time remaining

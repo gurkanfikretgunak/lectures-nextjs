@@ -272,7 +272,7 @@ content/prompting/101.tr.mdx
 - **Code Highlighting**: [rehype-pretty-code](https://github.com/atomiks/rehype-pretty-code)
 - **Search**: [FlexSearch](https://github.com/nextapps-de/flexsearch)
 - **Icons**: [Lucide React](https://lucide.dev/)
-- **AI Assistant**: [WebLLM](https://github.com/mlc-ai/web-llm) (SmolLM2-360M, runs in browser)
+- **AI Assistant**: [WebLLM](https://github.com/mlc-ai/web-llm) (Llama-3.2-1B-Instruct, runs in browser)
 - **Certificate Generation**: [html2canvas](https://html2canvas.hertzen.com/) + [jsPDF](https://github.com/parallax/jsPDF)
 
 ## 📦 Available Scripts

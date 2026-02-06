@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { GraduationCap, Search } from "lucide-react";
+import { GraduationCap, Search, MessageCircle } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { LanguageToggle } from "@/components/language-toggle";
 import { MobileSidebar } from "@/components/layout/mobile-sidebar";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/language-context";
+import { cn } from "@/lib/utils";
 
 interface NavItem {
   title: string;
@@ -23,16 +24,23 @@ interface NavSection {
 interface HeaderProps {
   navigation: NavSection[];
   onSearchOpen?: () => void;
+  onAssistantOpen?: () => void;
+  showAssistantButton?: boolean;
 }
 
-export function Header({ navigation, onSearchOpen }: HeaderProps) {
+export function Header({
+  navigation,
+  onSearchOpen,
+  onAssistantOpen,
+  showAssistantButton = false,
+}: HeaderProps) {
   const { t } = useLanguage();
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex h-16 items-center px-4 lg:px-6">
         <MobileSidebar navigation={navigation} />
-        
+
         <Link href="/" className="flex items-center gap-2 ml-2 lg:ml-0">
           <GraduationCap className="h-6 w-6" />
           <span className="font-semibold text-lg hidden sm:inline-block">
@@ -62,6 +70,31 @@ export function Header({ navigation, onSearchOpen }: HeaderProps) {
           >
             <Search className="h-5 w-5" />
           </Button>
+          
+          {/* AI Assistant Button - Top Right, near search */}
+          {showAssistantButton && onAssistantOpen && (
+            <button
+              onClick={onAssistantOpen}
+              className={cn(
+                "group relative",
+                "h-9 px-3 rounded-lg",
+                "bg-primary/10 hover:bg-primary/20",
+                "border border-primary/20 hover:border-primary/30",
+                "transition-all duration-200",
+                "flex items-center gap-2",
+                "text-sm font-medium text-primary"
+              )}
+              aria-label={t("aiAssistant")}
+            >
+              <MessageCircle className="h-4 w-4" />
+              <span className="hidden sm:inline">{t("aiAssistant")}</span>
+              {/* Badge */}
+              <div className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-green-500 border-2 border-background">
+                <div className="h-1 w-1 rounded-full bg-white animate-pulse m-0.5" />
+              </div>
+            </button>
+          )}
+          
           <LanguageToggle />
           <ThemeToggle />
         </div>
