@@ -7,14 +7,16 @@ A comprehensive, modern lecture platform built with Next.js for learning about A
 ## ✨ Features
 
 - 📚 **Comprehensive Content**: Lectures covering Prompting, LLM, AI Tooling, Reasoning, Applications, and Resources
+- 🤖 **Learn to Prompt**: Interactive prompt engineering simulator with AI assistant running entirely in your browser
 - 🌍 **Bilingual Support**: Full English and Turkish language support with automatic fallback
 - 🎨 **Modern UI**: Beautiful, responsive design with dark mode support
 - 🔍 **Powerful Search**: Fast, client-side search across all lectures
-- 📊 **Interactive Diagrams**: Mermaid diagram support for visual learning
+- 📊 **Interactive Diagrams**: Mermaid diagram support with zoom, pan, and touch controls
 - 💻 **Multi-Language Code**: Code examples in Python, TypeScript, C#, and Dart
 - 📱 **Mobile Responsive**: Optimized for all screen sizes
 - ⚡ **Fast Performance**: Built with Next.js 14 for optimal performance
 - 🎯 **Table of Contents**: Automatic TOC generation from headings
+- 🏆 **Completion Certificates**: Generate and download certificates (PNG/PDF) after completing simulations
 - 🔒 **Password Protection**: Optional password gate for content protection
 
 ## 🚀 Getting Started
@@ -58,6 +60,51 @@ pnpm dev
 
 5. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
+## 🤖 Learn to Prompt Feature
+
+The platform includes an interactive **"Learn to Prompt"** simulation that teaches prompt engineering through hands-on practice.
+
+### Features
+
+- **6-Step Guided Simulation**: Learn to build effective prompts step-by-step (Goal → Role → Context → I/O → Examples → Refine)
+- **AI Assistant**: Get real-time help from an AI assistant powered by WebLLM (runs entirely in your browser)
+- **Built-in Helper Mode**: Works even without WebGPU - includes helpful tips and examples for each step
+- **Step-by-Step Guidance**: Each step includes:
+  - Clear explanations of why it matters
+  - Checklist of what to include
+  - Example snippets ready to use
+  - Real-time scoring feedback
+- **Quick Suggestions**: Tap suggestion chips to ask common questions instantly
+- **Completion Certificate**: Generate downloadable certificates (PNG/PDF) after completing all steps
+- **Model Caching**: AI model downloads once and caches in IndexedDB for instant loading on return visits
+
+### How to Use
+
+1. Navigate to `/learn-to-prompt` from the home page
+2. Start with Step 1: Define the Goal
+3. Use the AI assistant on the right (or built-in helper) for guidance
+4. Complete all 6 steps to generate your certificate
+5. Download your certificate as PNG (for sharing) or PDF (for printing)
+
+### Browser Requirements
+
+- **For AI Assistant**: Chrome/Edge with WebGPU support (recommended)
+- **For Built-in Helper**: Any modern browser (works everywhere)
+
+The simulation teaches you to build production-ready prompts through a practical "Auth Sign-In Component" example, but the techniques apply to any prompt engineering task.
+
+### Certificate Generation
+
+Upon completing all 6 steps, you can generate a completion certificate:
+
+- **Name Input**: Personalize your certificate with your name
+- **Score Breakdown**: See your performance for each step
+- **Overall Rating**: Get a star rating (1-5 stars) based on your prompt quality
+- **Export Options**:
+  - **PNG**: High-quality image perfect for sharing on LinkedIn, Twitter, etc.
+  - **PDF**: Print-ready document for formal use
+- **Details Included**: Name, simulation title, completion date, steps completed, and overall score
+
 ## 📁 Project Structure
 
 ```
@@ -65,13 +112,23 @@ lectures-nextjs/
 ├── app/                      # Next.js app directory
 │   ├── [category]/          # Dynamic category routes
 │   │   └── [slug]/          # Dynamic lecture routes
+│   ├── learn-to-prompt/     # Learn to Prompt feature
+│   │   ├── page.tsx         # Route handler
+│   │   └── learn-to-prompt-page.tsx  # Main page component
 │   ├── layout.tsx           # Root layout
 │   ├── page.tsx             # Home page
+│   ├── home-page.tsx        # Home page component
 │   └── not-found.tsx        # 404 page
 ├── components/              # React components
 │   ├── layout/              # Layout components (header, sidebar, TOC)
+│   ├── learn-to-prompt/     # Learn to Prompt components
+│   │   ├── prompt-simulator.tsx      # Step-by-step simulator
+│   │   ├── assistant-chat.tsx        # AI assistant chat UI
+│   │   ├── completion-certificate.tsx # Certificate generator
+│   │   ├── webllm-engine.ts          # WebLLM integration
+│   │   └── simulation-data.ts        # Simulation step definitions
 │   ├── mdx/                 # MDX custom components
-│   │   ├── mermaid.tsx      # Mermaid diagram component
+│   │   ├── mermaid.tsx      # Mermaid diagram component (with zoom/pan)
 │   │   ├── multi-language-code.tsx  # Multi-language code blocks
 │   │   └── code-block.tsx   # Code block component
 │   └── ui/                  # UI components (shadcn/ui)
@@ -154,7 +211,7 @@ See [CONTENT_TRANSLATION.md](./CONTENT_TRANSLATION.md) for detailed translation 
 
 ### Mermaid Diagrams
 
-Render interactive flowcharts and diagrams:
+Render interactive flowcharts and diagrams with zoom, pan, and touch controls:
 
 ```mdx
 <Mermaid chart={`
@@ -163,6 +220,12 @@ flowchart TB
     B --> C[End]
 `} />
 ```
+
+**Interactive Features:**
+- **Auto-fit**: Automatically scales diagrams that overflow their container
+- **Desktop Controls**: Mouse wheel zoom, trackpad pinch, click-and-drag panning
+- **Mobile Controls**: Two-finger pinch-to-zoom, two-finger drag panning
+- **Fullscreen Mode**: View diagrams in fullscreen with all interactive controls
 
 ### Multi-Language Code Blocks
 
@@ -205,10 +268,12 @@ content/prompting/101.tr.mdx
 - **Styling**: [Tailwind CSS](https://tailwindcss.com/)
 - **UI Components**: [shadcn/ui](https://ui.shadcn.com/)
 - **Content**: MDX with [next-mdx-remote](https://github.com/hashicorp/next-mdx-remote)
-- **Diagrams**: [Mermaid](https://mermaid.js.org/)
+- **Diagrams**: [Mermaid](https://mermaid.js.org/) with interactive zoom/pan
 - **Code Highlighting**: [rehype-pretty-code](https://github.com/atomiks/rehype-pretty-code)
 - **Search**: [FlexSearch](https://github.com/nextapps-de/flexsearch)
 - **Icons**: [Lucide React](https://lucide.dev/)
+- **AI Assistant**: [WebLLM](https://github.com/mlc-ai/web-llm) (SmolLM2-360M, runs in browser)
+- **Certificate Generation**: [html2canvas](https://html2canvas.hertzen.com/) + [jsPDF](https://github.com/parallax/jsPDF)
 
 ## 📦 Available Scripts
 
@@ -279,6 +344,8 @@ This project is private and proprietary.
 - UI components from [shadcn/ui](https://ui.shadcn.com/)
 - Icons from [Lucide](https://lucide.dev/)
 - Code highlighting by [Shiki](https://shiki.matsu.io/)
+- AI inference powered by [WebLLM](https://github.com/mlc-ai/web-llm) from MLC AI
+- Diagram rendering by [Mermaid](https://mermaid.js.org/)
 
 ## 📞 Support
 
