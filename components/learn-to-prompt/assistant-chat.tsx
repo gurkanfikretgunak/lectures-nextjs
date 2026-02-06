@@ -232,19 +232,46 @@ function getBuiltInResponse(
     }
   }
 
-  // General fallback for any prompt engineering question
+  // Check if question is about general development (not prompt engineering)
+  const isGeneralDevQuestion =
+    q.includes("build") ||
+    q.includes("create") ||
+    q.includes("component") ||
+    q.includes("api") ||
+    q.includes("database") ||
+    q.includes("function") ||
+    q.includes("solve") ||
+    q.includes("problem") ||
+    q.includes("error") ||
+    q.includes("bug") ||
+    q.includes("implement") ||
+    q.includes("code") ||
+    q.includes("olustur") ||
+    q.includes("yap") ||
+    q.includes("cozum") ||
+    q.includes("hata") ||
+    q.includes("kod");
+
+  // General development question - encourage using AI model
+  if (isGeneralDevQuestion && !q.includes("prompt")) {
+    return language === "en"
+      ? `I can help you with that! For detailed assistance with development questions, code examples, and solutions, please load the AI model using the "Download & Start" button above.\n\nThe AI assistant can help with:\n- Building components and features\n- Solving coding problems\n- Architecture and best practices\n- Debugging and error fixing\n- And much more!\n\nFor now, here's a quick tip: Be specific about what you're trying to build or solve, include your tech stack (React, TypeScript, etc.), and describe any errors or constraints you're facing.`
+      : `Buna yardimci olabilirim! Gelistirme sorulari, kod ornekleri ve cozumler icin detayli yardim almak icin lutfen yukaridaki "Indir ve Baslat" butonunu kullanarak AI modelini yukleyin.\n\nAI asistan su konularda yardimci olabilir:\n- Bilesen ve ozellik olusturma\n- Kod problemlerini cozme\n- Mimari ve en iyi uygulamalar\n- Hata ayiklama\n- Ve daha fazlasi!\n\nSimdilik hizli bir ipucu: Ne olusturmaya veya cozmeye calistiginizi spesifik olun, teknoloji yigininizi (React, TypeScript, vb.) belirtin ve karsilastiginiz hatalari veya kisitlamalari tanimlayin.`;
+  }
+
+  // General fallback for prompt engineering questions
   if (q.includes("prompt") || q.includes("how") || q.includes("what") || q.includes("nasil") || q.includes("ne")) {
     const tipIndex = Math.floor(Math.random() * GENERAL_TIPS[language].length);
     const tip = GENERAL_TIPS[language][tipIndex];
     return language === "en"
-      ? `Here's a prompt engineering tip:\n\n${tip}\n\nTry applying this to your current step! You can also ask me something more specific about what you're working on.`
-      : `Iste bir prompt muhendisligi ipucu:\n\n${tip}\n\nBunu mevcut adiminiza uygulamayi deneyin! Uzerinde calistiginiz sey hakkinda daha spesifik bir sey de sorabilirsiniz.`;
+      ? `Here's a prompt engineering tip:\n\n${tip}\n\nFor more detailed help with prompt engineering or any development question, load the AI model above for comprehensive assistance!`
+      : `Iste bir prompt muhendisligi ipucu:\n\n${tip}\n\nPrompt muhendisligi veya herhangi bir gelistirme sorusu icin daha detayli yardim almak icin yukaridaki AI modelini yukleyin!`;
   }
 
-  // Default
+  // Default - encourage AI model for better help
   return language === "en"
-    ? `Great question! For Step ${stepId}, focus on: ${stepId === 1 ? "writing a clear, specific goal" : stepId === 2 ? "assigning an expert role to the AI" : stepId === 3 ? "specifying your tech stack and constraints" : stepId === 4 ? "defining what the component receives and returns" : stepId === 5 ? "providing concrete examples" : "combining everything into one cohesive prompt"}.\n\nTry tapping one of the suggestions above for specific guidance!`
-    : `Iyi soru! Adim ${stepId} icin su konuya odaklanin: ${stepId === 1 ? "net, spesifik bir hedef yazma" : stepId === 2 ? "AI'ye uzman bir rol atama" : stepId === 3 ? "teknoloji yigini ve kisitlamalari belirtme" : stepId === 4 ? "bilesenin neler alip dondurecegini tanimlama" : stepId === 5 ? "somut ornekler saglama" : "her seyi tek bir tutarli promptta birlestirme"}.\n\nSpesifik rehberlik icin yukaridaki onerilerden birini deneyin!`;
+    ? `Great question! For Step ${stepId}, focus on: ${stepId === 1 ? "writing a clear, specific goal" : stepId === 2 ? "assigning an expert role to the AI" : stepId === 3 ? "specifying your tech stack and constraints" : stepId === 4 ? "defining what the component receives and returns" : stepId === 5 ? "providing concrete examples" : "combining everything into one cohesive prompt"}.\n\nFor detailed help with this step or any development question, load the AI model above!`
+    : `Iyi soru! Adim ${stepId} icin su konuya odaklanin: ${stepId === 1 ? "net, spesifik bir hedef yazma" : stepId === 2 ? "AI'ye uzman bir rol atama" : stepId === 3 ? "teknoloji yigini ve kisitlamalari belirtme" : stepId === 4 ? "bilesenin neler alip dondurecegini tanimlama" : stepId === 5 ? "somut ornekler saglama" : "her seyi tek bir tutarli promptta birlestirme"}.\n\nBu adim veya herhangi bir gelistirme sorusu icin detayli yardim almak icin yukaridaki AI modelini yukleyin!`;
 }
 
 export function AssistantChat({
