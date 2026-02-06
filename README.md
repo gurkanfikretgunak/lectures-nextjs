@@ -7,7 +7,8 @@ A comprehensive, modern lecture platform built with Next.js for learning about A
 ## ✨ Features
 
 - 📚 **Comprehensive Content**: Lectures covering Prompting, LLM, AI Tooling, Reasoning, Applications, and Resources
-- 🤖 **Learn to Prompt**: Interactive prompt engineering simulator with AI assistant running entirely in your browser
+- 🤖 **AI Assistant Panel**: **Powerful in-browser AI assistant** available on homepage and Learn to Prompt page - get instant help with coding, development, and general questions
+- 🎓 **Learn to Prompt**: Interactive prompt engineering simulator with dedicated AI assistant running entirely in your browser
 - 🌍 **Bilingual Support**: Full English and Turkish language support with automatic fallback
 - 🎨 **Modern UI**: Beautiful, responsive design with dark mode support
 - 🔍 **Powerful Search**: Fast, client-side search across all lectures
@@ -60,14 +61,89 @@ pnpm dev
 
 5. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-## 🤖 Learn to Prompt Feature
+## 🤖 AI Assistant & Helping Panel
+
+The platform features **two powerful AI assistants** that run entirely in your browser using WebLLM technology. No API keys, no external services - everything runs locally for privacy and speed.
+
+### 🏠 Homepage AI Assistant (General Purpose)
+
+Access a **general-purpose AI assistant** directly from the homepage header. Perfect for everyday coding questions, software development help, and general knowledge.
+
+**Key Features:**
+- 🚀 **Instant Access**: Click the AI Assistant button in the top-right header (next to search)
+- 💬 **Chat Interface**: Clean, modern chat UI with message history
+- 🧠 **Model Selection**: Choose between **SmolLM2** (faster, smaller) or **Llama-3.2-1B** (more capable)
+- 💾 **Smart Caching**: Models download once and cache in IndexedDB - instant loading on return visits
+- 🔄 **Model Switching**: Switch between models anytime with confirmation dialog
+- 🗑️ **Reset Chat**: Clear conversation history with one click
+- 📊 **Download Progress**: Real-time progress tracking during model download
+- ⚡ **WebGPU Powered**: Leverages WebGPU for fast, local inference
+- 🔒 **Privacy First**: All processing happens in your browser - no data sent to servers
+
+**What It Can Help With:**
+- Programming and coding questions (JavaScript, TypeScript, Python, React, etc.)
+- Software development problems and debugging
+- General knowledge and explanations
+- Daily life questions and advice
+- Learning new concepts
+- Problem-solving
+
+**How to Use:**
+1. Click the **AI Assistant** button in the header (top-right, near search)
+2. On first use, select your preferred model (SmolLM2 or Llama-3.2)
+3. Start chatting! Ask any coding or development question
+4. Use the settings icon to switch models or reset chat anytime
+
+### 🎓 Learn to Prompt AI Assistant
+
+A specialized AI assistant integrated into the **Learn to Prompt** simulation page, designed to help you master prompt engineering.
+
+**Key Features:**
+- 📍 **Context-Aware**: Knows which step you're on and provides relevant guidance
+- 💡 **Step Suggestions**: Quick suggestion chips for common questions per step
+- 🎯 **Focused Help**: Tailored responses for prompt engineering challenges
+- 🔄 **Same Technology**: Uses the same WebLLM engine as the homepage assistant
+- 📚 **Built-in Fallback**: Helpful tips available even without WebGPU support
+
+**How to Use:**
+1. Navigate to `/learn-to-prompt`
+2. The AI assistant appears on the right side (or bottom on mobile)
+3. Ask questions about the current step or prompt engineering in general
+4. Use suggestion chips for quick common questions
+
+### 🔧 Technical Details
+
+**Supported Models:**
+- **SmolLM2-360M**: Fast, lightweight model (~360MB) - great for quick responses
+- **Llama-3.2-1B**: More capable model (~1.5GB) - better for complex questions
+
+**Browser Requirements:**
+- **Recommended**: Chrome/Edge with WebGPU support for full AI capabilities
+- **Fallback**: Any modern browser - built-in helper mode works everywhere
+
+**Model Caching:**
+- Models are cached in IndexedDB after first download
+- Subsequent visits load instantly (no re-download needed)
+- Cache persists across browser sessions
+- Clear cache by clearing browser data if needed
+
+**Privacy & Security:**
+- ✅ All AI processing happens locally in your browser
+- ✅ No API keys or external services required
+- ✅ No data sent to external servers
+- ✅ Complete privacy and data control
+
+## 🎓 Learn to Prompt Feature
 
 The platform includes an interactive **"Learn to Prompt"** simulation that teaches prompt engineering through hands-on practice.
 
 ### Features
 
 - **6-Step Guided Simulation**: Learn to build effective prompts step-by-step (Goal → Role → Context → I/O → Examples → Refine)
-- **AI Assistant**: Get real-time help from an AI assistant powered by WebLLM (runs entirely in your browser)
+- **🤖 Dedicated AI Assistant**: Get real-time, context-aware help from an AI assistant powered by WebLLM (runs entirely in your browser, no API keys needed)
+  - Knows which step you're on and provides relevant guidance
+  - Quick suggestion chips for instant common questions
+  - Same powerful WebLLM technology as the homepage assistant
 - **Built-in Helper Mode**: Works even without WebGPU - includes helpful tips and examples for each step
 - **Step-by-Step Guidance**: Each step includes:
   - Clear explanations of why it matters
@@ -121,11 +197,12 @@ lectures-nextjs/
 │   └── not-found.tsx        # 404 page
 ├── components/              # React components
 │   ├── layout/              # Layout components (header, sidebar, TOC)
+│   ├── general-assistant.tsx # 🤖 Homepage AI Assistant (general purpose)
 │   ├── learn-to-prompt/     # Learn to Prompt components
 │   │   ├── prompt-simulator.tsx      # Step-by-step simulator
-│   │   ├── assistant-chat.tsx        # AI assistant chat UI
+│   │   ├── assistant-chat.tsx        # 🤖 AI assistant chat UI (Learn to Prompt)
 │   │   ├── completion-certificate.tsx # Certificate generator
-│   │   ├── webllm-engine.ts          # WebLLM integration
+│   │   ├── webllm-engine.ts          # 🤖 WebLLM integration (shared engine)
 │   │   └── simulation-data.ts        # Simulation step definitions
 │   ├── mdx/                 # MDX custom components
 │   │   ├── mermaid.tsx      # Mermaid diagram component (with zoom/pan)
@@ -272,7 +349,11 @@ content/prompting/101.tr.mdx
 - **Code Highlighting**: [rehype-pretty-code](https://github.com/atomiks/rehype-pretty-code)
 - **Search**: [FlexSearch](https://github.com/nextapps-de/flexsearch)
 - **Icons**: [Lucide React](https://lucide.dev/)
-- **AI Assistant**: [WebLLM](https://github.com/mlc-ai/web-llm) (Llama-3.2-1B-Instruct, runs in browser)
+- **🤖 AI Assistant Engine**: [WebLLM](https://github.com/mlc-ai/web-llm) - **Powerful in-browser AI inference**
+  - Models: Llama-3.2-1B-Instruct & SmolLM2-360M-Instruct
+  - Runs entirely in browser (no API keys, no external services)
+  - WebGPU-accelerated for fast local inference
+  - IndexedDB caching for instant model loading
 - **Certificate Generation**: [html2canvas](https://html2canvas.hertzen.com/) + [jsPDF](https://github.com/parallax/jsPDF)
 
 ## 📦 Available Scripts
@@ -344,7 +425,7 @@ This project is private and proprietary.
 - UI components from [shadcn/ui](https://ui.shadcn.com/)
 - Icons from [Lucide](https://lucide.dev/)
 - Code highlighting by [Shiki](https://shiki.matsu.io/)
-- AI inference powered by [WebLLM](https://github.com/mlc-ai/web-llm) from MLC AI
+- **🤖 AI Assistant powered by [WebLLM](https://github.com/mlc-ai/web-llm) from MLC AI** - Enabling privacy-first, in-browser AI inference
 - Diagram rendering by [Mermaid](https://mermaid.js.org/)
 
 ## 📞 Support
