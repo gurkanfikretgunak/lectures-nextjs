@@ -11,6 +11,7 @@ import {
   ArrowRight,
   Network,
   Briefcase,
+  Sparkles,
 } from "lucide-react";
 import { Header } from "@/components/layout/header";
 import { Sidebar } from "@/components/layout/sidebar";
@@ -155,6 +156,27 @@ export function HomePage({ navigation }: HomePageProps) {
                 );
               })}
             </div>
+
+            {/* Learn to Prompt CTA */}
+            <Card className="mt-8 border-primary/30 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 group hover:border-primary/50 transition-colors">
+              <CardContent className="flex flex-col sm:flex-row items-center gap-4 p-6">
+                <div className="p-3 rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors">
+                  <Sparkles className="h-6 w-6 text-primary" />
+                </div>
+                <div className="flex-1 text-center sm:text-left">
+                  <h3 className="text-lg font-semibold">{t("learnToPrompt")}</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {t("learnToPromptDesc")}
+                  </p>
+                </div>
+                <Button asChild className="gap-2">
+                  <Link href="/learn-to-prompt">
+                    {t("startSimulation")}
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
 
             {/* Quick Start */}
             <div className="mt-16 text-center">
