@@ -128,7 +128,7 @@ export function LectureLayout({
 
   return (
     <div className="min-h-screen bg-background">
-      <Header navigation={navigation} onSearchOpen={() => setSearchOpen(true)} />
+      <Header navigation={navigation} onSearchOpen={() => setSearchOpen(true)} showAssistantButton />
       <SearchCommand
         items={allLectures}
         open={searchOpen}

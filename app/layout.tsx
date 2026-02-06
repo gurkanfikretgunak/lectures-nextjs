@@ -3,6 +3,7 @@ import { Inter, Fira_Code } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { LanguageProvider } from "@/contexts/language-context";
 import { PasswordGateWrapper } from "@/components/password-gate-wrapper";
+import { GlobalAssistantWrapper } from "@/components/global-assistant-wrapper";
 import { getPasswordConfig } from "@/lib/config";
 import "./globals.css";
 
@@ -46,6 +47,7 @@ export default function RootLayout({
               message={passwordConfig.message}
             >
               {children}
+              <GlobalAssistantWrapper />
             </PasswordGateWrapper>
           </LanguageProvider>
         </ThemeProvider>

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { GraduationCap, Search, MessageCircle } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { LanguageToggle } from "@/components/language-toggle";
@@ -32,9 +33,23 @@ export function Header({
   navigation,
   onSearchOpen,
   onAssistantOpen,
-  showAssistantButton = false,
+  showAssistantButton,
 }: HeaderProps) {
   const { t } = useLanguage();
+  const pathname = usePathname();
+  
+  // Hide assistant button on Learn to Prompt page (it has its own assistant)
+  const isLearnToPromptPage = pathname?.startsWith("/learn-to-prompt");
+  // Show assistant button by default unless explicitly hidden or on Learn to Prompt page
+  const shouldShowAssistantButton = (showAssistantButton !== false) && !isLearnToPromptPage;
+  
+  const handleAssistantClick = () => {
+    if (onAssistantOpen) {
+      onAssistantOpen();
+    } else if (typeof window !== "undefined" && (window as any).toggleGlobalAssistant) {
+      (window as any).toggleGlobalAssistant();
+    }
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -72,9 +87,9 @@ export function Header({
           </Button>
           
           {/* AI Assistant Button - Top Right, near search */}
-          {showAssistantButton && onAssistantOpen && (
+          {shouldShowAssistantButton && (
             <button
-              onClick={onAssistantOpen}
+              onClick={handleAssistantClick}
               className={cn(
                 "group relative",
                 "h-9 px-3 rounded-lg",
