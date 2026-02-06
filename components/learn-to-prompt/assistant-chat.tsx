@@ -12,6 +12,7 @@ import {
   Zap,
   HelpCircle,
   BookOpen,
+  RotateCcw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -311,17 +312,25 @@ export function AssistantChat({
     }
   }, [messages]);
 
-  // Add welcome message when step changes
-  useEffect(() => {
+  // Get welcome message helper
+  const getWelcomeMessage = useCallback(() => {
     const stepTitle =
       language === "en" ? currentStep.titleEn : currentStep.titleTr;
-    const welcomeMsg =
-      language === "en"
-        ? `You're on **Step ${currentStep.id}: ${stepTitle}**. I can help you with this step or any prompt engineering question!\n\nTap a suggestion below or type your own question.`
-        : `**Adim ${currentStep.id}: ${stepTitle}** uzerindesiniz. Bu adim veya herhangi bir prompt muhendisligi sorusu konusunda yardimci olabilirim!\n\nAsagidaki bir oneriyi tiklayin veya kendi sorunuzu yazin.`;
-
-    setMessages([{ role: "assistant", content: welcomeMsg }]);
+    return language === "en"
+      ? `You're on **Step ${currentStep.id}: ${stepTitle}**. I can help you with:\n\n• This simulation step\n• Prompt engineering questions\n• **ANY development question** - React, APIs, databases, debugging, algorithms, etc.\n\nTap a suggestion below or ask me anything!`
+      : `**Adim ${currentStep.id}: ${stepTitle}** uzerindesiniz. Size yardimci olabilirim:\n\n• Bu simulasyon adimi\n• Prompt muhendisligi sorulari\n• **HERHANGI bir gelistirme sorusu** - React, API'ler, veritabanlari, hata ayiklama, algoritmalar, vb.\n\nAsagidaki bir oneriyi tiklayin veya bana herhangi bir sey sorun!`;
   }, [currentStep, language]);
+
+  // Add welcome message when step changes
+  useEffect(() => {
+    setMessages([{ role: "assistant", content: getWelcomeMessage() }]);
+  }, [currentStep, language, getWelcomeMessage]);
+
+  // Reset chat function
+  const handleResetChat = useCallback(() => {
+    setMessages([{ role: "assistant", content: getWelcomeMessage() }]);
+    setInputValue("");
+  }, [getWelcomeMessage]);
 
   // Initialize engine
   const handleInitEngine = useCallback(async () => {
@@ -663,14 +672,27 @@ export function AssistantChat({
         <Badge variant="outline" className="text-[10px] h-4 px-1">
           {engine ? "SmolLM2" : language === "en" ? "Built-in" : "Dahili"}
         </Badge>
-        {!engine && webGPUAvailable && (
-          <button
-            onClick={handleInitEngine}
-            className="ml-auto text-[10px] text-primary hover:underline"
-          >
-            {language === "en" ? "Upgrade to AI" : "AI'ye yukselt"}
-          </button>
-        )}
+        <div className="ml-auto flex items-center gap-2">
+          {/* Reset Chat Button */}
+          {messages.length > 1 && (
+            <button
+              onClick={handleResetChat}
+              className="text-[10px] text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+              title={language === "en" ? "Reset chat" : "Sohbeti sifirla"}
+            >
+              <RotateCcw className="h-3 w-3" />
+              <span>{language === "en" ? "Reset" : "Sifirla"}</span>
+            </button>
+          )}
+          {!engine && webGPUAvailable && (
+            <button
+              onClick={handleInitEngine}
+              className="text-[10px] text-primary hover:underline"
+            >
+              {language === "en" ? "Upgrade to AI" : "AI'ye yukselt"}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Messages */}
@@ -754,8 +776,8 @@ export function AssistantChat({
             onKeyDown={handleKeyDown}
             placeholder={
               language === "en"
-                ? "Ask anything about prompts..."
-                : "Promptlar hakkinda herhangi bir sey sorun..."
+                ? "Ask me anything - prompts, code, debugging, APIs..."
+                : "Bana herhangi bir sey sorun - promptlar, kod, hata ayiklama, API'ler..."
             }
             rows={1}
             disabled={isStreaming}
