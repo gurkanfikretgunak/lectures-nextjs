@@ -555,20 +555,66 @@ export function AssistantChat({
 
   // ─── Loading state ───
   if (isLoading && loadProgress) {
+    const progressPercent = Math.round(loadProgress.progress * 100);
+    const isDownloading = loadProgress.stage === "downloading";
+
     return (
       <div className="flex flex-col h-full items-center justify-center p-6 text-center gap-4">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <div>
-          <p className="text-sm font-medium mb-2">{loadProgress.text}</p>
-          <div className="w-48 h-2 bg-muted rounded-full overflow-hidden">
-            <div
-              className="h-full bg-primary rounded-full transition-all duration-300"
-              style={{ width: `${Math.round(loadProgress.progress * 100)}%` }}
-            />
+        <div className="w-full max-w-sm space-y-3">
+          {/* Progress Text */}
+          <div>
+            <p className="text-sm font-medium mb-1">{loadProgress.text}</p>
+            {loadProgress.fileSize && (
+              <p className="text-xs text-muted-foreground">
+                {loadProgress.fileSize}
+              </p>
+            )}
           </div>
-          <p className="text-xs text-muted-foreground mt-1">
-            {Math.round(loadProgress.progress * 100)}%
-          </p>
+
+          {/* Progress Bar */}
+          <div className="space-y-1.5">
+            <div className="w-full h-2.5 bg-muted rounded-full overflow-hidden">
+              <div
+                className={cn(
+                  "h-full rounded-full transition-all duration-300",
+                  isDownloading ? "bg-primary" : "bg-green-500"
+                )}
+                style={{ width: `${progressPercent}%` }}
+              />
+            </div>
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-muted-foreground">
+                {progressPercent}%
+              </span>
+              {isDownloading && progressPercent > 0 && progressPercent < 100 && (
+                <span className="text-muted-foreground">
+                  {language === "en" ? "Downloading..." : "Indiriliyor..."}
+                </span>
+              )}
+              {progressPercent === 100 && (
+                <span className="text-green-600 dark:text-green-400">
+                  {language === "en" ? "Complete!" : "Tamamlandi!"}
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Additional Info */}
+          {isDownloading && progressPercent > 0 && progressPercent < 100 && (
+            <div className="space-y-1">
+              {loadProgress.estimatedTimeRemaining && (
+                <p className="text-xs font-medium text-primary">
+                  {loadProgress.estimatedTimeRemaining}
+                </p>
+              )}
+              <p className="text-xs text-muted-foreground">
+                {language === "en"
+                  ? "Please keep this tab open. The model will be cached for future use."
+                  : "Lutfen bu sekmeyi acik tutun. Model gelecekte kullanilmak uzere onbellege alinacak."}
+              </p>
+            </div>
+          )}
         </div>
       </div>
     );

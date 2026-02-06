@@ -8,10 +8,16 @@ const MODEL_ID = "SmolLM2-360M-Instruct-q4f32_1-MLC";
 
 let engineInstance: MLCEngine | null = null;
 let engineLoading = false;
+let downloadStartTime: number | null = null;
+let lastProgress: number = 0;
+let lastProgressTime: number | null = null;
 
 export interface LoadProgress {
   text: string;
   progress: number;
+  stage?: string; // e.g., "downloading", "loading", "initializing"
+  fileSize?: string; // e.g., "150MB / 360MB"
+  estimatedTimeRemaining?: string; // e.g., "~2 minutes remaining"
 }
 
 // Check if WebGPU is available in the browser
@@ -54,17 +60,107 @@ export async function initEngine(
     );
 
     const cached = await hasModelInCache(MODEL_ID);
+    
+    // Reset download tracking
+    downloadStartTime = null;
+    lastProgress = 0;
+    lastProgressTime = null;
+
     if (cached) {
-      onProgress({ text: "Loading model from cache...", progress: 0.8 });
+      onProgress({
+        text: "Loading model from cache...",
+        progress: 0.8,
+        stage: "loading",
+      });
     } else {
-      onProgress({ text: "Downloading model for the first time...", progress: 0 });
+      downloadStartTime = Date.now();
+      lastProgressTime = Date.now();
+      onProgress({
+        text: "Preparing to download model (~360MB)...",
+        progress: 0,
+        stage: "downloading",
+      });
     }
 
     const engine = await CreateMLCEngine(MODEL_ID, {
       initProgressCallback: (report) => {
+        // Parse the progress text to extract more information
+        const text = report.text || "";
+        const progress = report.progress || 0;
+        const now = Date.now();
+
+        // Detect stage from text
+        let stage: string | undefined;
+        if (
+          text.toLowerCase().includes("fetch") ||
+          text.toLowerCase().includes("download") ||
+          text.toLowerCase().includes("loading")
+        ) {
+          stage = "downloading";
+        } else if (
+          text.toLowerCase().includes("init") ||
+          text.toLowerCase().includes("initialize")
+        ) {
+          stage = "initializing";
+        } else if (
+          text.toLowerCase().includes("cache") ||
+          text.toLowerCase().includes("load")
+        ) {
+          stage = "loading";
+        }
+
+        // Try to extract file size information from text
+        let fileSize: string | undefined;
+        const sizeMatch = text.match(/(\d+(?:\.\d+)?)\s*(MB|KB|GB)/i);
+        if (sizeMatch) {
+          fileSize = sizeMatch[0];
+        } else if (progress > 0 && progress < 1 && !cached) {
+          // Estimate file size based on progress
+          const totalSize = 360; // ~360MB
+          const downloaded = Math.round(totalSize * progress);
+          fileSize = `${downloaded}MB / ${totalSize}MB`;
+        }
+
+        // Calculate estimated time remaining
+        let estimatedTimeRemaining: string | undefined;
+        if (!cached && progress > 0 && progress < 1 && downloadStartTime && lastProgressTime) {
+          const progressDelta = progress - lastProgress;
+          const timeDelta = (now - lastProgressTime) / 1000; // seconds
+
+          if (progressDelta > 0 && timeDelta > 0) {
+            const progressPerSecond = progressDelta / timeDelta;
+            const remainingProgress = 1 - progress;
+            const secondsRemaining = remainingProgress / progressPerSecond;
+
+            if (secondsRemaining > 0 && secondsRemaining < 3600) {
+              // Less than 1 hour
+              const minutes = Math.ceil(secondsRemaining / 60);
+              estimatedTimeRemaining = `~${minutes} ${minutes === 1 ? "minute" : "minutes"} remaining`;
+            }
+          }
+
+          lastProgress = progress;
+          lastProgressTime = now;
+        }
+
+        // Enhance progress text for better UX
+        let enhancedText = text;
+        if (text.toLowerCase().includes("start to fetch params")) {
+          enhancedText = cached
+            ? "Loading model parameters from cache..."
+            : "Downloading model parameters (this may take a few minutes)...";
+        } else if (text.toLowerCase().includes("fetch") && !text.toLowerCase().includes("complete")) {
+          enhancedText = cached
+            ? text
+            : `Downloading: ${text} (${Math.round(progress * 100)}%)`;
+        }
+
         onProgress({
-          text: report.text,
-          progress: report.progress,
+          text: enhancedText,
+          progress,
+          stage,
+          fileSize,
+          estimatedTimeRemaining,
         });
       },
     });
