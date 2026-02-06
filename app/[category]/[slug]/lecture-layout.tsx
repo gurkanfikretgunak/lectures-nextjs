@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, ArrowUp } from "lucide-react";
 import { Header } from "@/components/layout/header";
 import { Sidebar } from "@/components/layout/sidebar";
 import { TableOfContents } from "@/components/layout/toc";
@@ -56,10 +56,27 @@ export function LectureLayout({
   lecture,
 }: LectureLayoutProps) {
   const [searchOpen, setSearchOpen] = useState(false);
+  const [showScrollTop, setShowScrollTop] = useState(false);
   const pathname = usePathname();
   const mainContentRef = useRef<HTMLElement>(null);
   const articleRef = useRef<HTMLElement>(null);
   const { t } = useLanguage();
+
+  // Show scroll-to-top button after scrolling 400px
+  useEffect(() => {
+    let ticking = false;
+    const handleScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          setShowScrollTop(window.scrollY > 400);
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   // Get all lectures for search and navigation
   const allLectures = navigation.flatMap((section) =>
@@ -193,6 +210,21 @@ export function LectureLayout({
           </div>
         </main>
       </div>
+
+      {/* Scroll to top FAB */}
+      <Button
+        variant="secondary"
+        size="icon"
+        className={`fixed bottom-6 right-6 z-50 h-10 w-10 rounded-full shadow-lg border border-border/50 transition-all duration-300 ${
+          showScrollTop
+            ? "opacity-100 translate-y-0 pointer-events-auto"
+            : "opacity-0 translate-y-4 pointer-events-none"
+        }`}
+        onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+        aria-label={t("scrollToTop")}
+      >
+        <ArrowUp className="h-4 w-4" />
+      </Button>
     </div>
   );
 }

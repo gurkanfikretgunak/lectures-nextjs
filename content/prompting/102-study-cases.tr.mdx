@@ -42,31 +42,8 @@ Kıdemli bir Python geliştiricisi olarak kod incelemesi yapıyorsunuz.
 1. Potansiyel hataları ve uç durumları kontrol edin
 2. Kod stilini değerlendirin (PEP 8 uyumluluğu)
 3. Performans etkilerini değerlendirin
-4. Örneklerle iyileştirme önerileri sunun
-
-İncelenecek Kod:
-\`\`\`python
-def calculate_average(numbers):
-    total = 0
-    for n in numbers:
-        total = total + n
-    return total / len(numbers)
-\`\`\`
-
-İncelemenizi bu formatta sağlayın:
-## Hatalar/Sorunlar
-## Stil Önerileri
-## Performans Önerileri
-## İyileştirilmiş Kod
-"""`}
-  turkish={`code_review_prompt = """
-Kıdemli bir Python geliştiricisi olarak kod incelemesi yapıyorsunuz.
-
-İnceleme Kılavuzu:
-1. Potansiyel hataları ve uç durumları kontrol edin
-2. Kod stilini değerlendirin (PEP 8 uyumluluğu)
-3. Performans etkilerini değerlendirin
-4. Örneklerle iyileştirme önerileri sunun
+4. Pythonic deyimleri kontrol edin (list comprehensions, generators)
+5. Örneklerle iyileştirme önerileri sunun
 
 İncelenecek Kod:
 \`\`\`python
@@ -87,13 +64,14 @@ def calculate_average(numbers):
 Kıdemli bir TypeScript geliştiricisi olarak kod incelemesi yapıyorsunuz.
 
 İnceleme Kılavuzu:
-1. Potansiyel hataları ve uç durumları kontrol edin
-2. Kod stilini değerlendirin (TypeScript en iyi uygulamaları)
+1. Potansiyel hataları ve tip güvenliği sorunlarını kontrol edin
+2. Kod stilini değerlendirin (ESLint/Prettier, TypeScript strict mode)
 3. Performans etkilerini değerlendirin
-4. Örneklerle iyileştirme önerileri sunun
+4. TypeScript özelliklerini kontrol edin (generics, utility types)
+5. Örneklerle iyileştirme önerileri sunun
 
 İncelenecek Kod:
-\`\`\`typescript
+\\\`\\\`\\\`typescript
 function calculateAverage(numbers: number[]): number {
     let total = 0;
     for (const n of numbers) {
@@ -101,7 +79,7 @@ function calculateAverage(numbers: number[]): number {
     }
     return total / numbers.length;
 }
-\`\`\`
+\\\`\\\`\\\`
 
 İncelemenizi bu formatta sağlayın:
 ## Hatalar/Sorunlar
@@ -113,10 +91,11 @@ function calculateAverage(numbers: number[]): number {
 Kıdemli bir C# geliştiricisi olarak kod incelemesi yapıyorsunuz.
 
 İnceleme Kılavuzu:
-1. Potansiyel hataları ve uç durumları kontrol edin
-2. Kod stilini değerlendirin (C# kuralları)
-3. Performans etkilerini değerlendirin
-4. Örneklerle iyileştirme önerileri sunun
+1. Potansiyel hataları ve null referans sorunlarını kontrol edin
+2. Kod stilini değerlendirin (C# kuralları, .NET kılavuzları)
+3. Performans etkilerini değerlendirin (LINQ vs döngüler, boxing)
+4. C# özelliklerini kontrol edin (async/await, nullable tipler)
+5. Örneklerle iyileştirme önerileri sunun
 
 İncelenecek Kod:
 \`\`\`csharp
@@ -138,13 +117,14 @@ public static double CalculateAverage(List<int> numbers)
 ## İyileştirilmiş Kod
 ";`}
   dart={`final codeReviewPrompt = """
-Kıdemli bir Dart geliştiricisi olarak kod incelemesi yapıyorsunuz.
+Kıdemli bir Dart/Flutter geliştiricisi olarak kod incelemesi yapıyorsunuz.
 
 İnceleme Kılavuzu:
-1. Potansiyel hataları ve uç durumları kontrol edin
-2. Kod stilini değerlendirin (Dart stil kılavuzu)
+1. Potansiyel hataları ve null güvenliği sorunlarını kontrol edin
+2. Kod stilini değerlendirin (Dart stil kılavuzu, effective Dart)
 3. Performans etkilerini değerlendirin
-4. Örneklerle iyileştirme önerileri sunun
+4. Dart özelliklerini kontrol edin (collection methods, cascades)
+5. Örneklerle iyileştirme önerileri sunun
 
 İncelenecek Kod:
 \`\`\`dart
@@ -167,8 +147,8 @@ double calculateAverage(List<int> numbers) {
 
 ### Örneklerle Gelişmiş Prompt
 
-```python
-advanced_code_review_prompt = """
+<MultiLanguageCode
+  python={`advanced_code_review_prompt = """
 10+ yıl deneyime sahip kıdemli bir Python geliştiricisi olarak kapsamlı bir kod incelemesi yapıyorsunuz.
 
 İncelenecek Kod:
@@ -182,51 +162,163 @@ Kodu sistematik olarak inceleyin:
    - Mantık hatalarını kontrol edin
    - Uç durumları belirleyin (boş girdiler, None değerleri, tip uyumsuzlukları)
    - Potansiyel çalışma zamanı istisnalarını arayın
-   - Sınır koşullarını doğrulayın
 
 2. **Kod Stili ve En İyi Uygulamalar**
    - PEP 8 uyumluluğu
    - Pythonic deyimler (list comprehensions, generator expressions)
-   - İsimlendirme kuralları
-   - Fonksiyon uzunluğu ve karmaşıklığı
-   - Dokümantasyon (docstrings)
+   - İsimlendirme kuralları ve docstrings
 
 3. **Performans Analizi**
    - Zaman karmaşıklığı (Big O)
    - Uzay karmaşıklığı
-   - Gereksiz işlemler
    - Optimizasyon fırsatları
 
 4. **Güvenlik Endişeleri**
    - Girdi doğrulama
    - SQL injection riskleri (varsa)
-   - XSS güvenlik açıkları (varsa)
-   - Hassas veri maruziyeti
 
 5. **Bakım Kolaylığı**
-   - Kod okunabilirliği
-   - Modülerlik
-   - Hata yönetimi
+   - Kod okunabilirliği ve modülerlik
+   - Hata yönetimi ve test edilebilirlik
+
+İncelemenizi bu yapılandırılmış formatta sağlayın:
+
+## Kritik Sorunlar
+## Stil ve En İyi Uygulamalar
+## Performans
+## Güvenlik
+## Önerilen İyileştirmeler
+"""`}
+  typescript={`const advancedCodeReviewPrompt = \`
+10+ yıl deneyime sahip kıdemli bir TypeScript geliştiricisi olarak kapsamlı bir kod incelemesi yapıyorsunuz.
+
+İncelenecek Kod:
+\\\`\\\`\\\`typescript
+\${code}
+\\\`\\\`\\\`
+
+Kodu sistematik olarak inceleyin:
+
+1. **Hata Tespiti**
+   - Mantık hataları ve tip güvenliği sorunlarını kontrol edin
+   - Uç durumları belirleyin (undefined, null, boş diziler)
+   - Hata sınırlarını doğrulayın
+
+2. **Kod Stili ve En İyi Uygulamalar**
+   - ESLint/Prettier uyumluluğu
+   - TypeScript strict mode uyumluluğu
+   - Generics, utility types, discriminated unions kullanımı
+   - JSDoc yorumları
+
+3. **Performans Analizi**
+   - Zaman ve uzay karmaşıklığı (Big O)
+   - Gereksiz yeniden render (React ise)
+   - Bundle boyut etkisi
+
+4. **Güvenlik Endişeleri**
+   - Girdi doğrulama ve sanitizasyon
+   - XSS güvenlik açıkları
+
+5. **Bakım Kolaylığı**
+   - Kod okunabilirliği ve modülerlik
+   - Hata yönetimi kalıpları (Result types, try/catch)
    - Test edilebilirlik
 
 İncelemenizi bu yapılandırılmış formatta sağlayın:
 
 ## Kritik Sorunlar
-[Herhangi bir hata veya kritik sorunu listeleyin]
-
 ## Stil ve En İyi Uygulamalar
-[Örneklerle stil önerileri]
-
 ## Performans
-[Performans analizi ve öneriler]
-
 ## Güvenlik
-[Varsa güvenlik endişeleri]
-
 ## Önerilen İyileştirmeler
-[Açıklamalarla yeniden düzenlenmiş kod]
-"""
-```
+\`;`}
+  csharp={`var advancedCodeReviewPrompt = @"
+10+ yıl deneyime sahip kıdemli bir C# geliştiricisi olarak kapsamlı bir kod incelemesi yapıyorsunuz.
+
+İncelenecek Kod:
+\`\`\`csharp
+{code}
+\`\`\`
+
+Kodu sistematik olarak inceleyin:
+
+1. **Hata Tespiti**
+   - Null referans istisnaları ve mantık hatalarını kontrol edin
+   - Uç durumları belirleyin (boş koleksiyonlar, overflow, threading sorunları)
+   - IDisposable kaynaklarının düzgün şekilde dispose edildiğini doğrulayın
+
+2. **Kod Stili ve En İyi Uygulamalar**
+   - .NET isimlendirme kuralları (PascalCase, camelCase)
+   - Async/await kalıplarının doğru kullanımı
+   - LINQ vs imperatif döngüler
+   - Nullable referans tipleri (NRT) uyumluluğu
+
+3. **Performans Analizi**
+   - Zaman ve uzay karmaşıklığı (Big O)
+   - Boxing/unboxing yükü
+   - Koleksiyon seçimi (List vs HashSet vs Dictionary)
+
+4. **Güvenlik Endişeleri**
+   - Girdi doğrulama
+   - SQL injection (parametreli sorgular)
+
+5. **Bakım Kolaylığı**
+   - SOLID prensipleri
+   - Bağımlılık enjeksiyonu kalıpları
+   - Hata yönetimi ve test edilebilirlik
+
+İncelemenizi bu yapılandırılmış formatta sağlayın:
+
+## Kritik Sorunlar
+## Stil ve En İyi Uygulamalar
+## Performans
+## Güvenlik
+## Önerilen İyileştirmeler
+";`}
+  dart={`final advancedCodeReviewPrompt = """
+10+ yıl deneyime sahip kıdemli bir Dart/Flutter geliştiricisi olarak kapsamlı bir kod incelemesi yapıyorsunuz.
+
+İncelenecek Kod:
+\`\`\`dart
+\$code
+\`\`\`
+
+Kodu sistematik olarak inceleyin:
+
+1. **Hata Tespiti**
+   - Null güvenliği ihlalleri ve mantık hatalarını kontrol edin
+   - Uç durumları belirleyin (boş listeler, null değerler, async boşlukları)
+   - Widget yaşam döngüsü yönetimini doğrulayın (Flutter ise)
+
+2. **Kod Stili ve En İyi Uygulamalar**
+   - Effective Dart kılavuzu uyumluluğu
+   - late, final, const anahtar kelimelerinin doğru kullanımı
+   - Collection methods (map, where, fold) vs döngüler
+   - Cascade notasyonu ve null-aware operatörler
+
+3. **Performans Analizi**
+   - Zaman ve uzay karmaşıklığı (Big O)
+   - Gereksiz widget yeniden oluşturma (Flutter ise)
+   - Const constructors kullanımı
+
+4. **Güvenlik Endişeleri**
+   - Girdi doğrulama
+   - Hassas veri güvenli depolama
+
+5. **Bakım Kolaylığı**
+   - Kod okunabilirliği ve endişelerin ayrımı
+   - State yönetimi kalıpları
+   - Hata yönetimi ve test edilebilirlik
+
+İncelemenizi bu yapılandırılmış formatta sağlayın:
+
+## Kritik Sorunlar
+## Stil ve En İyi Uygulamalar
+## Performans
+## Güvenlik
+## Önerilen İyileştirmeler
+""";`}
+/>
 
 ### Örnek Çıktı
 
@@ -243,27 +335,28 @@ def calculate_average(numbers):
 
 **İnceleme Çıktısı:**
 
-#### Kritik Sorunlar
+> #### Kritik Sorunlar
+>
+> 1. **Sıfıra bölme**: `numbers` boşsa, `len(numbers)` 0 olur ve `ZeroDivisionError` oluşturur
+> 2. **Tip işleme**: `numbers`'ın yinelenebilir olduğu veya sayısal değerler içerdiği doğrulanmıyor
+>
+> #### Stil ve En İyi Uygulamalar
+>
+> 1. Manuel döngü yerine yerleşik `sum()` fonksiyonunu kullanın
+> 2. Tip ipuçları ve docstring eksik
+> 3. `n` değişken adı açıklayıcı değil
+>
+> #### Performans
+>
+> 1. Mevcut: O(n) zaman, O(1) uzay - kabul edilebilir
+> 2. Büyük veri setleriyle çalışıyorsanız generator kullanılabilir
+>
+> #### Güvenlik
+>
+> 1. Girdi doğrulama yok - beklenmeyen istisnalar oluşturabilir
 
-1. **Sıfıra bölme**: `numbers` boşsa, `len(numbers)` 0 olur ve `ZeroDivisionError` oluşturur
-2. **Tip işleme**: `numbers`'ın yinelenebilir olduğu veya sayısal değerler içerdiği doğrulanmıyor
+#### Önerilen İyileştirmeler
 
-#### Stil ve En İyi Uygulamalar
-
-1. Manuel döngü yerine yerleşik `sum()` fonksiyonunu kullanın
-2. Tip ipuçları ve docstring eksik
-3. `n` değişken adı açıklayıcı değil
-
-#### Performans
-
-1. Mevcut: O(n) zaman, O(1) uzay - kabul edilebilir
-2. Büyük veri setleriyle çalışıyorsanız generator kullanılabilir
-
-#### Güvenlik
-
-1. Girdi doğrulama yok - beklenmeyen istisnalar oluşturabilir
-
-## Önerilen İyileştirmeler
 ```python
 from typing import List, Union
 
@@ -306,31 +399,25 @@ Yapılandırılmış prompt şunları içeren kapsamlı kod incelemeleri üretir
 
 <MultiLanguageCode
   python={`quick_review = """
-Bu kodu bariz hatalar için hızlıca inceleyin:
-{code}
-
-"Tamam" yanıtı verin veya kritik sorunları listeleyin.
-"""`}
-  turkish={`quick_review = """
-Bu kodu bariz hatalar için hızlıca inceleyin:
+Bu Python kodunu bariz hatalar ve PEP 8 ihlalleri için hızlıca inceleyin:
 {code}
 
 "Tamam" yanıtı verin veya kritik sorunları listeleyin.
 """`}
   typescript={`const quickReview = \`
-Bu kodu bariz hatalar için hızlıca inceleyin:
+Bu TypeScript kodunu tip hataları ve bariz hatalar için hızlıca inceleyin:
 \${code}
 
 "Tamam" yanıtı verin veya kritik sorunları listeleyin.
 \`;`}
   csharp={`var quickReview = @"
-Bu kodu bariz hatalar için hızlıca inceleyin:
+Bu C# kodunu null referans riskleri ve bariz hatalar için hızlıca inceleyin:
 {code}
 
 ""Tamam"" yanıtı verin veya kritik sorunları listeleyin.
 ";`}
   dart={`final quickReview = """
-Bu kodu bariz hatalar için hızlıca inceleyin:
+Bu Dart kodunu null güvenliği sorunları ve bariz hatalar için hızlıca inceleyin:
 \$code
 
 "Tamam" yanıtı verin veya kritik sorunları listeleyin.
@@ -341,51 +428,41 @@ Bu kodu bariz hatalar için hızlıca inceleyin:
 
 <MultiLanguageCode
   python={`detailed_review = """
-Kapsamlı bir kod incelemesi yapın:
-- Birim test önerileri
+Kapsamlı bir Python kod incelemesi yapın:
+- Birim test önerileri (pytest kalıpları)
 - Entegrasyon değerlendirmeleri
-- Dokümantasyon gereksinimleri
-- Yeniden düzenleme fırsatları
-
-Kod:
-{code}
-"""`}
-  turkish={`detailed_review = """
-Kapsamlı bir kod incelemesi yapın:
-- Birim test önerileri
-- Entegrasyon değerlendirmeleri
-- Dokümantasyon gereksinimleri
-- Yeniden düzenleme fırsatları
+- Docstring ve tip ipucu gereksinimleri
+- Yeniden düzenleme fırsatları (Pythonic kalıplar)
 
 Kod:
 {code}
 """`}
   typescript={`const detailedReview = \`
-Kapsamlı bir kod incelemesi yapın:
-- Birim test önerileri
+Kapsamlı bir TypeScript kod incelemesi yapın:
+- Birim test önerileri (Jest/Vitest kalıpları)
 - Entegrasyon değerlendirmeleri
-- Dokümantasyon gereksinimleri
-- Yeniden düzenleme fırsatları
+- JSDoc ve tip tanım gereksinimleri
+- Yeniden düzenleme fırsatları (fonksiyonel kalıplar, generics)
 
 Kod:
 \${code}
 \`;`}
   csharp={`var detailedReview = @"
-Kapsamlı bir kod incelemesi yapın:
-- Birim test önerileri
+Kapsamlı bir C# kod incelemesi yapın:
+- Birim test önerileri (xUnit/NUnit kalıpları)
 - Entegrasyon değerlendirmeleri
-- Dokümantasyon gereksinimleri
-- Yeniden düzenleme fırsatları
+- XML dokümantasyon gereksinimleri
+- Yeniden düzenleme fırsatları (SOLID prensipleri, LINQ)
 
 Kod:
 {code}
 ";`}
   dart={`final detailedReview = """
-Kapsamlı bir kod incelemesi yapın:
-- Birim test önerileri
+Kapsamlı bir Dart kod incelemesi yapın:
+- Birim test önerileri (flutter_test kalıpları)
 - Entegrasyon değerlendirmeleri
-- Dokümantasyon gereksinimleri
-- Yeniden düzenleme fırsatları
+- dartdoc dokümantasyon gereksinimleri
+- Yeniden düzenleme fırsatları (değişmezlik, null güvenliği)
 
 Kod:
 \$code
@@ -796,16 +873,6 @@ Soru: {question}
 
 Yanıt:
 """`}
-  turkish={`qa_prompt = """
-Sağlanan bağlama göre soruyu yanıtlayın.
-
-Bağlam:
-{context}
-
-Soru: {question}
-
-Yanıt:
-"""`}
   typescript={`const qaPrompt = \`
 Sağlanan bağlama göre soruyu yanıtlayın.
 
@@ -843,22 +910,6 @@ Yanıt:
 **Çok Adımlı Akıl Yürütme:**
 <MultiLanguageCode
   python={`reasoning_qa = """
-Sağlanan bağlamı kullanarak soruyu adım adım yanıtlayın.
-
-Bağlam:
-{context}
-
-Soru: {question}
-
-Adım adım düşünün:
-1. Bu soruyu yanıtlamak için hangi bilgilere ihtiyaç var?
-2. Bağlamda hangi ilgili bilgiler var?
-3. Bu bilgileri nasıl birleştirebilirim?
-4. Son cevap nedir?
-
-Yanıt:
-"""`}
-  turkish={`reasoning_qa = """
 Sağlanan bağlamı kullanarak soruyu adım adım yanıtlayın.
 
 Bağlam:

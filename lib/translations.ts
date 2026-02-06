@@ -21,6 +21,7 @@ export const translations = {
     zoomOut: "Zoom out",
     resetZoom: "Reset zoom",
     diagram: "Diagram",
+    dragToPan: "drag to pan",
     
     // Code blocks
     showChartDefinition: "Show chart definition",
@@ -38,6 +39,7 @@ export const translations = {
     onThisPage: "On this page",
     noItemsAvailable: "No items available",
     noNavigation: "No navigation available",
+    scrollToTop: "Scroll to top",
     
     // Home page
     heroTitle: "AI & LLM Lectures",
@@ -83,6 +85,7 @@ export const translations = {
     zoomOut: "Uzaklaştır",
     resetZoom: "Yakınlaştırmayı sıfırla",
     diagram: "Diyagram",
+    dragToPan: "kaydırmak için sürükleyin",
     
     // Code blocks
     showChartDefinition: "Grafik tanımını göster",
@@ -100,6 +103,7 @@ export const translations = {
     onThisPage: "Bu sayfada",
     noItemsAvailable: "Kullanılabilir öğe yok",
     noNavigation: "Gezinme mevcut değil",
+    scrollToTop: "Yukarı kaydır",
     
     // Home page
     heroTitle: "AI & LLM Dersleri",

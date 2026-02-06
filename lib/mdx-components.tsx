@@ -47,9 +47,9 @@ export const mdxComponents: MDXComponents = {
       {children}
     </li>
   ),
-  // Blockquote
+  // Blockquote - used for callouts and example output
   blockquote: ({ children }) => (
-    <blockquote className="mt-6 border-l-4 border-primary pl-6 italic text-muted-foreground">
+    <blockquote className="mt-6 border-l-4 border-primary/60 pl-6 py-4 pr-4 rounded-r-lg bg-muted/30 dark:bg-muted/20 text-foreground [&>p]:text-foreground [&>h4]:mt-4 [&>h4:first-child]:mt-0 [&>ol]:my-2 [&>ul]:my-2">
       {children}
     </blockquote>
   ),

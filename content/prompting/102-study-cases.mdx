@@ -42,7 +42,8 @@ Review Guidelines:
 1. Check for potential bugs and edge cases
 2. Evaluate code style (PEP 8 compliance)
 3. Assess performance implications
-4. Suggest improvements with examples
+4. Check for Pythonic idioms (list comprehensions, generators)
+5. Suggest improvements with examples
 
 Code to Review:
 \`\`\`python
@@ -59,41 +60,18 @@ Provide your review in this format:
 ## Performance Suggestions
 ## Improved Code
 """`}
-  turkish={`code_review_prompt = """
-Kıdemli bir Python geliştiricisi olarak kod incelemesi yapıyorsunuz.
-
-İnceleme Kılavuzu:
-1. Potansiyel hataları ve uç durumları kontrol edin
-2. Kod stilini değerlendirin (PEP 8 uyumluluğu)
-3. Performans etkilerini değerlendirin
-4. Örneklerle iyileştirme önerileri sunun
-
-İncelenecek Kod:
-\`\`\`python
-def calculate_average(numbers):
-    total = 0
-    for n in numbers:
-        total = total + n
-    return total / len(numbers)
-\`\`\`
-
-İncelemenizi bu formatta sağlayın:
-## Hatalar/Sorunlar
-## Stil Önerileri
-## Performans Önerileri
-## İyileştirilmiş Kod
-"""`}
   typescript={`const codeReviewPrompt = \`
 You are a senior TypeScript developer conducting a code review.
 
 Review Guidelines:
-1. Check for potential bugs and edge cases
-2. Evaluate code style (TypeScript best practices)
+1. Check for potential bugs and type safety issues
+2. Evaluate code style (ESLint/Prettier, TypeScript strict mode)
 3. Assess performance implications
-4. Suggest improvements with examples
+4. Check for proper use of TypeScript features (generics, utility types)
+5. Suggest improvements with examples
 
 Code to Review:
-\`\`\`typescript
+\\\`\\\`\\\`typescript
 function calculateAverage(numbers: number[]): number {
     let total = 0;
     for (const n of numbers) {
@@ -101,7 +79,7 @@ function calculateAverage(numbers: number[]): number {
     }
     return total / numbers.length;
 }
-\`\`\`
+\\\`\\\`\\\`
 
 Provide your review in this format:
 ## Bugs/Issues
@@ -113,10 +91,11 @@ Provide your review in this format:
 You are a senior C# developer conducting a code review.
 
 Review Guidelines:
-1. Check for potential bugs and edge cases
-2. Evaluate code style (C# conventions)
-3. Assess performance implications
-4. Suggest improvements with examples
+1. Check for potential bugs and null reference issues
+2. Evaluate code style (C# conventions, .NET guidelines)
+3. Assess performance implications (LINQ vs loops, boxing)
+4. Check for proper use of C# features (async/await, nullable types)
+5. Suggest improvements with examples
 
 Code to Review:
 \`\`\`csharp
@@ -138,13 +117,14 @@ Provide your review in this format:
 ## Improved Code
 ";`}
   dart={`final codeReviewPrompt = """
-You are a senior Dart developer conducting a code review.
+You are a senior Dart/Flutter developer conducting a code review.
 
 Review Guidelines:
-1. Check for potential bugs and edge cases
-2. Evaluate code style (Dart style guide)
+1. Check for potential bugs and null safety issues
+2. Evaluate code style (Dart style guide, effective Dart)
 3. Assess performance implications
-4. Suggest improvements with examples
+4. Check for proper use of Dart features (collection methods, cascades)
+5. Suggest improvements with examples
 
 Code to Review:
 \`\`\`dart
@@ -167,8 +147,8 @@ Provide your review in this format:
 
 ### Enhanced Prompt with Examples
 
-```python
-advanced_code_review_prompt = """
+<MultiLanguageCode
+  python={`advanced_code_review_prompt = """
 You are a senior Python developer with 10+ years of experience conducting a thorough code review.
 
 Code to Review:
@@ -187,9 +167,8 @@ Review the code systematically:
 2. **Code Style & Best Practices**
    - PEP 8 compliance
    - Pythonic idioms (list comprehensions, generator expressions)
-   - Naming conventions
+   - Naming conventions and docstrings
    - Function length and complexity
-   - Documentation (docstrings)
 
 3. **Performance Analysis**
    - Time complexity (Big O)
@@ -200,13 +179,11 @@ Review the code systematically:
 4. **Security Concerns**
    - Input validation
    - SQL injection risks (if applicable)
-   - XSS vulnerabilities (if applicable)
    - Sensitive data exposure
 
 5. **Maintainability**
    - Code readability
-   - Modularity
-   - Error handling
+   - Modularity and error handling
    - Testability
 
 Provide your review in this structured format:
@@ -225,12 +202,180 @@ Provide your review in this structured format:
 
 ## Suggested Improvements
 [Refactored code with explanations]
-"""
-```
+"""`}
+  typescript={`const advancedCodeReviewPrompt = \`
+You are a senior TypeScript developer with 10+ years of experience conducting a thorough code review.
+
+Code to Review:
+\\\`\\\`\\\`typescript
+\${code}
+\\\`\\\`\\\`
+
+Review the code systematically:
+
+1. **Bug Detection**
+   - Check for logic errors and type safety issues
+   - Identify edge cases (undefined, null, empty arrays)
+   - Look for potential runtime exceptions
+   - Verify proper error boundaries
+
+2. **Code Style & Best Practices**
+   - ESLint/Prettier compliance
+   - TypeScript strict mode compatibility
+   - Proper use of generics, utility types, discriminated unions
+   - Interface vs type alias usage
+   - Naming conventions and JSDoc comments
+
+3. **Performance Analysis**
+   - Time and space complexity (Big O)
+   - Unnecessary re-renders (if React)
+   - Bundle size impact
+   - Opportunities for optimization
+
+4. **Security Concerns**
+   - Input validation and sanitization
+   - XSS vulnerabilities
+   - Prototype pollution risks
+
+5. **Maintainability**
+   - Code readability and modularity
+   - Error handling patterns (Result types, try/catch)
+   - Testability
+
+Provide your review in this structured format:
+
+## Critical Issues
+[List any bugs or critical issues]
+
+## Style & Best Practices
+[Style recommendations with examples]
+
+## Performance
+[Performance analysis and suggestions]
+
+## Security
+[Security concerns if any]
+
+## Suggested Improvements
+[Refactored code with explanations]
+\`;`}
+  csharp={`var advancedCodeReviewPrompt = @"
+You are a senior C# developer with 10+ years of experience conducting a thorough code review.
+
+Code to Review:
+\`\`\`csharp
+{code}
+\`\`\`
+
+Review the code systematically:
+
+1. **Bug Detection**
+   - Check for null reference exceptions and logic errors
+   - Identify edge cases (empty collections, overflow, threading issues)
+   - Look for potential runtime exceptions
+   - Verify proper disposal of IDisposable resources
+
+2. **Code Style & Best Practices**
+   - .NET naming conventions (PascalCase, camelCase)
+   - Proper use of async/await patterns
+   - LINQ vs imperative loops
+   - Nullable reference types (NRT) compliance
+   - XML documentation comments
+
+3. **Performance Analysis**
+   - Time and space complexity (Big O)
+   - Boxing/unboxing overhead
+   - String concatenation (StringBuilder)
+   - Collection choice (List vs HashSet vs Dictionary)
+
+4. **Security Concerns**
+   - Input validation
+   - SQL injection (parameterized queries)
+   - Sensitive data exposure
+
+5. **Maintainability**
+   - SOLID principles adherence
+   - Dependency injection patterns
+   - Error handling and testability
+
+Provide your review in this structured format:
+
+## Critical Issues
+[List any bugs or critical issues]
+
+## Style & Best Practices
+[Style recommendations with examples]
+
+## Performance
+[Performance analysis and suggestions]
+
+## Security
+[Security concerns if any]
+
+## Suggested Improvements
+[Refactored code with explanations]
+";`}
+  dart={`final advancedCodeReviewPrompt = """
+You are a senior Dart/Flutter developer with 10+ years of experience conducting a thorough code review.
+
+Code to Review:
+\`\`\`dart
+\$code
+\`\`\`
+
+Review the code systematically:
+
+1. **Bug Detection**
+   - Check for null safety violations and logic errors
+   - Identify edge cases (empty lists, null values, async gaps)
+   - Look for potential runtime exceptions
+   - Verify proper widget lifecycle management (if Flutter)
+
+2. **Code Style & Best Practices**
+   - Effective Dart guidelines compliance
+   - Proper use of late, final, const keywords
+   - Collection methods (map, where, fold) vs loops
+   - Cascade notation and null-aware operators
+   - dartdoc comments
+
+3. **Performance Analysis**
+   - Time and space complexity (Big O)
+   - Unnecessary widget rebuilds (if Flutter)
+   - Isolate usage for heavy computation
+   - Const constructors for immutable widgets
+
+4. **Security Concerns**
+   - Input validation
+   - Secure storage for sensitive data
+   - Platform channel security (if applicable)
+
+5. **Maintainability**
+   - Code readability and separation of concerns
+   - State management patterns
+   - Error handling and testability
+
+Provide your review in this structured format:
+
+## Critical Issues
+[List any bugs or critical issues]
+
+## Style & Best Practices
+[Style recommendations with examples]
+
+## Performance
+[Performance analysis and suggestions]
+
+## Security
+[Security concerns if any]
+
+## Suggested Improvements
+[Refactored code with explanations]
+""";`}
+/>
 
 ### Example Output
 
-When using the prompt above, here's an example review output:
+When using the prompt above, here is an example review output:
 
 **Code to Review:**
 ```python
@@ -243,27 +388,28 @@ def calculate_average(numbers):
 
 **Review Output:**
 
-#### Critical Issues
+> #### Critical Issues
+>
+> 1. **Division by zero**: If `numbers` is empty, `len(numbers)` is 0, causing `ZeroDivisionError`
+> 2. **Type handling**: No validation that `numbers` is iterable or contains numeric values
+>
+> #### Style & Best Practices
+>
+> 1. Use built-in `sum()` function instead of manual loop
+> 2. Missing type hints and docstring
+> 3. Variable name `n` is not descriptive
+>
+> #### Performance
+>
+> 1. Current: O(n) time, O(1) space - acceptable
+> 2. Could use generator if dealing with large datasets
+>
+> #### Security
+>
+> 1. No input validation - could raise unexpected exceptions
 
-1. **Division by zero**: If `numbers` is empty, `len(numbers)` is 0, causing `ZeroDivisionError`
-2. **Type handling**: No validation that `numbers` is iterable or contains numeric values
+#### Suggested Improvements
 
-#### Style & Best Practices
-
-1. Use built-in `sum()` function instead of manual loop
-2. Missing type hints and docstring
-3. Variable name `n` is not descriptive
-
-#### Performance
-
-1. Current: O(n) time, O(1) space - acceptable
-2. Could use generator if dealing with large datasets
-
-#### Security
-
-1. No input validation - could raise unexpected exceptions
-
-## Suggested Improvements
 ```python
 from typing import List, Union
 
@@ -306,31 +452,25 @@ The structured prompt produces comprehensive code reviews with:
 
 <MultiLanguageCode
   python={`quick_review = """
-Quickly review this code for obvious bugs:
+Quickly review this Python code for obvious bugs and PEP 8 violations:
 {code}
 
 Respond with: "OK" or list critical issues.
 """`}
-  turkish={`quick_review = """
-Bu kodu bariz hatalar için hızlıca inceleyin:
-{code}
-
-"Tamam" yanıtı verin veya kritik sorunları listeleyin.
-"""`}
   typescript={`const quickReview = \`
-Quickly review this code for obvious bugs:
+Quickly review this TypeScript code for type errors and obvious bugs:
 \${code}
 
 Respond with: "OK" or list critical issues.
 \`;`}
   csharp={`var quickReview = @"
-Quickly review this code for obvious bugs:
+Quickly review this C# code for null reference risks and obvious bugs:
 {code}
 
 Respond with: ""OK"" or list critical issues.
 ";`}
   dart={`final quickReview = """
-Quickly review this code for obvious bugs:
+Quickly review this Dart code for null safety issues and obvious bugs:
 \$code
 
 Respond with: "OK" or list critical issues.
@@ -341,51 +481,41 @@ Respond with: "OK" or list critical issues.
 
 <MultiLanguageCode
   python={`detailed_review = """
-Conduct a comprehensive code review including:
-- Unit test suggestions
+Conduct a comprehensive Python code review including:
+- Unit test suggestions (pytest patterns)
 - Integration considerations
-- Documentation requirements
-- Refactoring opportunities
+- Docstring and type hint requirements
+- Refactoring opportunities (Pythonic patterns)
 
 Code:
 {code}
 """`}
-  turkish={`detailed_review = """
-Kapsamlı bir kod incelemesi yapın:
-- Birim test önerileri
-- Entegrasyon değerlendirmeleri
-- Dokümantasyon gereksinimleri
-- Yeniden düzenleme fırsatları
-
-Kod:
-{code}
-"""`}
   typescript={`const detailedReview = \`
-Conduct a comprehensive code review including:
-- Unit test suggestions
+Conduct a comprehensive TypeScript code review including:
+- Unit test suggestions (Jest/Vitest patterns)
 - Integration considerations
-- Documentation requirements
-- Refactoring opportunities
+- JSDoc and type definition requirements
+- Refactoring opportunities (functional patterns, generics)
 
 Code:
 \${code}
 \`;`}
   csharp={`var detailedReview = @"
-Conduct a comprehensive code review including:
-- Unit test suggestions
+Conduct a comprehensive C# code review including:
+- Unit test suggestions (xUnit/NUnit patterns)
 - Integration considerations
-- Documentation requirements
-- Refactoring opportunities
+- XML documentation requirements
+- Refactoring opportunities (SOLID principles, LINQ)
 
 Code:
 {code}
 ";`}
   dart={`final detailedReview = """
-Conduct a comprehensive code review including:
-- Unit test suggestions
+Conduct a comprehensive Dart code review including:
+- Unit test suggestions (flutter_test patterns)
 - Integration considerations
-- Documentation requirements
-- Refactoring opportunities
+- dartdoc documentation requirements
+- Refactoring opportunities (immutability, null safety)
 
 Code:
 \$code
@@ -408,8 +538,8 @@ flowchart LR
 
 ### Basic Prompt Template
 
-```python
-summarization_prompt = """
+<MultiLanguageCode
+  python={`summarization_prompt = """
 Summarize the following technical document.
 
 Requirements:
@@ -423,8 +553,53 @@ Document:
 {document_text}
 
 Summary:
-"""
-```
+"""`}
+  typescript={`const summarizationPrompt = \`
+Summarize the following technical document.
+
+Requirements:
+- Keep technical accuracy
+- Highlight key concepts
+- Use bullet points for main ideas
+- Include any important numbers/statistics
+- Maximum 200 words
+
+Document:
+\${documentText}
+
+Summary:
+\`;`}
+  csharp={`var summarizationPrompt = @"
+Summarize the following technical document.
+
+Requirements:
+- Keep technical accuracy
+- Highlight key concepts
+- Use bullet points for main ideas
+- Include any important numbers/statistics
+- Maximum 200 words
+
+Document:
+{documentText}
+
+Summary:
+";`}
+  dart={`final summarizationPrompt = """
+Summarize the following technical document.
+
+Requirements:
+- Keep technical accuracy
+- Highlight key concepts
+- Use bullet points for main ideas
+- Include any important numbers/statistics
+- Maximum 200 words
+
+Document:
+\$documentText
+
+Summary:
+""";`}
+/>
 
 ### Advanced Summarization Prompts
 
@@ -632,8 +807,8 @@ flowchart TB
 
 ### Basic Extraction Prompt
 
-```python
-extraction_prompt = """
+<MultiLanguageCode
+  python={`extraction_prompt = """
 Extract the following information from the text and return as JSON:
 - Company names
 - Dates mentioned
@@ -651,8 +826,65 @@ Output format:
   "monetary_values": [],
   "people": []
 }
-"""
-```
+"""`}
+  typescript={`const extractionPrompt = \`
+Extract the following information from the text and return as JSON:
+- Company names
+- Dates mentioned
+- Monetary values
+- Key people
+
+Text:
+"On March 15, 2024, Acme Corp announced a $50 million 
+investment led by CEO John Smith."
+
+Output format:
+{
+  "companies": [],
+  "dates": [],
+  "monetary_values": [],
+  "people": []
+}
+\`;`}
+  csharp={`var extractionPrompt = @"
+Extract the following information from the text and return as JSON:
+- Company names
+- Dates mentioned
+- Monetary values
+- Key people
+
+Text:
+""On March 15, 2024, Acme Corp announced a $50 million 
+investment led by CEO John Smith.""
+
+Output format:
+{
+  ""companies"": [],
+  ""dates"": [],
+  ""monetary_values"": [],
+  ""people"": []
+}
+";`}
+  dart={`final extractionPrompt = """
+Extract the following information from the text and return as JSON:
+- Company names
+- Dates mentioned
+- Monetary values
+- Key people
+
+Text:
+"On March 15, 2024, Acme Corp announced a \\\$50 million 
+investment led by CEO John Smith."
+
+Output format:
+{
+  "companies": [],
+  "dates": [],
+  "monetary_values": [],
+  "people": []
+}
+""";`}
+/>
 
 ### Advanced Extraction Prompts
 
@@ -799,16 +1031,6 @@ Question: {question}
 
 Answer:
 """`}
-  turkish={`qa_prompt = """
-Sağlanan bağlama göre soruyu yanıtlayın.
-
-Bağlam:
-{context}
-
-Soru: {question}
-
-Yanıt:
-"""`}
   typescript={`const qaPrompt = \`
 Answer the question based on the provided context.
 
@@ -860,22 +1082,6 @@ Think through this step by step:
 4. What is the final answer?
 
 Answer:
-"""`}
-  turkish={`reasoning_qa = """
-Sağlanan bağlamı kullanarak soruyu adım adım yanıtlayın.
-
-Bağlam:
-{context}
-
-Soru: {question}
-
-Adım adım düşünün:
-1. Bu soruyu yanıtlamak için hangi bilgilere ihtiyaç var?
-2. Bağlamda hangi ilgili bilgiler var?
-3. Bu bilgileri nasıl birleştirebilirim?
-4. Son cevap nedir?
-
-Yanıt:
 """`}
   typescript={`const reasoningQA = \`
 Answer the question step by step using the provided context.
@@ -978,8 +1184,8 @@ Classify text into categories with consistent and accurate results.
 
 ### Basic Classification Prompt
 
-```python
-classification_prompt = """
+<MultiLanguageCode
+  python={`classification_prompt = """
 Classify this text into one of these categories:
 - Positive
 - Negative
@@ -988,8 +1194,38 @@ Classify this text into one of these categories:
 Text: {text}
 
 Category:
-"""
-```
+"""`}
+  typescript={`const classificationPrompt = \`
+Classify this text into one of these categories:
+- Positive
+- Negative
+- Neutral
+
+Text: \${text}
+
+Category:
+\`;`}
+  csharp={`var classificationPrompt = @"
+Classify this text into one of these categories:
+- Positive
+- Negative
+- Neutral
+
+Text: {text}
+
+Category:
+";`}
+  dart={`final classificationPrompt = """
+Classify this text into one of these categories:
+- Positive
+- Negative
+- Neutral
+
+Text: \$text
+
+Category:
+""";`}
+/>
 
 ### Advanced Classification
 
