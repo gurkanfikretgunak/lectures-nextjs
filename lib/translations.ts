@@ -32,6 +32,12 @@ export const translations = {
     
     // Navigation
     home: "Home",
+    previous: "Previous",
+    next: "Next",
+    navigation: "Navigation",
+    onThisPage: "On this page",
+    noItemsAvailable: "No items available",
+    noNavigation: "No navigation available",
     
     // Home page
     heroTitle: "AI & LLM Lectures",
@@ -88,6 +94,12 @@ export const translations = {
     
     // Navigation
     home: "Ana Sayfa",
+    previous: "Önceki",
+    next: "Sonraki",
+    navigation: "Gezinme",
+    onThisPage: "Bu sayfada",
+    noItemsAvailable: "Kullanılabilir öğe yok",
+    noNavigation: "Gezinme mevcut değil",
     
     // Home page
     heroTitle: "AI & LLM Dersleri",

@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { useState, useMemo, useEffect } from "react";
+import { useLanguage } from "@/contexts/language-context";
 
 interface NavItem {
   title: string;
@@ -51,6 +52,7 @@ const categoryIcons: Record<string, React.ComponentType<{ className?: string }>>
 
 export function Sidebar({ navigation, defaultCollapsed = true, onNavigate }: SidebarProps) {
   const pathname = usePathname();
+  const { t } = useLanguage();
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
   
   // Memoize navigation slugs key to prevent unnecessary recalculations
@@ -59,18 +61,13 @@ export function Sidebar({ navigation, defaultCollapsed = true, onNavigate }: Sid
     return navigation.map(s => s?.slug).filter(Boolean).join(',');
   }, [navigation]);
   
-  // Memoize initial sections to prevent re-initialization on every render
-  // Start with empty array so all sections are collapsed by default
-  const initialSections = useMemo(() => {
-    return [];
-  }, []);
+  // All sections start collapsed by default
+  const [openSections, setOpenSections] = useState<string[]>([]);
   
-  const [openSections, setOpenSections] = useState<string[]>(initialSections);
-  
-  // Update openSections if navigation changes (but only if slugs actually changed)
+  // Reset openSections if navigation changes (e.g. language switch)
   useEffect(() => {
-    if (navigationSlugsKey && navigationSlugsKey !== openSections.join(',')) {
-      setOpenSections(initialSections);
+    if (navigationSlugsKey) {
+      setOpenSections([]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigationSlugsKey]);
@@ -247,14 +244,14 @@ export function Sidebar({ navigation, defaultCollapsed = true, onNavigate }: Sid
                         );
                       })
                     ) : (
-                      <div className="px-2 py-1 text-xs text-muted-foreground">No items available</div>
+                      <div className="px-2 py-1 text-xs text-muted-foreground">{t("noItemsAvailable")}</div>
                     )}
                   </CollapsibleContent>
                 </Collapsible>
               );
               })
             ) : (
-              <div className="p-4 text-sm text-muted-foreground">No navigation available</div>
+              <div className="p-4 text-sm text-muted-foreground">{t("noNavigation")}</div>
             )}
           </nav>
         </ScrollArea>

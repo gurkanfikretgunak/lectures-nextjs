@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef, useCallback } from "react";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/contexts/language-context";
 
 interface Heading {
   id: string;
@@ -14,6 +15,7 @@ interface TableOfContentsProps {
 }
 
 export function TableOfContents({ headings }: TableOfContentsProps) {
+  const { t } = useLanguage();
   const [activeId, setActiveId] = useState<string>("");
   const isClickingRef = useRef(false);
   const clickTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -259,7 +261,7 @@ export function TableOfContents({ headings }: TableOfContentsProps) {
   return (
     <aside className="hidden xl:block w-56 shrink-0">
       <div className="sticky top-20 pl-4 border-l border-border">
-        <p className="text-sm font-medium mb-4">On this page</p>
+        <p className="text-sm font-medium mb-4">{t("onThisPage")}</p>
         <nav className="space-y-1">
           {filteredHeadings.map((heading) => (
             <a

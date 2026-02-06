@@ -20,6 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
+import { useLanguage } from "@/contexts/language-context";
 
 interface NavItem {
   title: string;
@@ -50,12 +51,10 @@ const categoryIcons: Record<string, React.ComponentType<{ className?: string }>>
 
 export function MobileSidebar({ navigation }: MobileSidebarProps) {
   const pathname = usePathname();
+  const { t } = useLanguage();
   const [open, setOpen] = useState(false);
-  const [openSections, setOpenSections] = useState<string[]>(
-    navigation && navigation.length > 0
-      ? navigation.map((section) => section?.slug).filter(Boolean) as string[]
-      : []
-  );
+  // Start with all sections collapsed for consistency with desktop sidebar
+  const [openSections, setOpenSections] = useState<string[]>([]);
 
   const toggleSection = (slug: string) => {
     setOpenSections((prev) =>
@@ -75,7 +74,7 @@ export function MobileSidebar({ navigation }: MobileSidebarProps) {
       </SheetTrigger>
       <SheetContent side="left" className="w-72 p-0">
         <SheetHeader className="p-4 border-b">
-          <SheetTitle className="text-left">Navigation</SheetTitle>
+          <SheetTitle className="text-left">{t("navigation")}</SheetTitle>
         </SheetHeader>
         <ScrollArea className="h-[calc(100vh-5rem)]">
           <nav className="p-4 space-y-2">
@@ -134,14 +133,14 @@ export function MobileSidebar({ navigation }: MobileSidebarProps) {
                         );
                       })
                     ) : (
-                      <div className="px-2 py-1 text-xs text-muted-foreground">No items available</div>
+                      <div className="px-2 py-1 text-xs text-muted-foreground">{t("noItemsAvailable")}</div>
                     )}
                   </CollapsibleContent>
                 </Collapsible>
               );
               })
             ) : (
-              <div className="p-4 text-sm text-muted-foreground">No navigation available</div>
+              <div className="p-4 text-sm text-muted-foreground">{t("noNavigation")}</div>
             )}
           </nav>
         </ScrollArea>

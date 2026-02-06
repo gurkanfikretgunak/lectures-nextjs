@@ -80,7 +80,7 @@ export function LectureLayout({
   const nextLecture =
     currentIndex < allLectures.length - 1 ? allLectures[currentIndex + 1] : null;
 
-  const levelLabel = lecture.level >= 200 ? "Advanced" : "Beginner";
+  const levelLabel = lecture.level >= 200 ? t("advanced") : t("beginner");
   const levelVariant = lecture.level >= 200 ? "default" : "secondary";
 
   // Scroll to top and focus main content when pathname changes
@@ -166,7 +166,7 @@ export function LectureLayout({
                     <Link href={prevLecture.href} className="flex items-center gap-2">
                       <ChevronLeft className="h-4 w-4" />
                       <div className="text-left">
-                        <div className="text-xs text-muted-foreground">Previous</div>
+                        <div className="text-xs text-muted-foreground">{t("previous")}</div>
                         <div className="text-sm font-medium">{prevLecture.title}</div>
                       </div>
                     </Link>
@@ -178,7 +178,7 @@ export function LectureLayout({
                   <Button variant="ghost" asChild>
                     <Link href={nextLecture.href} className="flex items-center gap-2">
                       <div className="text-right">
-                        <div className="text-xs text-muted-foreground">Next</div>
+                        <div className="text-xs text-muted-foreground">{t("next")}</div>
                         <div className="text-sm font-medium">{nextLecture.title}</div>
                       </div>
                       <ChevronRight className="h-4 w-4" />
