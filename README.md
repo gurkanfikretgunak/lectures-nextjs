@@ -1,16 +1,20 @@
-# AI & LLM Lectures
-
-A comprehensive, modern lecture platform built with Next.js for learning about Artificial Intelligence, Large Language Models, Prompting, AI Tooling, and their real-world applications. Features bilingual support (English/Turkish), interactive diagrams, code examples in multiple languages, and a beautiful, responsive design.
-
-**Made by [gurkanfikretgunak](https://github.com/gurkanfikretgunak)**
+<div align="center">
+  <img src=".github/assets/logo.png" alt="AI & LLM Lectures Logo" width="120" height="120" style="border-radius: 50%;" />
+  
+  # AI & LLM Lectures
+  
+  A comprehensive, modern lecture platform built with Next.js for learning about Artificial Intelligence, Large Language Models, Prompting, AI Tooling, and their real-world applications.
+  
+  **Made by [gurkanfikretgunak](https://github.com/gurkanfikretgunak)**
+</div>
 
 ## ✨ Features
 
 - 📚 **Comprehensive Content**: Lectures covering Prompting, LLM, AI Tooling, Reasoning, Applications, and Resources
-- 🤖 **AI Assistant Panel**: **Powerful in-browser AI assistant** available on homepage and Learn to Prompt page - get instant help with coding, development, and general questions
+- 🤖 **AI Assistant Panel**: **Powerful in-browser AI assistant** available on all pages - get instant help with coding, development, and general questions. Runs entirely locally using WebLLM (no API keys needed)
 - 🎓 **Learn to Prompt**: Interactive prompt engineering simulator with dedicated AI assistant running entirely in your browser
 - 🌍 **Bilingual Support**: Full English and Turkish language support with automatic fallback
-- 🎨 **Modern UI**: Beautiful, responsive design with dark mode support
+- 🎨 **Modern UI**: Beautiful, responsive design with dark mode support, RGB wave animations, and fireflies effects
 - 🔍 **Powerful Search**: Fast, client-side search across all lectures
 - 📊 **Interactive Diagrams**: Mermaid diagram support with zoom, pan, and touch controls
 - 💻 **Multi-Language Code**: Code examples in Python, TypeScript, C#, and Dart
@@ -19,6 +23,8 @@ A comprehensive, modern lecture platform built with Next.js for learning about A
 - 🎯 **Table of Contents**: Automatic TOC generation from headings
 - 🏆 **Completion Certificates**: Generate and download certificates (PNG/PDF) after completing simulations
 - 🔒 **Password Protection**: Optional password gate for content protection
+- 📝 **Commit History**: View project commit history directly from footer with GitHub-styled modal
+- 🎨 **Animated CTAs**: Interactive "Learn to Prompt" card with RGB wave animations and sparkles fireflies effects
 
 ## 🚀 Getting Started
 
@@ -31,7 +37,7 @@ A comprehensive, modern lecture platform built with Next.js for learning about A
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/lectures-nextjs.git
+git clone https://github.com/gurkanfikretgunak/lectures-nextjs.git
 cd lectures-nextjs
 ```
 
@@ -196,8 +202,15 @@ lectures-nextjs/
 │   ├── home-page.tsx        # Home page component
 │   └── not-found.tsx        # 404 page
 ├── components/              # React components
-│   ├── layout/              # Layout components (header, sidebar, TOC)
+│   ├── layout/              # Layout components (header, sidebar, TOC, footer)
+│   │   ├── header.tsx       # Site header with navigation
+│   │   ├── footer.tsx       # Footer with commit history
+│   │   ├── commit-history-modal.tsx # GitHub-styled commit history modal
+│   │   ├── sidebar.tsx      # Desktop sidebar navigation
+│   │   ├── mobile-sidebar.tsx # Mobile sidebar navigation
+│   │   └── toc.tsx          # Table of contents
 │   ├── general-assistant.tsx # 🤖 Homepage AI Assistant (general purpose)
+│   ├── global-assistant-wrapper.tsx # Global AI assistant wrapper
 │   ├── learn-to-prompt/     # Learn to Prompt components
 │   │   ├── prompt-simulator.tsx      # Step-by-step simulator
 │   │   ├── assistant-chat.tsx        # 🤖 AI assistant chat UI (Learn to Prompt)
@@ -428,10 +441,31 @@ This project is private and proprietary.
 - **🤖 AI Assistant powered by [WebLLM](https://github.com/mlc-ai/web-llm) from MLC AI** - Enabling privacy-first, in-browser AI inference
 - Diagram rendering by [Mermaid](https://mermaid.js.org/)
 
+## 🎨 UI Features
+
+### Animated Components
+
+- **RGB Wave CTA**: The "Learn to Prompt" card features an animated RGB wave effect on hover
+- **Sparkles Fireflies**: Interactive fireflies animation around the Sparkles icon in the CTA card
+- **Smooth Transitions**: All UI elements feature smooth transitions and hover effects
+
+### Footer
+
+- **Commit History**: Click on the commit hash in the footer to view project commit history
+- **GitHub Integration**: Direct links to GitHub repository and commit history
+- **Text-Only Design**: Clean, minimal footer design without icons
+
 ## 📞 Support
 
 For issues, questions, or contributions, please open an issue on GitHub.
 
 ---
 
-Made with ❤️ by [gurkanfikretgunak](https://github.com/gurkanfikretgunak) for the AI learning community
+<div align="center">
+  Made with ❤️ by <a href="https://github.com/gurkanfikretgunak">gurkanfikretgunak</a> for the AI learning community
+  
+  <p>
+    <a href="https://masterfabric.co">masterfabric.co</a> • 
+    <a href="https://github.com/gurkanfikretgunak/lectures-nextjs">GitHub</a>
+  </p>
+</div>
