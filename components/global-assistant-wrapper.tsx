@@ -4,6 +4,15 @@ import { useState, useEffect, useCallback } from "react";
 import { usePathname } from "next/navigation";
 import { GeneralAssistant } from "@/components/general-assistant";
 
+// Extend Window interface for global assistant functions
+declare global {
+  interface Window {
+    toggleGlobalAssistant?: () => void;
+    openGlobalAssistant?: () => void;
+    closeGlobalAssistant?: () => void;
+  }
+}
+
 export function GlobalAssistantWrapper() {
   const [assistantOpen, setAssistantOpen] = useState(false);
   const pathname = usePathname();
@@ -18,16 +27,16 @@ export function GlobalAssistantWrapper() {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      (window as any).toggleGlobalAssistant = toggleAssistant;
-      (window as any).openGlobalAssistant = () => setAssistantOpen(true);
-      (window as any).closeGlobalAssistant = () => setAssistantOpen(false);
+      window.toggleGlobalAssistant = toggleAssistant;
+      window.openGlobalAssistant = () => setAssistantOpen(true);
+      window.closeGlobalAssistant = () => setAssistantOpen(false);
     }
     
     return () => {
       if (typeof window !== "undefined") {
-        delete (window as any).toggleGlobalAssistant;
-        delete (window as any).openGlobalAssistant;
-        delete (window as any).closeGlobalAssistant;
+        delete window.toggleGlobalAssistant;
+        delete window.openGlobalAssistant;
+        delete window.closeGlobalAssistant;
       }
     };
   }, [toggleAssistant]);

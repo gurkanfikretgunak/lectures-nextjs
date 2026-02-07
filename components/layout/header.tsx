@@ -10,6 +10,13 @@ import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/language-context";
 import { cn } from "@/lib/utils";
 
+// Extend Window interface for global assistant functions
+declare global {
+  interface Window {
+    toggleGlobalAssistant?: () => void;
+  }
+}
+
 interface NavItem {
   title: string;
   href: string;
@@ -46,8 +53,8 @@ export function Header({
   const handleAssistantClick = () => {
     if (onAssistantOpen) {
       onAssistantOpen();
-    } else if (typeof window !== "undefined" && (window as any).toggleGlobalAssistant) {
-      (window as any).toggleGlobalAssistant();
+    } else if (typeof window !== "undefined" && window.toggleGlobalAssistant) {
+      window.toggleGlobalAssistant();
     }
   };
 
