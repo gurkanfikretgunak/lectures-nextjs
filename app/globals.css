@@ -104,6 +104,163 @@ html {
   scroll-behavior: smooth;
 }
 
+/* RGB Wave Animation for CTA Card */
+@keyframes rgb-wave {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.prompt-cta-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.prompt-cta-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    #ff0000 0%,
+    #ff7f00 14.28%,
+    #ffff00 28.56%,
+    #00ff00 42.84%,
+    #0000ff 57.12%,
+    #4b0082 71.4%,
+    #9400d3 85.68%,
+    #ff0000 100%
+  );
+  background-size: 200% 200%;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 0;
+  border-radius: inherit;
+}
+
+.prompt-cta-card:hover::before {
+  opacity: 0.15;
+  animation: rgb-wave 3s ease infinite;
+}
+
+.prompt-cta-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Sparkles Fireflies Animation */
+@keyframes sparkle-float {
+  0%, 100% {
+    transform: translate(0, 0) scale(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  50% {
+    transform: translate(var(--tx), var(--ty)) scale(1);
+    opacity: 0.8;
+  }
+}
+
+@keyframes sparkle-pulse {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
+
+.sparkles-container {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sparkles-container::before,
+.sparkles-container::after {
+  content: '';
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #3b82f6 0%, transparent 70%);
+  animation: sparkle-float 3s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.sparkles-container::before {
+  --tx: -20px;
+  --ty: -15px;
+  animation-delay: 0s;
+  background: radial-gradient(circle, #8b5cf6 0%, transparent 70%);
+}
+
+.sparkles-container::after {
+  --tx: 20px;
+  --ty: -10px;
+  animation-delay: 1.5s;
+  background: radial-gradient(circle, #14b8a6 0%, transparent 70%);
+}
+
+.sparkles-firefly {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: radial-gradient(circle, currentColor 0%, transparent 70%);
+  animation: sparkle-float 4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.sparkles-firefly:nth-child(1) {
+  --tx: -15px;
+  --ty: 15px;
+  animation-delay: 0.5s;
+  color: #3b82f6;
+}
+
+.sparkles-firefly:nth-child(2) {
+  --tx: 15px;
+  --ty: 12px;
+  animation-delay: 1s;
+  color: #8b5cf6;
+}
+
+.sparkles-firefly:nth-child(3) {
+  --tx: -10px;
+  --ty: -20px;
+  animation-delay: 2s;
+  color: #14b8a6;
+}
+
+.sparkles-firefly:nth-child(4) {
+  --tx: 10px;
+  --ty: -18px;
+  animation-delay: 2.5s;
+  color: #f97316;
+}
+
+.sparkles-icon {
+  animation: sparkle-pulse 2s ease-in-out infinite;
+}
+
 /* Custom scrollbar */
 ::-webkit-scrollbar {
   @apply w-2 h-2;

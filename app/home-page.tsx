@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Link from "next/link";
 import {
-  GraduationCap,
   BookOpen,
   Brain,
   Wrench,
@@ -90,7 +89,14 @@ export function HomePage({ navigation }: HomePageProps) {
             <div className="text-center mb-16">
               <div className="flex justify-center mb-6">
                 <div className="p-4 rounded-full bg-primary/10">
-                  <GraduationCap className="h-12 w-12 text-primary" />
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img 
+                    src="/icon.png" 
+                    alt="AI & LLM Lectures" 
+                    className="h-32 w-32 rounded-full"
+                    width={48}
+                    height={48}
+                  />
                 </div>
               </div>
               <h1 className="text-4xl font-bold tracking-tight sm:text-5xl mb-4">
@@ -100,6 +106,32 @@ export function HomePage({ navigation }: HomePageProps) {
                 {t("heroDescription")}
               </p>
             </div>
+
+
+            {/* Learn to Prompt CTA */}
+            <Card className="prompt-cta-card mt-8 mb-6 border-primary/30 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 group hover:border-primary/50 transition-colors">
+              <CardContent className="flex flex-col sm:flex-row items-center gap-4 p-6">
+                <div className="p-3 rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors sparkles-container">
+                  <Sparkles className="h-6 w-6 text-primary sparkles-icon" />
+                  <span className="sparkles-firefly" />
+                  <span className="sparkles-firefly" />
+                  <span className="sparkles-firefly" />
+                  <span className="sparkles-firefly" />
+                </div>
+                <div className="flex-1 text-center sm:text-left">
+                  <h3 className="text-lg font-semibold">{t("learnToPrompt")}</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {t("learnToPromptDesc")}
+                  </p>
+                </div>
+                <Button asChild className="gap-2">
+                  <Link href="/learn-to-prompt">
+                    {t("startSimulation")}
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
 
             {/* Course Categories */}
             <div className="grid gap-6 md:grid-cols-2">
@@ -160,26 +192,6 @@ export function HomePage({ navigation }: HomePageProps) {
               })}
             </div>
 
-            {/* Learn to Prompt CTA */}
-            <Card className="mt-8 border-primary/30 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 group hover:border-primary/50 transition-colors">
-              <CardContent className="flex flex-col sm:flex-row items-center gap-4 p-6">
-                <div className="p-3 rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors">
-                  <Sparkles className="h-6 w-6 text-primary" />
-                </div>
-                <div className="flex-1 text-center sm:text-left">
-                  <h3 className="text-lg font-semibold">{t("learnToPrompt")}</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {t("learnToPromptDesc")}
-                  </p>
-                </div>
-                <Button asChild className="gap-2">
-                  <Link href="/learn-to-prompt">
-                    {t("startSimulation")}
-                    <ArrowRight className="h-4 w-4" />
-                  </Link>
-                </Button>
-              </CardContent>
-            </Card>
 
             {/* Quick Start */}
             <div className="mt-16 text-center">

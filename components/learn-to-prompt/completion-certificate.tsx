@@ -5,7 +5,6 @@ import {
   FileImage,
   FileText,
   Star,
-  Award,
   ArrowLeft,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -100,7 +99,14 @@ export function CompletionCertificate({
       {/* Header */}
       <div className="text-center space-y-2">
         <div className="h-16 w-16 rounded-full bg-green-500/10 flex items-center justify-center mx-auto mb-2">
-          <Award className="h-8 w-8 text-green-600 dark:text-green-400" />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img 
+            src="/icon.png" 
+            alt="AI & LLM Lectures" 
+            className="h-12 w-12 rounded-full"
+            width={48}
+            height={48}
+          />
         </div>
         <h2 className="text-2xl font-bold">
           {language === "en" ? "Congratulations!" : "Tebrikler!"}
@@ -150,7 +156,15 @@ export function CompletionCertificate({
             }}
           >
             {/* Top decoration */}
-            <div style={{ textAlign: "center", marginBottom: "8px" }}>
+            <div style={{ textAlign: "center", marginBottom: "12px" }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img 
+                src="/icon.png" 
+                alt="AI & LLM Lectures" 
+                width={64}
+                height={64}
+                style={{ marginBottom: '8px', borderRadius: '50%' }}
+              />
               <div
                 style={{
                   display: "inline-block",

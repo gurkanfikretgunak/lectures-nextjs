@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { GraduationCap, Search, MessageCircle } from "lucide-react";
+import { Search, MessageCircle } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { LanguageToggle } from "@/components/language-toggle";
 import { MobileSidebar } from "@/components/layout/mobile-sidebar";
@@ -64,7 +64,14 @@ export function Header({
         <MobileSidebar navigation={navigation} />
 
         <Link href="/" className="flex items-center gap-2 ml-2 lg:ml-0">
-          <GraduationCap className="h-6 w-6" />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img 
+            src="/icon.png" 
+            alt="AI & LLM Lectures" 
+            className="h-6 w-6 rounded-full"
+            width={24}
+            height={24}
+          />
           <span className="font-semibold text-lg hidden sm:inline-block">
             {t("siteTitle")}
           </span>
