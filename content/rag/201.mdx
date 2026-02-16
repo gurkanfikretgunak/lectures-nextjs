@@ -1,0 +1,71 @@
+---
+title: "RAG 201"
+description: "Advanced Retrieval: Hybrid Search, Reranking, and Metadata Filtering"
+category: "rag"
+level: 201
+order: 3
+---
+
+# RAG 201: Advanced Retrieval Techniques
+
+Welcome to RAG 201! In RAG 102, we used pure vector search. While powerful, it sometimes misses specific keywords or nuances. This lecture covers advanced techniques to improve retrieval accuracy.
+
+## 1. Hybrid Search (Keyword + Vector)
+
+Vector search is great for **semantic meaning** ("apple" ≈ "fruit"), but bad at exact **keywords** (part numbers like "ISO-8601" or names "Project X").
+
+**Hybrid Search** combines the best of both worlds:
+-   **BM25 (Keyword Search)**: Finds exact matches.
+-   **Vector Search**: Finds conceptual matches.
+
+<Mermaid chart={`
+flowchart TD
+    Query[User Query] --> Keywords[BM25 Search]
+    Query --> Vector[Vector Search]
+    Keywords -->|Ranked List A| Fusion[Reciprocal Rank Fusion (RRF)]
+    Vector -->|Ranked List B| Fusion
+    Fusion -->|Final Top K| Results[Results]
+`} />
+
+### Why Hybrid?
+If a user searches for "Error 503", vector search might return general error pages. Keyword search will find the exact "Error 503" documentation.
+
+## 2. Reranking (Cross-Encoder)
+
+Vector search is fast but "blurry". To get the absolute best results, we add a second step called **Reranking**.
+
+1.  **Retrieve**: Get the top 50 candidates using fast vector search.
+2.  **Rerank**: Use a more powerful (but slower) model called a **Cross-Encoder** to score each candidate against the query.
+3.  **Return**: Give the top 5 to the LLM.
+
+**Example**:
+-   **Retrieval**: Finds 50 documents about "Bank Policies".
+-   **Reranker**: Reads each one carefully to see which specifically mentions "Interest Rates for 2024".
+
+## 3. Metadata Filtering
+
+Sometimes you know exactly *where* to look. Don't search the whole database.
+
+-   **Query**: "Show me emails from *John* about *budget*."
+-   **Filter**: `sender = "John"`
+-   **Vector Search**: "budget"
+
+This is crucial for **Multi-Tenancy** (ensuring User A can't search User B's data).
+
+```python
+# Example with Chroma
+results = collection.query(
+    query_texts=["budget"],
+    where={"sender": "John"}, # Metadata Filter
+    n_results=5
+)
+```
+
+## Summary
+
+Advanced RAG isn't just about vectors. It's about combining multiple signals:
+-   **Hybrid Search**: Semantics + Keywords.
+-   **Reranking**: Precision scoring.
+-   **Filtering**: Structured constraints.
+
+In **RAG 202**, we will learn how to build a production-ready RAG application, including ingestion pipelines and evaluation.

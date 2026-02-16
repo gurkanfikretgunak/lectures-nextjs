@@ -1,0 +1,73 @@
+---
+title: "RAG 202"
+description: "Building Production RAG Apps: Ingestion, Evaluation, and Agents"
+category: "rag"
+level: 202
+order: 4
+---
+
+# RAG 202: Building Production RAG Apps
+
+Welcome to RAG 202! In this final lecture, we tackle the hard part: making RAG work reliably in production.
+
+## 1. The Ingestion Pipeline
+
+Garbage In, Garbage Out. Your RAG system is only as good as your data preparation.
+
+### Chunking Strategies
+How do you split your documents?
+-   **Character Splitting**: Every 1000 chars. Simple but breaks sentences.
+-   **Recursive Splitting**: Tries to keep paragraphs together. Better context.
+-   **Semantic Chunking**: Uses an LLM to group related sentences. Best but slow.
+
+### Cleaning
+Remove headers, footers, and "noise" (like "Page 1 of 50") before embedding.
+
+<Mermaid chart={`
+flowchart LR
+    Doc[Raw Document] --> Clean[Cleaning]
+    Clean --> Chunk[Chunking]
+    Chunk --> Embed[Embedding]
+    Embed --> Store[(Vector DB)]
+`} />
+
+## 2. Evaluation (RAGAS)
+
+How do you know if your RAG system is working? You need metrics.
+We use a framework called **RAGAS** (RAG Assessment).
+
+### Key Metrics
+1.  **Faithfulness**: Is the answer supported by the retrieved context? (Does it hallucinate?)
+2.  **Answer Relevance**: Does the answer address the user's question?
+3.  **Context Precision**: Is the relevant information ranked highly in the retrieved chunks?
+
+To calculate these, you need a "Golden Dataset" of questions and answers.
+
+## 3. Agentic RAG (Self-Reflection)
+
+The most advanced RAG systems don't just search once. They **think**.
+
+-   **Self-Reflection**: The LLM looks at the retrieved documents and says, "This isn't helpful. I need to search for 'X' instead."
+-   **Multi-Hop Reasoning**:
+    1.  Q: "Who is the CEO of the company that made the iPhone?"
+    2.  Step 1: Search "Who made iPhone?" -> Apple.
+    3.  Step 2: Search "CEO of Apple" -> Tim Cook.
+
+<Mermaid chart={`
+flowchart TD
+    Start[User Query] --> Plan[Plan Search]
+    Plan --> Search[Execute Search]
+    Search --> Eval{Is Context Enough?}
+    Eval -->|No| Refine[Refine Query]
+    Refine --> Search
+    Eval -->|Yes| Answer[Generate Answer]
+`} />
+
+## Summary
+
+Building a production RAG system requires:
+1.  **Robust Ingestion**: Smart chunking and cleaning.
+2.  ** rigorous Evaluation**: Measuring faithfulness and relevance.
+3.  **Agentic Behavior**: Allowing the system to self-correct.
+
+Congratulations! You have completed the RAG track. You are now equipped to build intelligent search applications.

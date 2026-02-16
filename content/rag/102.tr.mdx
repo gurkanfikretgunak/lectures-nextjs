@@ -1,0 +1,88 @@
+---
+title: "RAG 102"
+description: "Vektörler ve Embeddingler: RAG'ın Motoru"
+category: "rag"
+level: 102
+order: 2
+---
+
+# RAG 102: Vektör Veritabanları ve Embeddingler
+
+RAG 102'ye hoş geldiniz! Önceki derste, RAG'ın "ilgili" bilgileri bularak çalıştığını öğrendik. Ancak bir bilgisayar neyin ilgili olduğunu nasıl bilir? Cevap **Vektörler**.
+
+## Embedding (Gömme) Nedir?
+
+Bilgisayarlar kelimeleri anlamaz; sayıları anlarlar. Bir **Embedding Modeli** (OpenAI'nin `text-embedding-3-small` gibi), metni **Vektör** adı verilen bir sayı listesine çevirir.
+
+-   **Girdi**: "Elma"
+-   **Çıktı**: `[0.01, -0.23, 0.45, ...]` (genellikle 1536 sayı)
+
+Sihir, **benzer kavramların benzer sayılara sahip olmasıdır**.
+-   "Elma" vektörü matematiksel olarak "Meyve" vektörüne yakındır.
+-   "Elma" vektörü "Araba" vektörüne uzaktır.
+
+<Mermaid chart={`
+flowchart LR
+    Text["Metin: Merhaba Dünya"] --> Model[Embedding Modeli]
+    Model --> Vector["Vektör: [0.1, 0.5, -0.2...]"]
+`} />
+
+## Kosinüs Benzerliği: Uygunluğu Ölçmek
+
+"İlgili" belgeleri bulmak için eşleşen anahtar kelimelere bakmayız (geleneksel arama gibi). **Anlama** bakarız.
+
+İki vektör arasındaki açıyı **Kosinüs Benzerliği** (Cosine Similarity) kullanarak ölçeriz.
+-   **1.0**: Aynı anlam.
+-   **0.0**: Alakasız.
+-   **-1.0**: Zıt anlam.
+
+### Örnek
+Kullanıcı Sorgusu: "Patlak lastik nasıl onarılır?"
+
+| Belge | Benzerlik Skoru | Sonuç |
+| :--- | :--- | :--- |
+| "Araba tekerleği değiştirme rehberi" | 0.85 | **Eşleşme** ("Lastik" kelimesi olmasa bile) |
+| "Kauçuğun tarihi" | 0.40 | Düşük alaka |
+| "Makarna pişirmek" | 0.05 | Alakasız |
+
+## Vektör Veritabanları
+
+Standart bir veritabanı (SQL), bu milyonlarca vektör arasında arama yapmakta kötüdür. Bir **Vektör Veritabanı** bu görev için özelleştirilmiştir.
+
+### Popüler Seçenekler
+1.  **Pinecone**: Bulut tabanlı, ölçeklenmesi kolay.
+2.  **Chroma**: Açık kaynaklı, yerel veya bulutta çalışır.
+3.  **Qdrant**: Yüksek performanslı, Rust tabanlı.
+4.  **pgvector**: PostgreSQL'e vektör desteği ekler.
+
+### Temel İş Akışı
+
+```python
+import chromadb
+
+# 1. İstemciyi Başlat
+client = chromadb.Client()
+collection = client.create_collection("my_docs")
+
+# 2. Belgeleri Ekle (otomatik olarak gömülür/embedded)
+collection.add(
+    documents=["Fransa'nın başkenti Paris'tir", "Elmalar kırmızıdır"],
+    ids=["id1", "id2"]
+)
+
+# 3. Sorgula
+results = collection.query(
+    query_texts=["Paris nerede?"],
+    n_results=1
+)
+
+# Çıktı: "Fransa'nın başkenti Paris'tir"
+```
+
+## Özet
+
+-   **Embeddingler**, metni anlamı temsil eden sayılara dönüştürür.
+-   **Vektör Arama**, sadece benzer kelimeleri değil, benzer anlama sahip belgeleri bulur.
+-   **Vektör Veritabanları**, bu sayıları verimli bir şekilde saklar ve arar.
+
+**RAG 201**'de, aramalarımızı daha da akıllı hale getirmek için Hibrit Arama (Hybrid Search) gibi ileri düzey teknikleri öğreneceğiz.

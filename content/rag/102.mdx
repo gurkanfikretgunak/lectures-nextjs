@@ -1,0 +1,88 @@
+---
+title: "RAG 102"
+description: "Understanding Vectors and Embeddings: The Engine of RAG"
+category: "rag"
+level: 102
+order: 2
+---
+
+# RAG 102: Vector Databases & Embeddings
+
+Welcome to RAG 102! In the previous lecture, we learned that RAG works by finding "relevant" information. But how does a computer know what is relevant? The answer is **Vectors**.
+
+## What is an Embedding?
+
+Computers don't understand words; they understand numbers. An **Embedding Model** (like OpenAI's `text-embedding-3-small`) translates text into a list of numbers called a **Vector**.
+
+-   **Input**: "Apple"
+-   **Output**: `[0.01, -0.23, 0.45, ...]` (typically 1536 numbers)
+
+The magic is that **similar concepts have similar numbers**.
+-   The vector for "Apple" will be mathematically close to "Fruit".
+-   The vector for "Apple" will be far from "Car".
+
+<Mermaid chart={`
+flowchart LR
+    Text[Text: "Hello World"] --> Model[Embedding Model]
+    Model --> Vector["Vector: [0.1, 0.5, -0.2...]"]
+`} />
+
+## Cosine Similarity: Measuring Relevance
+
+To find "relevant" documents, we don't look for matching keywords (like traditional search). We look for **meaning**.
+
+We measure the angle between two vectors using **Cosine Similarity**.
+-   **1.0**: Identical meaning.
+-   **0.0**: Unrelated.
+-   **-1.0**: Opposite meaning.
+
+### Example
+User Query: "How to fix a flat tire?"
+
+| Document | Similarity Score | Result |
+| :--- | :--- | :--- |
+| "Guide to changing car wheels" | 0.85 | **Match** (Even without the word "tire") |
+| "History of rubber" | 0.40 | Low relevance |
+| "Cooking pasta" | 0.05 | Not relevant |
+
+## Vector Databases
+
+A standard database (SQL) is bad at searching through millions of these vectors. A **Vector Database** is specialized for this task.
+
+### Popular Options
+1.  **Pinecone**: Cloud-native, easy to scale.
+2.  **Chroma**: Open-source, runs locally or in cloud.
+3.  **Qdrant**: High-performance, Rust-based.
+4.  **pgvector**: Adds vector support to PostgreSQL.
+
+### Basic Workflow
+
+```python
+import chromadb
+
+# 1. Initialize Client
+client = chromadb.Client()
+collection = client.create_collection("my_docs")
+
+# 2. Add Documents (automatically embedded)
+collection.add(
+    documents=["The capital of France is Paris", "Apples are red"],
+    ids=["id1", "id2"]
+)
+
+# 3. Query
+results = collection.query(
+    query_texts=["Where is Paris?"],
+    n_results=1
+)
+
+# Output: "The capital of France is Paris"
+```
+
+## Summary
+
+-   **Embeddings** turn text into numbers that represent meaning.
+-   **Vector Search** finds documents with similar meaning, not just similar words.
+-   **Vector Databases** store and search these numbers efficiently.
+
+In **RAG 201**, we will learn advanced techniques like Hybrid Search to make our retrieval even smarter.

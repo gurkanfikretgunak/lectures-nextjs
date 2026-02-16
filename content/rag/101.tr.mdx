@@ -1,0 +1,69 @@
+---
+title: "RAG 101"
+description: "RAG'a Giriş: Neden ve Nasıl?"
+category: "rag"
+level: 101
+order: 1
+---
+
+# RAG (Retrieval-Augmented Generation)'a Giriş
+
+RAG 101'e hoş geldiniz! Bu ders, LLM'lerin özel verilerinizi kullanmasına olanak tanıyan bir teknik olan Retrieval-Augmented Generation'ın (Geri Getirme ile Artırılmış Üretim) temel kavramlarını tanıtır.
+
+## Sorun: LLM Sınırlamaları
+
+GPT-4 gibi Büyük Dil Modelleri (LLM'ler) güçlüdür, ancak iki büyük sınırlamaları vardır:
+1.  **Kesim Tarihi**: Yalnızca eğitim tarihlerine kadar olan bilgileri bilirler.
+2.  **Özel Bilgi Yok**: Şirketinizin e-postalarını, belgelerini veya veritabanlarını bilmezler.
+3.  **Halüsinasyonlar**: Cevabı bilmediklerinde gerçekleri uydurabilirler.
+
+## Çözüm: RAG
+
+**Retrieval-Augmented Generation (RAG)**, LLM'e bir soruyu cevaplamadan *önce* ilgili gerçekleri sağlayan bir tekniktir.
+
+Bunu açık kitap sınavı gibi düşünün:
+- **Standart LLM**: Sınavı hafızadan yapmak.
+- **RAG**: Sınavı ders kitabı doğru sayfada açıkken yapmak.
+
+<Mermaid chart={`
+flowchart LR
+    User[Kullanıcı Sorusu] --> Retriever[Getirici]
+    Retriever -->|Ara| KB[(Bilgi Tabanı)]
+    KB -->|İlgili Belgeler| Retriever
+    Retriever -->|Bağlam + Soru| LLM[LLM]
+    LLM -->|Cevap| User
+`} />
+
+## Temel Bileşenler
+
+### 1. Bilgi Tabanı (Vektör Veritabanı)
+Verilerinizin yaşadığı yer burasıdır. Geleneksel bir SQL veritabanının aksine, buradaki veriler anlamı temsil eden "vektörler" (sayılar) olarak saklanır.
+
+### 2. Getirici (Retriever)
+Kullanıcının sorgusu için en alakalı bilgiyi bulan sistemdir.
+
+### 3. Üretici (Generator - LLM)
+Alınan bilgiyi ve kullanıcının sorusunu alarak doğal dilde bir cevap üreten AI modelidir.
+
+## Basit Örnek
+
+**Kullanıcı Sorusu**: "Şirketimizin tatil politikası nedir?"
+
+**RAG Olmadan**:
+> "Şirketiniz hakkında bilgim yok. Genellikle şirketler 2-4 hafta sunar..."
+
+**RAG İle**:
+1.  **Getir (Retrieve)**: Sistem politika belgelerini arar ve şunu bulur: *"Çalışanlar yılda 20 gün ücretli izin alır."*
+2.  **Artır (Augment)**: Sistem bir istem oluşturur:
+    *   "Bağlam: Çalışanlar yılda 20 gün ücretli izin alır."
+    *   "Soru: Şirketimizin tatil politikası nedir?"
+3.  **Üret (Generate)**:
+    > "Politikaya göre, çalışanlar yılda 20 gün Ücretli İzin (PTO) alır."
+
+## Neden RAG Kullanmalı?
+
+-   **Doğruluk**: Cevapları gerçeklere dayandırarak halüsinasyonları azaltır.
+-   **Güncellik**: Modeli yeniden eğitmeden bilgi tabanını güncelleyin.
+-   **Güvenlik**: Hassas verileri yerel tutun; yalnızca ilgili parçaları LLM'e gönderin.
+
+**RAG 102**'de, RAG'ın arkasındaki motoru keşfedeceğiz: Vektör Veritabanları ve Embeddingler.

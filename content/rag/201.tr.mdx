@@ -1,0 +1,71 @@
+---
+title: "RAG 201"
+description: "İleri Düzey Getirme: Hibrit Arama, Reranking ve Metadata Filtreleme"
+category: "rag"
+level: 201
+order: 3
+---
+
+# RAG 201: İleri Düzey Getirme Teknikleri
+
+RAG 201'e hoş geldiniz! RAG 102'de saf vektör araması kullandık. Güçlü olsa da, bazen belirli anahtar kelimeleri veya nüansları kaçırır. Bu ders, getirme doğruluğunu artırmak için ileri düzey teknikleri kapsar.
+
+## 1. Hibrit Arama (Anahtar Kelime + Vektör)
+
+Vektör araması **anlamsal anlam** ("elma" ≈ "meyve") için harikadır, ancak tam **anahtar kelimelerde** (parça numaraları "ISO-8601" veya isimler "Proje X") kötüdür.
+
+**Hibrit Arama (Hybrid Search)** her iki dünyanın en iyisini birleştirir:
+-   **BM25 (Anahtar Kelime Araması)**: Tam eşleşmeleri bulur.
+-   **Vektör Arama**: Kavramsal eşleşmeleri bulur.
+
+<Mermaid chart={`
+flowchart TD
+    Query[Kullanıcı Sorgusu] --> Keywords[BM25 Araması]
+    Query --> Vector[Vektör Arama]
+    Keywords -->|Sıralı Liste A| Fusion[Karşılıklı Sıralama Füzyonu (RRF)]
+    Vector -->|Sıralı Liste B| Fusion
+    Fusion -->|Nihai İlk K| Results[Sonuçlar]
+`} />
+
+### Neden Hibrit?
+Kullanıcı "Hata 503" ararsa, vektör araması genel hata sayfalarını döndürebilir. Anahtar kelime araması tam "Hata 503" dokümantasyonunu bulacaktır.
+
+## 2. Reranking (Cross-Encoder)
+
+Vektör araması hızlıdır ancak "bulanık"tır. Mutlak en iyi sonuçları elde etmek için **Reranking** (Yeniden Sıralama) adı verilen ikinci bir adım ekleriz.
+
+1.  **Getir (Retrieve)**: Hızlı vektör araması kullanarak en iyi 50 adayı alın.
+2.  **Yeniden Sırala (Rerank)**: Her adayı sorguya karşı puanlamak için **Cross-Encoder** adı verilen daha güçlü (ancak daha yavaş) bir model kullanın.
+3.  **Döndür**: İlk 5'i LLM'e verin.
+
+**Örnek**:
+-   **Getirme**: "Banka Politikaları" hakkında 50 belge bulur.
+-   **Reranker**: Hangisinin özellikle "2024 Faiz Oranları"ndan bahsettiğini görmek için her birini dikkatlice okur.
+
+## 3. Metadata Filtreleme
+
+Bazen tam olarak *nereye* bakacağınızı bilirsiniz. Tüm veritabanını aramayın.
+
+-   **Sorgu**: "Bana *Ahmet*'ten gelen *bütçe* hakkındaki e-postaları göster."
+-   **Filtre**: `sender = "Ahmet"`
+-   **Vektör Arama**: "bütçe"
+
+Bu, **Çok Kiracılılık (Multi-Tenancy)** için çok önemlidir (Kullanıcı A'nın Kullanıcı B'nin verilerini arayamadığından emin olmak).
+
+```python
+# Chroma ile örnek
+results = collection.query(
+    query_texts=["bütçe"],
+    where={"sender": "Ahmet"}, # Metadata Filtresi
+    n_results=5
+)
+```
+
+## Özet
+
+İleri düzey RAG sadece vektörlerle ilgili değildir. Birden fazla sinyali birleştirmekle ilgilidir:
+-   **Hibrit Arama**: Anlambilim + Anahtar Kelimeler.
+-   **Reranking**: Hassas puanlama.
+-   **Filtreleme**: Yapılandırılmış kısıtlamalar.
+
+**RAG 202**'de, veri girişi (ingestion) hatları ve değerlendirme (evaluation) dahil olmak üzere üretime hazır bir RAG uygulaması oluşturmayı öğreneceğiz.

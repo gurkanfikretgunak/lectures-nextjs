@@ -1,0 +1,73 @@
+---
+title: "RAG 202"
+description: "RAG Uygulamaları Geliştirme: Ingestion, Değerlendirme ve Ajanlar"
+category: "rag"
+level: 202
+order: 4
+---
+
+# RAG 202: RAG Uygulamaları Geliştirme
+
+RAG 202'ye hoş geldiniz! Bu son derste zor kısmı ele alıyoruz: RAG'ı üretimde güvenilir bir şekilde çalıştırmak.
+
+## 1. Veri Girişi (Ingestion) Hattı
+
+"Çöp İçeri, Çöp Dışarı". RAG sisteminiz yalnızca veri hazırlığınız kadar iyidir.
+
+### Parçalama (Chunking) Stratejileri
+Belgelerinizi nasıl bölüyorsunuz?
+-   **Karakter Bölme**: Her 1000 karakterde bir. Basit ama cümleleri böler.
+-   **Özyineli Bölme (Recursive)**: Paragrafları bir arada tutmaya çalışır. Daha iyi bağlam.
+-   **Anlamsal Parçalama (Semantic Chunking)**: İlgili cümleleri gruplamak için bir LLM kullanır. En iyisi ama yavaştır.
+
+### Temizleme
+Gömme (Embedding) işleminden önce üst bilgileri, alt bilgileri ve "gürültüyü" ("Sayfa 1/50" gibi) kaldırın.
+
+<Mermaid chart={`
+flowchart LR
+    Doc[Ham Belge] --> Clean[Temizleme]
+    Clean --> Chunk[Parçalama]
+    Chunk --> Embed[Gömme]
+    Embed --> Store[(Vektör DB)]
+`} />
+
+## 2. Değerlendirme (RAGAS)
+
+RAG sisteminizin çalışıp çalışmadığını nasıl anlarsınız? Ölçümlere ihtiyacınız var.
+**RAGAS** (RAG Assessment) adlı bir çerçeve kullanıyoruz.
+
+### Anahtar Metrikler
+1.  **Sadakat (Faithfulness)**: Cevap, alınan bağlamla destekleniyor mu? (Halüsinasyon görüyor mu?)
+2.  **Cevap Alakalılığı**: Cevap kullanıcının sorusunu ele alıyor mu?
+3.  **Bağlam Hassasiyeti**: İlgili bilgi, alınan parçalar arasında üst sıralarda mı?
+
+Bunları hesaplamak için bir "Altın Veri Kümesine" (sorular ve cevaplar) ihtiyacınız vardır.
+
+## 3. Ajan Tabanlı RAG (Öz-Yansıtma)
+
+En gelişmiş RAG sistemleri sadece bir kez arama yapmaz. **Düşünürler**.
+
+-   **Öz-Yansıtma (Self-Reflection)**: LLM alınan belgelere bakar ve "Bu yararlı değil. Bunun yerine 'X'i aramalıyım." der.
+-   **Çok Adımlı Akıl Yürütme (Multi-Hop)**:
+    1.  S: "iPhone'u yapan şirketin CEO'su kim?"
+    2.  Adım 1: "iPhone'u kim yaptı?" ara -> Apple.
+    3.  Adım 2: "Apple CEO'su" ara -> Tim Cook.
+
+<Mermaid chart={`
+flowchart TD
+    Start[Kullanıcı Sorgusu] --> Plan[Arama Planla]
+    Plan --> Search[Aramayı Yürüt]
+    Search --> Eval{Bağlam Yeterli mi?}
+    Eval -->|Hayır| Refine[Sorguyu İyileştir]
+    Refine --> Search
+    Eval -->|Evet| Answer[Cevap Üret]
+`} />
+
+## Özet
+
+Üretime hazır bir RAG sistemi oluşturmak şunları gerektirir:
+1.  **Sağlam Veri Girişi**: Akıllı parçalama ve temizleme.
+2.  **Titiz Değerlendirme**: Sadakati ve alakalılığı ölçmek.
+3.  **Ajan Davranışı**: Sistemin kendi kendini düzeltmesine izin vermek.
+
+Tebrikler! RAG yolunu tamamladınız. Artık akıllı arama uygulamaları oluşturmak için donanımlısınız.

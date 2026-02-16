@@ -1,0 +1,69 @@
+---
+title: "RAG 101"
+description: "Introduction to Retrieval-Augmented Generation: Why and How"
+category: "rag"
+level: 101
+order: 1
+---
+
+# Introduction to RAG (Retrieval-Augmented Generation)
+
+Welcome to RAG 101! This lecture introduces the fundamental concepts of Retrieval-Augmented Generation, a technique that allows LLMs to use your private data.
+
+## The Problem: LLM Limitations
+
+Large Language Models (LLMs) like GPT-4 are powerful, but they have two major limitations:
+1.  **Cut-off Date**: They only know information up to their training date.
+2.  **No Private Knowledge**: They don't know your company's emails, documents, or databases.
+3.  **Hallucinations**: They might confidently make up facts when they don't know the answer.
+
+## The Solution: RAG
+
+**Retrieval-Augmented Generation (RAG)** is a technique that provides the LLM with the relevant facts *before* it answers a question.
+
+Think of it like an open-book exam:
+- **Standard LLM**: Taking an exam from memory.
+- **RAG**: Taking an exam with a textbook open to the right page.
+
+<Mermaid chart={`
+flowchart LR
+    User[User Question] --> Retriever[Retriever]
+    Retriever -->|Search| KB[(Knowledge Base)]
+    KB -->|Relevant Docs| Retriever
+    Retriever -->|Context + Question| LLM[LLM]
+    LLM -->|Answer| User
+`} />
+
+## Core Components
+
+### 1. The Knowledge Base (Vector DB)
+This is where your data lives. Unlike a traditional SQL database, data here is stored as "vectors" (numbers) representing meaning.
+
+### 2. The Retriever
+The system that finds the most relevant information for a user's query.
+
+### 3. The Generator (LLM)
+The AI model that takes the retrieved information and the user's question to generate a natural language answer.
+
+## Simple Example
+
+**User Question**: "What is our company's vacation policy?"
+
+**Without RAG**:
+> "I don't know about your specific company. Generally, companies offer 2-4 weeks..."
+
+**With RAG**:
+1.  **Retrieve**: System searches policy documents and finds: *"Employees get 20 days of PTO per year."*
+2.  **Augment**: System creates a prompt:
+    *   "Context: Employees get 20 days of PTO per year."
+    *   "Question: What is our company's vacation policy?"
+3.  **Generate**:
+    > "According to the policy, employees get 20 days of Paid Time Off (PTO) per year."
+
+## Why Use RAG?
+
+-   **Accuracy**: Reduces hallucinations by grounding answers in facts.
+-   **Freshness**: Update the knowledge base without re-training the model.
+-   **Security**: Keep sensitive data local; only send relevant snippets to the LLM.
+
+In **RAG 102**, we will explore the engine behind RAG: Vector Databases and Embeddings.
