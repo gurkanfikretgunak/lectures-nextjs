@@ -5,6 +5,7 @@ import { getLecture, getAllLectures, extractHeadings, getNavigation } from "@/li
 import { mdxComponents } from "@/lib/mdx-components";
 import { LectureLayout } from "./lecture-layout";
 import remarkGfm from "remark-gfm";
+import { remarkMermaid } from "@/lib/remark-mermaid";
 import rehypeSlug from "rehype-slug";
 import rehypePrettyCode from "rehype-pretty-code";
 import React from "react";
@@ -136,7 +137,7 @@ export default async function LecturePage({ params }: PageProps) {
             components={componentsWithTitle}
             options={{
               mdxOptions: {
-                remarkPlugins: [remarkGfm],
+                remarkPlugins: [remarkGfm, remarkMermaid],
                 rehypePlugins: [
                   rehypeSlug,
                   [rehypePrettyCode, rehypePrettyCodeOptions],
