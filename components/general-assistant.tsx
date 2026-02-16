@@ -15,7 +15,6 @@ import {
   Zap,
   Check,
   FileEdit,
-  Sparkles,
   BarChart3,
   Pencil,
 } from "lucide-react";
@@ -162,7 +161,6 @@ export function GeneralAssistant({ isOpen, onClose }: GeneralAssistantProps) {
   const [matrixScore, setMatrixScore] = useState<PromptMatrixScore | null>(null);
   const [promptSuggestions, setPromptSuggestions] = useState<PromptSuggestion[]>([]);
   const [analyzedPromptText, setAnalyzedPromptText] = useState("");
-  const [aiFixSuggestionId, setAiFixSuggestionId] = useState<string | null>(null);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -373,42 +371,6 @@ export function GeneralAssistant({ isOpen, onClose }: GeneralAssistantProps) {
     setShowAnalyzerDialog(false);
     setShowCorePromptDialog(true);
   }, []);
-
-  // Fix prompt with AI (Llama model improves the prompt based on suggestion)
-  const handleFixWithAI = useCallback(
-    async (s: PromptSuggestion) => {
-      if (!engine) {
-        return;
-      }
-      setAiFixSuggestionId(s.id);
-      const currentPrompt = promptDraft.trim() || buildGeneralSystemPrompt(language);
-      const systemPrompt =
-        language === "en"
-          ? "You are a prompt engineering expert. Your task: improve the given system prompt by adding the suggested element. Return ONLY the improved prompt text. No explanations, no markdown, no preamble. Just the raw improved prompt."
-          : "Prompt muhendisligi uzmanisiniz. Gorev: Verilen sistem promptunu onerilen ogeyi ekleyerek iyilestirin. SADECE iyilestirilmis prompt metnini dondurun. Aciklama, markdown veya onsoz yok. Sadece ham iyilestirilmis prompt.";
-      const userMsg =
-        language === "en"
-          ? `Current prompt:\n"""\n${currentPrompt}\n"""\n\nAdd this improvement: ${s.suggestion}\n\nReturn only the improved prompt.`
-          : `Mevcut prompt:\n"""\n${currentPrompt}\n"""\n\nBu iyilestirmeyi ekleyin: ${s.suggestion}\n\nSadece iyilestirilmis promptu dondurun.`;
-      try {
-        let improved = "";
-        await streamChat(engine, systemPrompt, [{ role: "user", content: userMsg }], (_token, fullText) => {
-          improved = fullText;
-        });
-        const trimmed = improved.trim().replace(/^["']|["']$/g, "");
-        if (trimmed) {
-          setPromptDraft(trimmed);
-          setShowAnalyzerDialog(false);
-          setShowCorePromptDialog(true);
-        }
-      } catch (err) {
-        console.error("AI fix error:", err);
-      } finally {
-        setAiFixSuggestionId(null);
-      }
-    },
-    [engine, promptDraft, language]
-  );
 
   // Replace core prompt with template
   const handleInsertTemplate = useCallback((key: string) => {
@@ -668,25 +630,6 @@ export function GeneralAssistant({ isOpen, onClose }: GeneralAssistantProps) {
                           {s.missing ? "!" : "✓"}
                         </span>
                         <span className="flex-1">{s.suggestion}</span>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-7 px-2 text-xs shrink-0"
-                          disabled={!engine}
-                          title={!engine ? (language === "en" ? "Load AI model first" : "Once AI modeli yukleyin") : undefined}
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            handleFixWithAI(s);
-                          }}
-                        >
-                          {aiFixSuggestionId === s.id ? (
-                            <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                          ) : (
-                            <Sparkles className="h-3 w-3 mr-1" />
-                          )}
-                          {language === "en" ? "Fix with AI" : "AI ile düzelt"}
-                        </Button>
                         <Button
                           variant="ghost"
                           size="sm"
