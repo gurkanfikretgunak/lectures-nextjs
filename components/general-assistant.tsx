@@ -14,6 +14,10 @@ import {
   Settings,
   Zap,
   Check,
+  FileEdit,
+  Sparkles,
+  BarChart3,
+  Pencil,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -39,6 +43,15 @@ import {
   type ModelKey,
 } from "@/components/learn-to-prompt/webllm-engine";
 import { useLanguage } from "@/contexts/language-context";
+import {
+  tokenizeForLlama,
+  parsePromptAnatomy,
+  scorePromptMatrix,
+  getPromptSuggestions,
+  type TokenInfo,
+  type PromptMatrixScore,
+  type PromptSuggestion,
+} from "@/lib/prompt-tokenizer";
 
 interface ChatMessage {
   role: "user" | "assistant";
@@ -50,10 +63,11 @@ interface GeneralAssistantProps {
   onClose: () => void;
 }
 
-// General-purpose system prompt for everyday questions
-function buildGeneralSystemPrompt(language: "en" | "tr"): string {
-  return language === "en"
-    ? `You are a helpful AI assistant that helps people with everyday questions, coding, software development, and general knowledge.
+const CUSTOM_PROMPT_STORAGE_KEY = "ai-assistant-system-prompt";
+const CUSTOM_ORDERS_STORAGE_KEY = "ai-assistant-custom-orders";
+
+// Default system prompt (language-agnostic instructions)
+const DEFAULT_SYSTEM_PROMPT = `You are a helpful AI assistant that helps people with everyday questions, coding, software development, and general knowledge.
 
 You can help with:
 - Programming and coding questions (JavaScript, TypeScript, Python, React, etc.)
@@ -63,7 +77,50 @@ You can help with:
 - Learning new concepts
 - Problem-solving
 
-Be friendly, concise (3-6 sentences), and practical. Provide code examples when relevant. Answer directly and helpfully.`
+Be friendly, concise (3-6 sentences), and practical. Provide code examples when relevant. Answer directly and helpfully.`;
+
+// Prompt templates for rich planning experience
+const PROMPT_TEMPLATES: Record<string, { en: string; tr: string }> = {
+  general: {
+    en: DEFAULT_SYSTEM_PROMPT,
+    tr: `Gundelik sorular, kodlama, yazilim gelistirme ve genel bilgi konusunda yardimci olan yardimsever bir AI asistansiniz.
+Yardimci olabileceginiz konular: Programlama, yazilim gelistirme, genel bilgi, problem cozme.
+Dostca, oz ve pratik olun. Kod ornekleri verin.`,
+  },
+  coding: {
+    en: `You are an expert coding assistant. Focus on:
+- Clean, production-ready code
+- Best practices and design patterns
+- Debugging and performance
+- Multiple languages: JS, TS, Python, Go, Rust
+Be precise, include code examples. Explain trade-offs.`,
+    tr: `Uzman bir kodlama asistansiniz. Odak: Temiz kod, en iyi uygulamalar, hata ayiklama, performans.
+JS, TS, Python, Go, Rust destegi. Kesin olun, kod ornekleri verin.`,
+  },
+  tutor: {
+    en: `You are a patient tutor. Explain concepts step-by-step.
+- Start simple, add complexity gradually
+- Use analogies and examples
+- Encourage questions
+- Adapt to the learner's level`,
+    tr: `Sabirli bir ogretmensiniz. Kavramlari adim adim aciklayin.
+Basit baslayin, kademeli zorlastirin. Analojiler kullanin. Sorulara tesvik edin.`,
+  },
+  creative: {
+    en: `You are a creative assistant. Help with:
+- Writing, brainstorming, ideation
+- Storytelling and content creation
+- Design thinking
+Be imaginative, suggest alternatives, think outside the box.`,
+    tr: `Yaratici bir asistansiniz. Yazma, fikir uretme, icerik olusturma, tasarim dusuncesi.
+Hayal gucu kullanin, alternatifler onerin.`,
+  },
+};
+
+// General-purpose system prompt for everyday questions
+function buildGeneralSystemPrompt(language: "en" | "tr"): string {
+  return language === "en"
+    ? DEFAULT_SYSTEM_PROMPT
     : `Gundelik sorular, kodlama, yazilim gelistirme ve genel bilgi konusunda yardimci olan yardimsever bir AI asistansiniz.
 
 Yardimci olabileceginiz konular:
@@ -92,7 +149,20 @@ export function GeneralAssistant({ isOpen, onClose }: GeneralAssistantProps) {
   const [selectedModel, setSelectedModel] = useState<ModelKey | null>(null);
   const [showModelSelection, setShowModelSelection] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showCorePromptDialog, setShowCorePromptDialog] = useState(false);
   const [pendingModelSwitch, setPendingModelSwitch] = useState<ModelKey | null>(null);
+  const [customPrompt, setCustomPrompt] = useState<string>("");
+  const [promptDraft, setPromptDraft] = useState<string>("");
+  const [customOrders, setCustomOrders] = useState<string>("");
+  const [showAnalyzerDialog, setShowAnalyzerDialog] = useState(false);
+  const [analyzerTokens, setAnalyzerTokens] = useState<TokenInfo[]>([]);
+  const [analyzerTotal, setAnalyzerTotal] = useState(0);
+  const [analyzerLoading, setAnalyzerLoading] = useState(false);
+  const [anatomyColorize, setAnatomyColorize] = useState(true);
+  const [matrixScore, setMatrixScore] = useState<PromptMatrixScore | null>(null);
+  const [promptSuggestions, setPromptSuggestions] = useState<PromptSuggestion[]>([]);
+  const [analyzedPromptText, setAnalyzedPromptText] = useState("");
+  const [aiFixSuggestionId, setAiFixSuggestionId] = useState<string | null>(null);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -105,6 +175,27 @@ export function GeneralAssistant({ isOpen, onClose }: GeneralAssistantProps) {
       setUseBuiltIn(true);
     }
   }, []);
+
+  // Load custom prompt and orders from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem(CUSTOM_PROMPT_STORAGE_KEY);
+    const savedOrders = localStorage.getItem(CUSTOM_ORDERS_STORAGE_KEY);
+    if (saved) {
+      setCustomPrompt(saved);
+      setPromptDraft(saved);
+    } else {
+      setCustomPrompt("");
+      setPromptDraft(buildGeneralSystemPrompt(language));
+    }
+    setCustomOrders(savedOrders || "");
+  }, [isOpen, language]);
+
+  // Sync promptDraft when opening settings or core prompt dialog
+  useEffect(() => {
+    if (showSettings || showCorePromptDialog) {
+      setPromptDraft(customPrompt || buildGeneralSystemPrompt(language));
+    }
+  }, [showSettings, showCorePromptDialog, customPrompt, language]);
 
   // Check if model is selected (from localStorage)
   useEffect(() => {
@@ -216,6 +307,13 @@ export function GeneralAssistant({ isOpen, onClose }: GeneralAssistantProps) {
     setUseBuiltIn(true);
   }, []);
 
+  // Get effective system prompt (core + custom orders)
+  const getEffectiveSystemPrompt = useCallback(() => {
+    const core = customPrompt.trim() || buildGeneralSystemPrompt(language);
+    const orders = customOrders.trim();
+    return orders ? `${core}\n\n**Additional instructions:**\n${orders}` : core;
+  }, [customPrompt, customOrders, language]);
+
   // Reset chat
   const handleResetChat = useCallback(() => {
     const welcomeMsg =
@@ -225,6 +323,105 @@ export function GeneralAssistant({ isOpen, onClose }: GeneralAssistantProps) {
 
     setMessages([{ role: "assistant", content: welcomeMsg }]);
     setInputValue("");
+  }, [language]);
+
+  // Apply custom prompt and re-prompt (reset chat with new prompt)
+  const handleApplyPrompt = useCallback(() => {
+    const trimmed = promptDraft.trim();
+    if (trimmed) {
+      setCustomPrompt(trimmed);
+      localStorage.setItem(CUSTOM_PROMPT_STORAGE_KEY, trimmed);
+    } else {
+      setCustomPrompt("");
+      localStorage.removeItem(CUSTOM_PROMPT_STORAGE_KEY);
+    }
+    localStorage.setItem(CUSTOM_ORDERS_STORAGE_KEY, customOrders.trim());
+    handleResetChat();
+    setShowSettings(false);
+    setShowCorePromptDialog(false);
+  }, [promptDraft, customOrders, handleResetChat]);
+
+  // Analyze prompt anatomy (token table for Llama)
+  const handleAnalyzePrompt = useCallback(async () => {
+    const core = promptDraft.trim() || buildGeneralSystemPrompt(language);
+    const orders = customOrders.trim();
+    const fullPrompt = orders ? `${core}\n\n**Additional instructions:**\n${orders}` : core;
+    setShowAnalyzerDialog(true);
+    setAnalyzerLoading(true);
+    setAnalyzedPromptText(fullPrompt);
+    setMatrixScore(scorePromptMatrix(fullPrompt));
+    setPromptSuggestions(getPromptSuggestions(fullPrompt, language));
+    try {
+      const { tokens, totalTokens } = await tokenizeForLlama(fullPrompt);
+      setAnalyzerTokens(tokens);
+      setAnalyzerTotal(totalTokens);
+    } catch {
+      setAnalyzerTokens([]);
+      setAnalyzerTotal(Math.ceil(fullPrompt.length / 4));
+    } finally {
+      setAnalyzerLoading(false);
+    }
+  }, [promptDraft, customOrders, language]);
+
+  // Apply suggestion to prompt (insert template, switch to core prompt dialog)
+  const handleApplySuggestion = useCallback((insertTemplate: string, id: string) => {
+    if (id === "role") {
+      setPromptDraft((prev) => insertTemplate + (prev || ""));
+    } else {
+      setPromptDraft((prev) => (prev || "").trimEnd() + insertTemplate);
+    }
+    setShowAnalyzerDialog(false);
+    setShowCorePromptDialog(true);
+  }, []);
+
+  // Fix prompt with AI (Llama model improves the prompt based on suggestion)
+  const handleFixWithAI = useCallback(
+    async (s: PromptSuggestion) => {
+      if (!engine) {
+        return;
+      }
+      setAiFixSuggestionId(s.id);
+      const currentPrompt = promptDraft.trim() || buildGeneralSystemPrompt(language);
+      const systemPrompt =
+        language === "en"
+          ? "You are a prompt engineering expert. Your task: improve the given system prompt by adding the suggested element. Return ONLY the improved prompt text. No explanations, no markdown, no preamble. Just the raw improved prompt."
+          : "Prompt muhendisligi uzmanisiniz. Gorev: Verilen sistem promptunu onerilen ogeyi ekleyerek iyilestirin. SADECE iyilestirilmis prompt metnini dondurun. Aciklama, markdown veya onsoz yok. Sadece ham iyilestirilmis prompt.";
+      const userMsg =
+        language === "en"
+          ? `Current prompt:\n"""\n${currentPrompt}\n"""\n\nAdd this improvement: ${s.suggestion}\n\nReturn only the improved prompt.`
+          : `Mevcut prompt:\n"""\n${currentPrompt}\n"""\n\nBu iyilestirmeyi ekleyin: ${s.suggestion}\n\nSadece iyilestirilmis promptu dondurun.`;
+      try {
+        let improved = "";
+        await streamChat(engine, systemPrompt, [{ role: "user", content: userMsg }], (_token, fullText) => {
+          improved = fullText;
+        });
+        const trimmed = improved.trim().replace(/^["']|["']$/g, "");
+        if (trimmed) {
+          setPromptDraft(trimmed);
+          setShowAnalyzerDialog(false);
+          setShowCorePromptDialog(true);
+        }
+      } catch (err) {
+        console.error("AI fix error:", err);
+      } finally {
+        setAiFixSuggestionId(null);
+      }
+    },
+    [engine, promptDraft, language]
+  );
+
+  // Replace core prompt with template
+  const handleInsertTemplate = useCallback((key: string) => {
+    const t = PROMPT_TEMPLATES[key];
+    const text = t ? (t[language] || t.en) : "";
+    setPromptDraft(text);
+  }, [language]);
+
+  // Reset prompt to default
+  const handleResetPromptToDefault = useCallback(() => {
+    setCustomPrompt("");
+    setPromptDraft(buildGeneralSystemPrompt(language));
+    localStorage.removeItem(CUSTOM_PROMPT_STORAGE_KEY);
   }, [language]);
 
   // Send message
@@ -242,7 +439,7 @@ export function GeneralAssistant({ isOpen, onClose }: GeneralAssistantProps) {
       const assistantMsg: ChatMessage = { role: "assistant", content: "" };
       setMessages((prev) => [...prev, assistantMsg]);
 
-      const systemPrompt = buildGeneralSystemPrompt(language);
+      const systemPrompt = getEffectiveSystemPrompt();
       const recentMessages = [...messages.slice(-6), userMsg];
 
       try {
@@ -332,6 +529,291 @@ export function GeneralAssistant({ isOpen, onClose }: GeneralAssistantProps) {
         </DialogContent>
       </Dialog>
 
+      {/* Core Prompt Dialog - Comprehensive LLM Planning */}
+      <Dialog open={showCorePromptDialog} onOpenChange={setShowCorePromptDialog}>
+        <DialogContent className="max-w-5xl max-h-[90vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-primary" />
+              {language === "en" ? "Core Prompt" : "Core Prompt Ayarla"}
+            </DialogTitle>
+            <DialogDescription>
+              {language === "en"
+                ? "Plan and customize the LLM system instructions. Define the AI's role, capabilities, and behavior. Apply to restart the chat with your new prompt."
+                : "LLM sistem talimatlarini planlayin ve ozellestirin. AI'nin rolunu, yeteneklerini ve davranisini tanimlayin. Uygulayarak sohbeti yeni prompt ile yeniden baslatin."}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex-1 overflow-hidden flex flex-col gap-4 min-h-0">
+            {/* Quick templates - replace core prompt */}
+            <div className="space-y-2">
+              <p className="text-xs font-medium text-muted-foreground">
+                {language === "en" ? "Templates (replace core prompt):" : "Sablonlar (core promptu degistirir):"}
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleInsertTemplate("general")}
+                  className="text-xs"
+                >
+                  {language === "en" ? "General" : "Genel"}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleInsertTemplate("coding")}
+                  className="text-xs"
+                >
+                  {language === "en" ? "Coding" : "Kodlama"}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleInsertTemplate("tutor")}
+                  className="text-xs"
+                >
+                  {language === "en" ? "Tutor" : "Tutor"}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleInsertTemplate("creative")}
+                  className="text-xs"
+                >
+                  {language === "en" ? "Creative" : "Yaratici"}
+                </Button>
+              </div>
+            </div>
+            {/* Core prompt editor */}
+            <div className="flex-1 min-h-[200px] flex flex-col">
+              <label className="text-xs font-medium text-muted-foreground mb-1">
+                {language === "en" ? "Core prompt" : "Temel prompt"}
+              </label>
+              <textarea
+                value={promptDraft}
+                onChange={(e) => setPromptDraft(e.target.value)}
+                placeholder={DEFAULT_SYSTEM_PROMPT}
+                className="min-h-[180px] w-full rounded-lg border border-border bg-muted/30 px-4 py-3 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 resize-y font-mono leading-relaxed"
+                spellCheck={false}
+              />
+            </div>
+            {/* Custom prompts and orders */}
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-muted-foreground">
+                {language === "en" ? "Custom prompts & orders (appended to core)" : "Ozel promptlar ve talimatlar (core'a eklenir)"}
+              </label>
+              <textarea
+                value={customOrders}
+                onChange={(e) => setCustomOrders(e.target.value)}
+                placeholder={language === "en" ? "e.g. Always respond in bullet points. Use code blocks for snippets." : "Ornek: Her zaman madde isaretleriyle cevap ver. Kod icin code block kullan."}
+                rows={3}
+                className="w-full rounded-lg border border-border bg-muted/30 px-4 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 resize-y"
+              />
+            </div>
+          </div>
+          <DialogFooter className="flex-shrink-0 gap-2 sm:gap-0">
+            <Button variant="outline" onClick={handleAnalyzePrompt} disabled={analyzerLoading}>
+              <BarChart3 className="h-4 w-4 mr-2" />
+              {analyzerLoading
+                ? (language === "en" ? "Analyzing..." : "Analiz ediliyor...")
+                : (language === "en" ? "Analyze anatomy" : "Anatomi analizi")}
+            </Button>
+            <Button variant="outline" onClick={handleResetPromptToDefault}>
+              {language === "en" ? "Reset to Default" : "Varsayilana Sifirla"}
+            </Button>
+            <Button onClick={handleApplyPrompt}>
+              {language === "en" ? "Apply & Re-prompt" : "Uygula ve Yeniden Prompt"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Prompt Anatomy Analyzer Dialog */}
+      <Dialog open={showAnalyzerDialog} onOpenChange={setShowAnalyzerDialog}>
+        <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <BarChart3 className="h-5 w-5 text-primary" />
+              {language === "en" ? "Prompt Anatomy" : "Prompt Anatomisi"}
+            </DialogTitle>
+            <DialogDescription>
+              {language === "en"
+                ? "Token breakdown (Llama tokenizer), matrix score, colorized anatomy, and prompt engineering suggestions with explanations."
+                : "Token dagilimi (Llama tokenizer), matris skoru, renkli anatomi ve aciklamali prompt muhendisligi onerileri."}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex-1 overflow-auto min-h-0 space-y-4">
+            {/* Missing point suggestions for prompt engineering */}
+            {promptSuggestions.length > 0 && (
+              <div className="space-y-2">
+                <h4 className="text-sm font-semibold">
+                  {language === "en" ? "Prompt engineering suggestions" : "Prompt muhendisligi onerileri"}
+                </h4>
+                <div className="space-y-2">
+                  {promptSuggestions.map((s) => (
+                    <details
+                      key={s.id}
+                      className={cn(
+                        "group rounded-lg border p-3 [&_summary::-webkit-details-marker]:hidden",
+                        s.missing ? "border-amber-500/40 bg-amber-500/5" : "border-green-500/30 bg-green-500/5"
+                      )}
+                    >
+                      <summary className="flex cursor-pointer items-center gap-2 text-sm font-medium list-none [&::-webkit-details-marker]:hidden">
+                        <span
+                          className={cn(
+                            "flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs",
+                            s.missing ? "bg-amber-500/20 text-amber-700 dark:text-amber-400" : "bg-green-500/20 text-green-700 dark:text-green-400"
+                          )}
+                        >
+                          {s.missing ? "!" : "✓"}
+                        </span>
+                        <span className="flex-1">{s.suggestion}</span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 px-2 text-xs shrink-0"
+                          disabled={!engine}
+                          title={!engine ? (language === "en" ? "Load AI model first" : "Once AI modeli yukleyin") : undefined}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleFixWithAI(s);
+                          }}
+                        >
+                          {aiFixSuggestionId === s.id ? (
+                            <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                          ) : (
+                            <Sparkles className="h-3 w-3 mr-1" />
+                          )}
+                          {language === "en" ? "Fix with AI" : "AI ile düzelt"}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 px-2 text-xs shrink-0"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleApplySuggestion(s.insertTemplate, s.id);
+                          }}
+                        >
+                          <Pencil className="h-3 w-3 mr-1" />
+                          {language === "en" ? "Apply" : "Uygula"}
+                        </Button>
+                        <span className="text-muted-foreground group-open:rotate-180 transition-transform">▾</span>
+                      </summary>
+                      <p className="mt-2 pl-7 text-xs text-muted-foreground leading-relaxed">{s.explanation}</p>
+                    </details>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Matrix Score */}
+            {matrixScore && (
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+                {[
+                  { key: "overall", label: language === "en" ? "Overall" : "Genel", value: matrixScore.overall },
+                  { key: "clarity", label: language === "en" ? "Clarity" : "Netlik", value: matrixScore.clarity },
+                  { key: "specificity", label: language === "en" ? "Specificity" : "Ozgulluk", value: matrixScore.specificity },
+                  { key: "length", label: language === "en" ? "Length" : "Uzunluk", value: matrixScore.length },
+                  { key: "structure", label: language === "en" ? "Structure" : "Yapi", value: matrixScore.structure },
+                  { key: "completeness", label: language === "en" ? "Complete" : "Tamlik", value: matrixScore.completeness },
+                ].map(({ key, label, value }) => (
+                  <div key={key} className="p-2 rounded-lg border border-border bg-muted/30">
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wide">{label}</p>
+                    <p className={cn(
+                      "text-lg font-bold",
+                      value >= 80 ? "text-green-600 dark:text-green-400" : value >= 60 ? "text-yellow-600 dark:text-yellow-400" : "text-orange-600 dark:text-orange-400"
+                    )}>
+                      {value}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Colorize toggle + Anatomy view */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between gap-4">
+                <label className="flex items-center gap-2 text-sm cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={anatomyColorize}
+                  onChange={(e) => setAnatomyColorize(e.target.checked)}
+                  className="rounded border-border"
+                />
+                {language === "en" ? "Colorize anatomy" : "Anatomi renklendir"}
+              </label>
+                {anatomyColorize && (
+                  <span className="text-[10px] text-muted-foreground">
+                    {language === "en" ? "Blue=role · Green=instruction · Amber=constraint · Violet=header · Cyan=list · Rose=example" : "Mavi=rol · Yesil=talimat · Amber=kisitlama · Mor=baslik · Cyan=liste · Pembe=ornek"}
+                  </span>
+                )}
+              </div>
+              {anatomyColorize && analyzedPromptText && (
+                <div className="rounded-lg border border-border bg-muted/20 p-4 text-sm font-mono leading-relaxed overflow-x-auto">
+                  {parsePromptAnatomy(analyzedPromptText).map((seg, i) => (
+                    <span
+                      key={i}
+                      className={cn(
+                        "whitespace-pre-wrap",
+                        seg.type === "role" && "bg-blue-500/20 text-blue-700 dark:text-blue-300 px-1 rounded",
+                        seg.type === "instruction" && "bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 px-1 rounded",
+                        seg.type === "constraint" && "bg-amber-500/20 text-amber-700 dark:text-amber-300 px-1 rounded",
+                        seg.type === "header" && "bg-violet-500/20 text-violet-700 dark:text-violet-300 px-1 rounded font-semibold",
+                        seg.type === "list" && "bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 px-1 rounded",
+                        seg.type === "example" && "bg-rose-500/15 text-rose-700 dark:text-rose-300 px-1 rounded",
+                        seg.type === "text" && !seg.text.trim() && "block h-2",
+                        seg.type === "text" && seg.text.trim() && "text-foreground"
+                      )}
+                    >
+                      {seg.text}
+                      {seg.text !== "\n" && i < parsePromptAnatomy(analyzedPromptText).length - 1 ? "\n" : ""}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Token table */}
+            <div>
+              <div className="mb-2 flex items-center justify-between">
+                <span className="text-sm font-medium">
+                  {language === "en" ? "Total tokens: " : "Toplam token: "}
+                  <span className="font-mono">{analyzerTotal}</span>
+                </span>
+              </div>
+              <div className="border rounded-lg overflow-hidden max-h-[240px] overflow-y-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-muted/80 sticky top-0">
+                    <tr>
+                      <th className="px-3 py-2 text-left font-medium">#</th>
+                      <th className="px-3 py-2 text-left font-medium">{language === "en" ? "Token ID" : "Token ID"}</th>
+                      <th className="px-3 py-2 text-left font-medium">{language === "en" ? "Token" : "Token"}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {analyzerTokens.slice(0, 100).map((t) => (
+                      <tr key={t.index} className="hover:bg-muted/30">
+                        <td className="px-3 py-1.5 font-mono text-muted-foreground">{t.index}</td>
+                        <td className="px-3 py-1.5 font-mono">{t.tokenId}</td>
+                        <td className="px-3 py-1.5 break-all font-mono text-xs">{t.token || " "}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              {analyzerTokens.length > 100 && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  {language === "en" ? `Showing first 100 of ${analyzerTokens.length} tokens` : `Ilk 100 / ${analyzerTokens.length} token`}
+                </p>
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <div className="fixed inset-y-0 right-0 w-full sm:w-96 bg-background border-l border-border shadow-xl z-50 flex flex-col">
       {/* Header */}
       <div className="flex items-center gap-2 px-4 py-3 border-b border-border bg-muted/20">
@@ -347,6 +829,14 @@ export function GeneralAssistant({ isOpen, onClose }: GeneralAssistantProps) {
               : "Dahili"}
         </Badge>
         <div className="flex items-center gap-1 ml-2">
+          {/* Core Prompt Button */}
+          <button
+            onClick={() => setShowCorePromptDialog(true)}
+            className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors"
+            title={language === "en" ? "Set Core Prompt" : "Core Prompt Ayarla"}
+          >
+            <FileEdit className="h-4 w-4" />
+          </button>
           {/* Settings Button */}
           <button
             onClick={() => setShowSettings(!showSettings)}
@@ -378,8 +868,8 @@ export function GeneralAssistant({ isOpen, onClose }: GeneralAssistantProps) {
 
       {/* Settings Panel */}
       {showSettings && (
-        <div className="border-b border-border bg-muted/10 p-4">
-          <div className="space-y-3">
+        <div className="border-b border-border bg-muted/10 p-4 overflow-y-auto max-h-[60vh]">
+          <div className="space-y-4">
             <h3 className="text-sm font-semibold">
               {language === "en" ? "Model Settings" : "Model Ayarlari"}
             </h3>
@@ -427,6 +917,18 @@ export function GeneralAssistant({ isOpen, onClose }: GeneralAssistantProps) {
                 );
               })}
             </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full mt-2"
+              onClick={() => {
+                setShowSettings(false);
+                setShowCorePromptDialog(true);
+              }}
+            >
+              <FileEdit className="h-3.5 w-3.5 mr-2" />
+              {language === "en" ? "Set Core Prompt" : "Core Prompt Ayarla"}
+            </Button>
           </div>
         </div>
       )}
