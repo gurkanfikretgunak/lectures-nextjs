@@ -57,7 +57,7 @@ The most advanced RAG systems don't just search once. They **think**.
 flowchart TD
     Start[User Query] --> Plan[Plan Search]
     Plan --> Search[Execute Search]
-    Search --> Eval{Is Context Enough?}
+    Search --> Eval{Is Context Enough}
     Eval -->|No| Refine[Refine Query]
     Refine --> Search
     Eval -->|Yes| Answer[Generate Answer]

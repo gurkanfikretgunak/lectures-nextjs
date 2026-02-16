@@ -64,21 +64,21 @@ app.listen(3000, () => {
 
 <Mermaid chart={`
 sequenceDiagram
-    participant Client as MCP İstemcisi
-    participant Server as Express Uygulaması
-    participant MCP as MCP Mantığı
+    participant Client
+    participant Server
+    participant MCP
 
-    Client->>Server: GET /sse (Bağlan)
-    Server-->>Client: 200 OK (Akışı Aç)
+    Client->>Server: GET /sse Baglan
+    Server-->>Client: 200 OK Akisi Ac
     
     loop Heartbeat
         Server-->>Client: ping
     end
 
-    Client->>Server: POST /message (JSON-RPC)
-    Server->>MCP: İsteği İşle
-    MCP-->>Server: Sonuç
-    Server-->>Client: SSE Event (JSON-RPC Yanıtı)
+    Client->>Server: POST /message JSON-RPC
+    Server->>MCP: Istegi Isle
+    MCP-->>Server: Sonuc
+    Server-->>Client: SSE Event Yanit
 `} />
 
 ## Güvenlik En İyi Uygulamaları
@@ -170,10 +170,10 @@ setInterval(() => {
 
 <Mermaid chart={`
 flowchart LR
-    Data["Gerçek Zamanlı Veri Kaynağı"] -->|Güncelleme| Server["MCP Sunucusu"]
-    Server -->|Bildirim| Client["MCP İstemcisi/Host"]
-    Client -->|Kaynağı Oku| Server
-    Server -->|Yeni İçerik| Client
+    Data[Gercek Zamanli Veri Kaynagi] -->|Guncelleme| Server[MCP Sunucusu]
+    Server -->|Bildirim| Client[MCP Istemcisi]
+    Client -->|Kaynagi Oku| Server
+    Server -->|Yeni Icerik| Client
 `} />
 
 ## Hata Yönetimi ve Loglama

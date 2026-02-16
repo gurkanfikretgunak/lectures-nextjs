@@ -64,21 +64,21 @@ app.listen(3000, () => {
 
 <Mermaid chart={`
 sequenceDiagram
-    participant Client as MCP Client
-    participant Server as Express App
-    participant MCP as MCP Logic
+    participant Client
+    participant Server
+    participant MCP
 
-    Client->>Server: GET /sse (Connect)
-    Server-->>Client: 200 OK (Open Stream)
+    Client->>Server: GET /sse Connect
+    Server-->>Client: 200 OK Open Stream
     
     loop Heartbeat
         Server-->>Client: ping
     end
 
-    Client->>Server: POST /message (JSON-RPC)
+    Client->>Server: POST /message JSON-RPC
     Server->>MCP: Process Request
     MCP-->>Server: Result
-    Server-->>Client: SSE Event (JSON-RPC Response)
+    Server-->>Client: SSE Event Response
 `} />
 
 ## Security Best Practices
@@ -171,8 +171,8 @@ setInterval(() => {
 <Mermaid chart={`
 flowchart LR
     Data[Real-time Data Source] -->|Update| Server[MCP Server]
-    Server -->|Notification| Client[MCP Client/Host]
-    Client -->|ReadResource| Server
+    Server -->|Notification| Client[MCP Client]
+    Client -->|Read Resource| Server
     Server -->|New Content| Client
 `} />
 

@@ -143,6 +143,7 @@ export default async function LecturePage({ params }: PageProps) {
                 ],
               },
               parseFrontmatter: false, // Already parsed by gray-matter
+              blockJS: false, // Allow JS expressions in attributes (e.g. <Mermaid chart={`...`} />)
             }}
           />
         </LectureLayout>

@@ -58,17 +58,17 @@ await saveToDatabase(summary);
 <Mermaid chart={`
 sequenceDiagram
     participant User
-    participant Host as AI Model (Host)
-    participant Server as MCP Server
+    participant Host
+    participant Server
 
-    User->>Host: "Archive the logs"
-    Host->>Server: Call Tool: archive_logs()
+    User->>Host: Archive the logs
+    Host->>Server: Call archive_logs
     Server->>Server: Read huge log file
-    Server->>Host: Sampling Request: "Summarize this..."
-    Host-->>Server: "Summary: 5 errors found."
+    Server->>Host: Sampling Request - Summarize this
+    Host-->>Server: Summary - 5 errors found
     Server->>Server: Write summary to DB
-    Server-->>Host: Tool Result: "Archived successfully."
-    Host-->>User: "Done. Archived summary."
+    Server-->>Host: Archived successfully
+    Host-->>User: Done - Archived summary
 `} />
 
 ## Case Study 2: DevOps Automation (Git + Docker)
@@ -146,11 +146,10 @@ flowchart TD
     subgraph Server [MCP Server]
         Embed[Embedding Model]
         VectorDB[(Vector DB)]
-        
-        Tool[Tool: search_knowledge]
+        Tool[Tool - search_knowledge]
     end
 
-    LLM -->|Query: "How do I reset password?"| Tool
+    LLM -->|Query| Tool
     Tool -->|Embed Query| Embed
     Embed -->|Vector| VectorDB
     VectorDB -->|Similar Docs| Tool

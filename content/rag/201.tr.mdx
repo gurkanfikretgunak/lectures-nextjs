@@ -20,11 +20,11 @@ Vektör araması **anlamsal anlam** ("elma" ≈ "meyve") için harikadır, ancak
 
 <Mermaid chart={`
 flowchart TD
-    Query[Kullanıcı Sorgusu] --> Keywords[BM25 Araması]
-    Query --> Vector[Vektör Arama]
-    Keywords -->|Sıralı Liste A| Fusion[Karşılıklı Sıralama Füzyonu (RRF)]
-    Vector -->|Sıralı Liste B| Fusion
-    Fusion -->|Nihai İlk K| Results[Sonuçlar]
+    Query[Kullanici Sorgusu] --> Keywords[BM25 Aramasi]
+    Query --> Vector[Vektor Arama]
+    Keywords -->|Sirali Liste A| Fusion[Karsilikli Siralama Fuzyonu]
+    Vector -->|Sirali Liste B| Fusion
+    Fusion -->|Nihai Ilk K| Results[Sonuclar]
 `} />
 
 ### Neden Hibrit?

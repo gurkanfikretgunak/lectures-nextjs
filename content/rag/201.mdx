@@ -22,7 +22,7 @@ Vector search is great for **semantic meaning** ("apple" ≈ "fruit"), but bad a
 flowchart TD
     Query[User Query] --> Keywords[BM25 Search]
     Query --> Vector[Vector Search]
-    Keywords -->|Ranked List A| Fusion[Reciprocal Rank Fusion (RRF)]
+    Keywords -->|Ranked List A| Fusion[Reciprocal Rank Fusion]
     Vector -->|Ranked List B| Fusion
     Fusion -->|Final Top K| Results[Results]
 `} />

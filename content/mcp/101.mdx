@@ -31,17 +31,17 @@ Now, you only need **3 + 3 = 6 components** instead of 9 integrations. If you ad
 
 <Mermaid chart={`
 flowchart TB
-    subgraph Clients ["AI Applications (Clients)"]
+    subgraph Clients [AI Applications - Clients]
         Claude[Claude Desktop]
-        IDE["Cursor / VS Code"]
+        IDE[Cursor / VS Code]
         Custom[Custom Apps]
     end
 
-    subgraph Protocol ["Model Context Protocol"]
+    subgraph Protocol [Model Context Protocol]
         Standard[Universal Standard Interface]
     end
 
-    subgraph Servers ["Data Sources (Servers)"]
+    subgraph Servers [Data Sources - Servers]
         DB[(Databases)]
         Files[File Systems]
         API[External APIs]
@@ -122,17 +122,17 @@ Let's look at a typical flow when a user asks a question.
 <Mermaid chart={`
 sequenceDiagram
     participant User
-    participant AI as AI Model (Host)
-    participant MCP as MCP Server
-    participant DB as Database
+    participant AI
+    participant MCP
+    participant DB
 
-    User->>AI: "Who is Alice?"
-    AI->>AI: Decides to use tool 'get_user'
-    AI->>MCP: Call Tool: get_user(name="Alice")
+    User->>AI: Who is Alice?
+    AI->>AI: Decides to use get_user tool
+    AI->>MCP: Call get_user name Alice
     MCP->>DB: SQL Query
     DB-->>MCP: Result Row
     MCP-->>AI: Return JSON Data
-    AI-->>User: "Alice is user #1..."
+    AI-->>User: Alice is user 1
 `} />
 
 ## Why This Matters for You

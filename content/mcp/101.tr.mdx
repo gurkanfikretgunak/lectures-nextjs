@@ -31,21 +31,21 @@ Artık 9 entegrasyon yerine sadece **3 + 3 = 6 bileşene** ihtiyacınız var. Ye
 
 <Mermaid chart={`
 flowchart TB
-    subgraph Clients ["AI Uygulamaları (Clients)"]
+    subgraph Clients [AI Uygulamalari - Clients]
         Claude[Claude Desktop]
-        IDE["Cursor / VS Code"]
-        Custom[Özel Uygulamalar]
+        IDE[Cursor / VS Code]
+        Custom[Ozel Uygulamalar]
     end
 
-    subgraph Protocol ["Model Context Protocol"]
-        Standard[Evrensel Standart Arayüz]
+    subgraph Protocol [Model Context Protocol]
+        Standard[Evrensel Standart Arayuz]
     end
 
-    subgraph Servers ["Veri Kaynakları (Servers)"]
-        DB[(Veritabanları)]
+    subgraph Servers [Veri Kaynaklari - Servers]
+        DB[(Veritabanlari)]
         Files[Dosya Sistemleri]
-        API[Harici API'ler]
-        Tools[Özel Araçlar]
+        API[Harici APIler]
+        Tools[Ozel Araclar]
     end
 
     Claude <--> Standard
@@ -121,18 +121,18 @@ Bir kullanıcı soru sorduğunda tipik bir akışa bakalım.
 
 <Mermaid chart={`
 sequenceDiagram
-    participant User as Kullanıcı
-    participant AI as AI Modeli (Host)
-    participant MCP as MCP Sunucusu
-    participant DB as Veritabanı
+    participant User
+    participant AI
+    participant MCP
+    participant DB
 
-    User->>AI: "Alice kimdir?"
-    AI->>AI: 'get_user' aracını kullanmaya karar verir
-    AI->>MCP: Aracı Çağır: get_user(name="Alice")
+    User->>AI: Alice kimdir?
+    AI->>AI: get_user aracini kullanmaya karar verir
+    AI->>MCP: get_user name Alice
     MCP->>DB: SQL Sorgusu
-    DB-->>MCP: Sonuç Satırı
-    MCP-->>AI: JSON Verisi Döndür
-    AI-->>User: "Alice 1 numaralı kullanıcı..."
+    DB-->>MCP: Sonuc Satiri
+    MCP-->>AI: JSON Verisi
+    AI-->>User: Alice 1 numarali kullanici
 `} />
 
 ## Sizin İçin Neden Önemli?

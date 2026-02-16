@@ -57,18 +57,18 @@ await saveToDatabase(summary);
 
 <Mermaid chart={`
 sequenceDiagram
-    participant User as Kullanıcı
-    participant Host as AI Modeli (Host)
-    participant Server as MCP Sunucusu
+    participant User
+    participant Host
+    participant Server
 
-    User->>Host: "Logları arşivle"
-    Host->>Server: Aracı Çağır: archive_logs()
-    Server->>Server: Devasa log dosyasını oku
-    Server->>Host: Sampling İsteği: "Bunu özetle..."
-    Host-->>Server: "Özet: 5 hata bulundu."
-    Server->>Server: Özeti DB'ye yaz
-    Server-->>Host: Araç Sonucu: "Başarıyla arşivlendi."
-    Host-->>User: "Tamam. Özet arşivlendi."
+    User->>Host: Loglari arsivle
+    Host->>Server: archive_logs cagir
+    Server->>Server: Devasa log dosyasini oku
+    Server->>Host: Sampling Istegi - Bunu ozetle
+    Host-->>Server: Ozet - 5 hata bulundu
+    Server->>Server: Ozeti DB ye yaz
+    Server-->>Host: Basariyla arsivlendi
+    Host-->>User: Tamam - Ozet arsivlendi
 `} />
 
 ## Vaka Analizi 2: DevOps Otomasyonu (Git + Docker)
@@ -139,22 +139,21 @@ RAG (Retrieval-Augmented Generation) genellikle uygulama katmanında uygulanır.
 
 <Mermaid chart={`
 flowchart TD
-    subgraph Host ["AI İstemcisi"]
+    subgraph Host [AI Istemcisi]
         LLM[LLM]
     end
 
-    subgraph Server ["MCP Sunucusu"]
-        Embed["Embedding Modeli"]
-        VectorDB[(Vektör DB)]
-        
-        Tool["Araç: search_knowledge"]
+    subgraph Server [MCP Sunucusu]
+        Embed[Embedding Modeli]
+        VectorDB[(Vektor DB)]
+        Tool[Arac - search_knowledge]
     end
 
-    LLM -->|Sorgu: "Parolayı nasıl sıfırlarım?"| Tool
-    Tool -->|"Sorguyu Göm (Embed)"| Embed
-    Embed -->|Vektör| VectorDB
-    VectorDB -->|Benzer Dokümanlar| Tool
-    Tool -->|Bağlam| LLM
+    LLM -->|Sorgu| Tool
+    Tool -->|Sorguyu Gom| Embed
+    Embed -->|Vektor| VectorDB
+    VectorDB -->|Benzer Dokumanlar| Tool
+    Tool -->|Baglam| LLM
 `} />
 
 ### Uygulama Parçası

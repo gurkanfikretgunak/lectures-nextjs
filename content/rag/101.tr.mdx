@@ -27,10 +27,10 @@ Bunu açık kitap sınavı gibi düşünün:
 
 <Mermaid chart={`
 flowchart LR
-    User[Kullanıcı Sorusu] --> Retriever[Getirici]
-    Retriever -->|Ara| KB[(Bilgi Tabanı)]
-    KB -->|İlgili Belgeler| Retriever
-    Retriever -->|Bağlam + Soru| LLM[LLM]
+    User[Kullanici Sorusu] --> Retriever[Getirici]
+    Retriever -->|Ara| KB[(Bilgi Tabani)]
+    KB -->|Ilgili Belgeler| Retriever
+    Retriever -->|Baglam + Soru| LLM[LLM]
     LLM -->|Cevap| User
 `} />
 

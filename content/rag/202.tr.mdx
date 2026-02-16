@@ -26,9 +26,9 @@ Gömme (Embedding) işleminden önce üst bilgileri, alt bilgileri ve "gürült�
 <Mermaid chart={`
 flowchart LR
     Doc[Ham Belge] --> Clean[Temizleme]
-    Clean --> Chunk[Parçalama]
-    Chunk --> Embed[Gömme]
-    Embed --> Store[(Vektör DB)]
+    Clean --> Chunk[Parcalama]
+    Chunk --> Embed[Gomme]
+    Embed --> Store[(Vektor DB)]
 `} />
 
 ## 2. Değerlendirme (RAGAS)
@@ -55,12 +55,12 @@ En gelişmiş RAG sistemleri sadece bir kez arama yapmaz. **Düşünürler**.
 
 <Mermaid chart={`
 flowchart TD
-    Start[Kullanıcı Sorgusu] --> Plan[Arama Planla]
-    Plan --> Search[Aramayı Yürüt]
-    Search --> Eval{Bağlam Yeterli mi?}
-    Eval -->|Hayır| Refine[Sorguyu İyileştir]
+    Start[Kullanici Sorgusu] --> Plan[Arama Planla]
+    Plan --> Search[Aramayi Yurut]
+    Search --> Eval{Baglam Yeterli mi}
+    Eval -->|Hayir| Refine[Sorguyu Iyilestir]
     Refine --> Search
-    Eval -->|Evet| Answer[Cevap Üret]
+    Eval -->|Evet| Answer[Cevap Uret]
 `} />
 
 ## Özet
