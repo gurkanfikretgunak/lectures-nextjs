@@ -1,0 +1,240 @@
+---
+title: "MCP 102"
+description: "Building Custom MCP Servers: A Practical Guide"
+category: "mcp"
+level: 102
+order: 2
+---
+
+# Building Custom MCP Servers: A Practical Guide
+
+Welcome to MCP 102! In this lecture, we move from theory to practice. We will build a complete, functional MCP server using TypeScript that can expose local data to an AI model like Claude.
+
+## Setting Up Your Development Environment
+
+To create an MCP server, we'll use the official SDK.
+
+### Prerequisites
+- Node.js (v18+)
+- TypeScript
+- An MCP-compatible client (like Claude Desktop)
+
+### Initial Setup
+
+```bash
+mkdir my-weather-server
+cd my-weather-server
+npm init -y
+npm install typescript @types/node --save-dev
+npm install @modelcontextprotocol/sdk zod
+npx tsc --init
+```
+
+We install `zod` for schema validation, which makes defining tool inputs much easier.
+
+## Server Implementation
+
+Let's build a server that provides two capabilities:
+1.  **Read a Resource**: Get the current "system status".
+2.  **Call a Tool**: Fetch weather data for a city.
+
+Create `src/index.ts`:
+
+```typescript
+import { Server } from "@modelcontextprotocol/sdk/server/index.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import {
+  CallToolRequestSchema,
+  ListToolsRequestSchema,
+  ListResourcesRequestSchema,
+  ReadResourceRequestSchema,
+} from "@modelcontextprotocol/sdk/types.js";
+import { z } from "zod";
+
+// define the server name and version
+const server = new Server(
+  {
+    name: "weather-server",
+    version: "0.1.0",
+  },
+  {
+    capabilities: {
+      resources: {},
+      tools: {},
+    },
+  }
+);
+
+// --- Resources Implementation ---
+
+// 1. List available resources
+server.setRequestHandler(ListResourcesRequestSchema, async () => {
+  return {
+    resources: [
+      {
+        uri: "weather://system-status",
+        name: "System Status",
+        mimeType: "application/json",
+        description: "Current operational status of the weather server",
+      },
+    ],
+  };
+});
+
+// 2. Handle reading resources
+server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
+  if (request.params.uri === "weather://system-status") {
+    return {
+      contents: [
+        {
+          uri: request.params.uri,
+          mimeType: "application/json",
+          text: JSON.stringify({ status: "operational", timestamp: new Date().toISOString() }),
+        },
+      ],
+    };
+  }
+  throw new Error("Resource not found");
+});
+
+// --- Tools Implementation ---
+
+// 1. List available tools
+server.setRequestHandler(ListToolsRequestSchema, async () => {
+  return {
+    tools: [
+      {
+        name: "get_weather",
+        description: "Get current weather for a specific city",
+        inputSchema: {
+          type: "object",
+          properties: {
+            city: { type: "string", description: "City name (e.g., London, New York)" },
+            unit: { type: "string", enum: ["celsius", "fahrenheit"], description: "Temperature unit" },
+          },
+          required: ["city"],
+        },
+      },
+    ],
+  };
+});
+
+// 2. Handle tool execution
+server.setRequestHandler(CallToolRequestSchema, async (request) => {
+  if (request.params.name === "get_weather") {
+    const city = String(request.params.arguments?.city);
+    const unit = String(request.params.arguments?.unit || "celsius");
+
+    // In a real app, you would fetch from an API here
+    // const response = await fetch(`https://api.weather.com/...`);
+    
+    // Mock response for demo
+    const temp = Math.floor(Math.random() * 30) + 10; 
+    
+    return {
+      content: [
+        {
+          type: "text",
+          text: `Weather in ${city}: ${temp}°${unit === "celsius" ? "C" : "F"}, Sunny`,
+        },
+      ],
+    };
+  }
+  throw new Error("Tool not found");
+});
+
+// Start the server using Stdio transport
+const transport = new StdioServerTransport();
+await server.connect(transport);
+```
+
+## Connecting to Claude Desktop
+
+To use your new server, you need to configure Claude Desktop.
+
+1.  Build your project: `npx tsc`
+2.  Open or create the config file:
+    - macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
+    - Windows: `%APPDATA%\Claude\claude_desktop_config.json`
+
+Add your server configuration:
+
+```json
+{
+  "mcpServers": {
+    "weather-server": {
+      "command": "node",
+      "args": ["/absolute/path/to/your/project/dist/index.js"]
+    }
+  }
+}
+```
+
+Restart Claude Desktop. You should now see a 🔌 icon indicating the server is connected. Ask Claude: "What's the weather in Tokyo?" and it will use your tool!
+
+## Debugging and Inspector
+
+Since MCP runs over `stdio` (standard input/output), you can't easily see `console.log` output because it interferes with the protocol messages.
+
+The MCP Inspector is a web-based tool for debugging.
+
+```bash
+npx @modelcontextprotocol/inspector node dist/index.js
+```
+
+This launches a web UI where you can:
+- See all registered tools and resources.
+- Manually call tools and inspect the JSON responses.
+- View the raw protocol logs.
+
+## Advanced Pattern: Prompts
+
+You can also define Prompts to guide the user interaction.
+
+```typescript
+import { ListPromptsRequestSchema, GetPromptRequestSchema } from "@modelcontextprotocol/sdk/types.js";
+
+server.setRequestHandler(ListPromptsRequestSchema, async () => {
+  return {
+    prompts: [
+      {
+        name: "weather-report",
+        description: "Generate a full weather report",
+        arguments: [
+          { name: "city", description: "City to report on", required: true }
+        ]
+      }
+    ]
+  };
+});
+
+server.setRequestHandler(GetPromptRequestSchema, async (request) => {
+  if (request.params.name === "weather-report") {
+    const city = request.params.arguments?.city;
+    return {
+      messages: [
+        {
+          role: "user",
+          content: {
+            type: "text",
+            text: `Please give me a detailed weather report for ${city}, including suggestions for clothing.`
+          }
+        }
+      ]
+    };
+  }
+  throw new Error("Prompt not found");
+});
+```
+
+This allows the user to simply select "Weather Report" from a menu instead of typing the full request.
+
+## Summary
+
+You have built a fully functional MCP server that exposes Resources, Tools, and Prompts.
+
+- **Resources** provide data context.
+- **Tools** provide action capabilities.
+- **Prompts** provide reusable interaction patterns.
+
+This foundation allows you to integrate *any* local data or API into your AI workflow securely and efficiently.

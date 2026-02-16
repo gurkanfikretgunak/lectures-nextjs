@@ -1,0 +1,240 @@
+---
+title: "MCP 102"
+description: "Özel MCP Sunucuları Geliştirme: Pratik Rehber"
+category: "mcp"
+level: 102
+order: 2
+---
+
+# Özel MCP Sunucuları Geliştirme: Pratik Rehber
+
+MCP 102'ye hoş geldiniz! Bu derste teoriden pratiğe geçiyoruz. TypeScript kullanarak yerel verileri Claude gibi bir AI modeline açan tam fonksiyonel bir MCP sunucusu inşa edeceğiz.
+
+## Geliştirme Ortamını Kurma
+
+Bir MCP sunucusu oluşturmak için resmi SDK'yı kullanacağız.
+
+### Ön Koşullar
+- Node.js (v18+)
+- TypeScript
+- MCP uyumlu bir istemci (Claude Desktop gibi)
+
+### Başlangıç Kurulumu
+
+```bash
+mkdir my-weather-server
+cd my-weather-server
+npm init -y
+npm install typescript @types/node --save-dev
+npm install @modelcontextprotocol/sdk zod
+npx tsc --init
+```
+
+Şema doğrulaması için `zod` kuruyoruz, bu araç girdilerini tanımlamayı çok daha kolay hale getirir.
+
+## Sunucu Uygulaması
+
+İki yetenek sağlayan bir sunucu oluşturalım:
+1.  **Bir Kaynağı Oku**: Geçerli "sistem durumunu" getir.
+2.  **Bir Aracı Çağır**: Bir şehir için hava durumu verisi getir.
+
+`src/index.ts` dosyasını oluşturun:
+
+```typescript
+import { Server } from "@modelcontextprotocol/sdk/server/index.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import {
+  CallToolRequestSchema,
+  ListToolsRequestSchema,
+  ListResourcesRequestSchema,
+  ReadResourceRequestSchema,
+} from "@modelcontextprotocol/sdk/types.js";
+import { z } from "zod";
+
+// Sunucu adını ve sürümünü tanımla
+const server = new Server(
+  {
+    name: "weather-server",
+    version: "0.1.0",
+  },
+  {
+    capabilities: {
+      resources: {},
+      tools: {},
+    },
+  }
+);
+
+// --- Kaynaklar (Resources) Uygulaması ---
+
+// 1. Mevcut kaynakları listele
+server.setRequestHandler(ListResourcesRequestSchema, async () => {
+  return {
+    resources: [
+      {
+        uri: "weather://system-status",
+        name: "Sistem Durumu",
+        mimeType: "application/json",
+        description: "Hava durumu sunucusunun geçerli çalışma durumu",
+      },
+    ],
+  };
+});
+
+// 2. Kaynakları okumayı yönet
+server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
+  if (request.params.uri === "weather://system-status") {
+    return {
+      contents: [
+        {
+          uri: request.params.uri,
+          mimeType: "application/json",
+          text: JSON.stringify({ status: "operational", timestamp: new Date().toISOString() }),
+        },
+      ],
+    };
+  }
+  throw new Error("Kaynak bulunamadı");
+});
+
+// --- Araçlar (Tools) Uygulaması ---
+
+// 1. Mevcut araçları listele
+server.setRequestHandler(ListToolsRequestSchema, async () => {
+  return {
+    tools: [
+      {
+        name: "get_weather",
+        description: "Belirli bir şehir için güncel hava durumunu getir",
+        inputSchema: {
+          type: "object",
+          properties: {
+            city: { type: "string", description: "Şehir adı (örn., İstanbul, Ankara)" },
+            unit: { type: "string", enum: ["celsius", "fahrenheit"], description: "Sıcaklık birimi" },
+          },
+          required: ["city"],
+        },
+      },
+    ],
+  };
+});
+
+// 2. Araç çalıştırılmasını yönet
+server.setRequestHandler(CallToolRequestSchema, async (request) => {
+  if (request.params.name === "get_weather") {
+    const city = String(request.params.arguments?.city);
+    const unit = String(request.params.arguments?.unit || "celsius");
+
+    // Gerçek bir uygulamada, burada bir API'den veri çekersiniz
+    // const response = await fetch(`https://api.weather.com/...`);
+    
+    // Demo için sahte yanıt
+    const temp = Math.floor(Math.random() * 30) + 10; 
+    
+    return {
+      content: [
+        {
+          type: "text",
+          text: `${city} hava durumu: ${temp}°${unit === "celsius" ? "C" : "F"}, Güneşli`,
+        },
+      ],
+    };
+  }
+  throw new Error("Araç bulunamadı");
+});
+
+// Stdio transport kullanarak sunucuyu başlat
+const transport = new StdioServerTransport();
+await server.connect(transport);
+```
+
+## Claude Desktop'a Bağlanma
+
+Yeni sunucunuzu kullanmak için Claude Desktop'ı yapılandırmanız gerekir.
+
+1.  Projenizi derleyin: `npx tsc`
+2.  Yapılandırma dosyasını açın veya oluşturun:
+    - macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
+    - Windows: `%APPDATA%\Claude\claude_desktop_config.json`
+
+Sunucu yapılandırmanızı ekleyin:
+
+```json
+{
+  "mcpServers": {
+    "weather-server": {
+      "command": "node",
+      "args": ["/projenizin/tam/yolu/dist/index.js"]
+    }
+  }
+}
+```
+
+Claude Desktop'ı yeniden başlatın. Sunucunun bağlı olduğunu gösteren bir 🔌 simgesi görmelisiniz. Claude'a sorun: "İstanbul'da hava nasıl?" ve aracınızı kullanacaktır!
+
+## Hata Ayıklama ve Inspector
+
+MCP `stdio` (standart girdi/çıktı) üzerinden çalıştığı için, `console.log` çıktısını kolayca göremezsiniz çünkü protokol mesajlarına karışır.
+
+MCP Inspector, hata ayıklama için web tabanlı bir araçtır.
+
+```bash
+npx @modelcontextprotocol/inspector node dist/index.js
+```
+
+Bu, şunları yapabileceğiniz bir web arayüzü başlatır:
+- Kayıtlı tüm araçları ve kaynakları görün.
+- Araçları manuel olarak çağırın ve JSON yanıtlarını inceleyin.
+- Ham protokol günlüklerini görüntüleyin.
+
+## İleri Düzey Model: İstemler (Prompts)
+
+Kullanıcı etkileşimine rehberlik etmek için İstemler de tanımlayabilirsiniz.
+
+```typescript
+import { ListPromptsRequestSchema, GetPromptRequestSchema } from "@modelcontextprotocol/sdk/types.js";
+
+server.setRequestHandler(ListPromptsRequestSchema, async () => {
+  return {
+    prompts: [
+      {
+        name: "weather-report",
+        description: "Tam hava durumu raporu oluştur",
+        arguments: [
+          { name: "city", description: "Raporlanacak şehir", required: true }
+        ]
+      }
+    ]
+  };
+});
+
+server.setRequestHandler(GetPromptRequestSchema, async (request) => {
+  if (request.params.name === "weather-report") {
+    const city = request.params.arguments?.city;
+    return {
+      messages: [
+        {
+          role: "user",
+          content: {
+            type: "text",
+            text: `Lütfen bana ${city} için giyim önerilerini de içeren detaylı bir hava durumu raporu ver.`
+          }
+        }
+      ]
+    };
+  }
+  throw new Error("İstem bulunamadı");
+});
+```
+
+Bu, kullanıcının tam isteği yazmak yerine menüden "Hava Durumu Raporu"nu seçmesini sağlar.
+
+## Özet
+
+Kaynakları, Araçları ve İstemleri açığa çıkaran tam fonksiyonel bir MCP sunucusu oluşturdunuz.
+
+- **Kaynaklar (Resources)** veri bağlamı sağlar.
+- **Araçlar (Tools)** eylem yetenekleri sağlar.
+- **İstemler (Prompts)** yeniden kullanılabilir etkileşim kalıpları sağlar.
+
+Bu temel, herhangi bir yerel veriyi veya API'yi AI iş akışınıza güvenli ve verimli bir şekilde entegre etmenizi sağlar.

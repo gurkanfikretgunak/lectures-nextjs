@@ -156,6 +156,7 @@ const categoryTitles: Record<string, string> = {
   prompting: "Prompting",
   llm: "LLM",
   "ai-tooling": "AI Tooling",
+  mcp: "MCP",
   reasoning: "Reasoning",
   applications: "AI Applications",
   resources: "Resources",
@@ -187,7 +188,7 @@ export function getNavigation(language: "en" | "tr" = "en") {
   });
 
   // Sort categories in a specific order
-  const categoryOrder = ["prompting", "llm", "ai-tooling", "reasoning", "applications", "resources"];
+  const categoryOrder = ["prompting", "llm", "ai-tooling", "mcp", "reasoning", "applications", "resources"];
   navigation.sort((a, b) => {
     const aIndex = categoryOrder.indexOf(a.slug);
     const bIndex = categoryOrder.indexOf(b.slug);

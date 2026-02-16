@@ -1,0 +1,148 @@
+---
+title: "MCP 101"
+description: "Introduction to Model Context Protocol: Connecting AI to Your World"
+category: "mcp"
+level: 101
+order: 1
+---
+
+# Introduction to Model Context Protocol (MCP)
+
+Welcome to MCP 101! This lecture serves as your comprehensive guide to the Model Context Protocol, the new standard for connecting AI models to external data and tools.
+
+## The Problem: The "Siloed" AI
+
+Before MCP, connecting an AI model (like Claude or GPT-4) to your local files, databases, or internal APIs was a fragmented process. 
+
+Imagine you have:
+- **3 AI Clients**: Claude Desktop, Cursor, a custom Chatbot.
+- **3 Data Sources**: A PostgreSQL database, a Git repository, and a Slack workspace.
+
+Without a standard, you would need to build **9 different integrations** (3 clients × 3 sources) to get full connectivity. Each integration would require custom code, maintenance, and security handling.
+
+## The Solution: MCP as the Universal Connector
+
+The Model Context Protocol (MCP) solves this by providing a universal standard. It acts like a USB port for AI applications.
+
+- **Data Sources** become "MCP Servers".
+- **AI Applications** become "MCP Clients".
+
+Now, you only need **3 + 3 = 6 components** instead of 9 integrations. If you add a new AI client, it instantly works with all your existing MCP servers.
+
+<Mermaid chart={`
+flowchart TB
+    subgraph Clients ["AI Applications (Clients)"]
+        Claude[Claude Desktop]
+        IDE["Cursor / VS Code"]
+        Custom[Custom Apps]
+    end
+
+    subgraph Protocol ["Model Context Protocol"]
+        Standard[Universal Standard Interface]
+    end
+
+    subgraph Servers ["Data Sources (Servers)"]
+        DB[(Databases)]
+        Files[File Systems]
+        API[External APIs]
+        Tools[Custom Tools]
+    end
+
+    Claude <--> Standard
+    IDE <--> Standard
+    Custom <--> Standard
+
+    Standard <--> DB
+    Standard <--> Files
+    Standard <--> API
+    Standard <--> Tools
+`} />
+
+## Core Architecture: The "Client-Host-Server" Model
+
+Understanding the roles is crucial for mastering MCP.
+
+### 1. The Host (The Application)
+The **Host** is the application where the AI model "lives". Examples include:
+- **Claude Desktop App**: A host that runs on your computer.
+- **Cursor IDE**: A code editor acting as a host.
+- **AI Agent Runtime**: A backend service running an agent loop.
+
+The Host is responsible for:
+- Managing the connection to MCP servers.
+- Handling user permissions (e.g., "Allow this server to read my files?").
+- Displaying the AI's output.
+
+### 2. The Client (The Connector)
+The **Client** is the internal component within the Host that speaks the MCP language. It translates the Host's requests into protocol messages.
+
+### 3. The Server (The Provider)
+The **Server** is a lightweight program that exposes specific capabilities to the Client.
+- It runs locally on your machine or remotely.
+- It does **not** contain the AI model itself.
+- It simply says: "Here are the files I can read," or "Here is a tool I can run."
+
+## The Three Pillars of MCP Capabilities
+
+MCP servers can provide three main types of capabilities:
+
+### 1. Resources (Passive Data)
+**"Read-only data that the model can reference."**
+
+Think of Resources as files or documents. They have a URI (like `file:///logs/error.txt`) and content.
+- **Use Case**: Reading log files, fetching database rows, viewing API documentation.
+- **User Experience**: The user might say, "Analyze the error logs," and the model reads the resource content.
+
+### 2. Prompts (Reusable Context)
+**"Pre-defined templates to guide the model."**
+
+Prompts are saved instructions that help users accomplish specific tasks without rewriting complex instructions.
+- **Use Case**: A "Code Review" prompt that automatically loads the current file and asks the model to look for bugs.
+- **Structure**: A prompt can include arguments (variables) that the user fills in.
+
+### 3. Tools (Active Functions)
+**"Executable functions that perform actions."**
+
+Tools allow the model to *do* things. This is where the real power lies.
+- **Use Case**: Executing a SQL query, creating a Jira ticket, searching the web, resizing an image.
+- **Safety**: Tools often require user approval because they can modify data or have side effects.
+
+## How It Works in Practice
+
+Let's look at a typical flow when a user asks a question.
+
+1.  **User**: "Check the database for the user 'Alice'."
+2.  **Host (AI)**: Recognizes it needs to look up data. It sees a tool named `query_database` provided by the MCP Server.
+3.  **Host**: Sends a request to the MCP Server: "Call `query_database` with query 'SELECT * FROM users WHERE name = Alice'".
+4.  **MCP Server**: Executes the SQL query against the actual database.
+5.  **MCP Server**: Returns the result: `{ id: 1, name: "Alice", email: "alice@example.com" }`.
+6.  **Host (AI)**: Reads the result and generates a natural language response.
+7.  **AI**: "I found Alice. Her email is alice@example.com."
+
+<Mermaid chart={`
+sequenceDiagram
+    participant User
+    participant AI as AI Model (Host)
+    participant MCP as MCP Server
+    participant DB as Database
+
+    User->>AI: "Who is Alice?"
+    AI->>AI: Decides to use tool 'get_user'
+    AI->>MCP: Call Tool: get_user(name="Alice")
+    MCP->>DB: SQL Query
+    DB-->>MCP: Result Row
+    MCP-->>AI: Return JSON Data
+    AI-->>User: "Alice is user #1..."
+`} />
+
+## Why This Matters for You
+
+- **Security**: You keep your data local. You don't need to upload your entire database to the cloud for the AI to analyze it. The AI only sees what the MCP server explicitly exposes.
+- **Portability**: If you write an MCP server for your internal API, it works with Claude Desktop today, and potentially ChatGPT or other tools tomorrow if they adopt the standard.
+- **Extensibility**: You can give your AI superpowers. Want it to control your smart home? Write a simple MCP server.
+
+## Summary
+
+MCP is the bridge that turns isolated AI chatbots into integrated assistants that can read your files, query your databases, and automate your workflows.
+
+In **MCP 102**, we will get our hands dirty and build our first custom MCP server using TypeScript.

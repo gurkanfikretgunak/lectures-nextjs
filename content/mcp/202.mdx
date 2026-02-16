@@ -1,0 +1,238 @@
+---
+title: "MCP 202"
+description: "Advanced Applications: Agentic Workflows, DevOps, and RAG Integration"
+category: "mcp"
+level: 202
+order: 4
+---
+
+# Advanced MCP Applications
+
+Welcome to MCP 202! This lecture explores how to build sophisticated, real-world applications using the Model Context Protocol. We'll cover advanced patterns like "Agentic Workflows," integrating with DevOps tools, and implementing Retrieval-Augmented Generation (RAG) using MCP.
+
+## Case Study 1: Agentic Workflows
+
+An "Agentic" MCP server doesn't just respond to simple requests; it can proactively manage complex tasks.
+
+Imagine a server that acts as a **Project Manager**. It can:
+1.  Read a `TODO.md` file (Resource).
+2.  Update the status of tasks (Tool).
+3.  Even call *other* tools if the host allows it (Sampling).
+
+### The Concept of Sampling
+
+Sampling allows an MCP server to ask the host (the LLM) for help.
+
+-   **Scenario**: The server needs to summarize a long log file before storing it.
+-   **Old Way**: Send the whole log to the client and ask it to summarize.
+-   **New Way (Sampling)**: The server sends a prompt to the host: "Summarize this text: ..." and gets back the summary directly within the server logic.
+
+```typescript
+import { CreateMessageRequestSchema } from "@modelcontextprotocol/sdk/types.js";
+
+// Inside a tool implementation
+const result = await server.request(
+  {
+    method: "sampling/createMessage",
+    params: {
+      messages: [
+        {
+          role: "user",
+          content: {
+            type: "text",
+            text: "Summarize these logs for me: " + hugeLogContent,
+          },
+        },
+      ],
+      maxTokens: 100,
+    },
+  },
+  CreateMessageRequestSchema
+);
+
+const summary = result.content.text;
+// Now save the summary to the database
+await saveToDatabase(summary);
+```
+
+<Mermaid chart={`
+sequenceDiagram
+    participant User
+    participant Host as AI Model (Host)
+    participant Server as MCP Server
+
+    User->>Host: "Archive the logs"
+    Host->>Server: Call Tool: archive_logs()
+    Server->>Server: Read huge log file
+    Server->>Host: Sampling Request: "Summarize this..."
+    Host-->>Server: "Summary: 5 errors found."
+    Server->>Server: Write summary to DB
+    Server-->>Host: Tool Result: "Archived successfully."
+    Host-->>User: "Done. Archived summary."
+`} />
+
+## Case Study 2: DevOps Automation (Git + Docker)
+
+Let's build a powerful server for developers.
+
+### Capabilities
+-   **Git**: Read current branch, commit changes.
+-   **Docker**: List containers, restart services.
+
+### Architecture
+
+We need to be careful with permissions here. We don't want the AI to accidentally delete production containers.
+
+```typescript
+import { z } from "zod";
+import { exec } from "child_process";
+import { promisify } from "util";
+
+const execAsync = promisify(exec);
+
+// Safe Docker Tool
+server.setRequestHandler(CallToolRequestSchema, async (request) => {
+  if (request.params.name === "docker_restart") {
+    const container = String(request.params.arguments?.container);
+    
+    // Validate container name to prevent injection
+    if (!/^[a-zA-Z0-9_-]+$/.test(container)) {
+      throw new Error("Invalid container name");
+    }
+
+    try {
+      await execAsync(`docker restart ${container}`);
+      return {
+        content: [{ type: "text", text: `Container ${container} restarted.` }],
+      };
+    } catch (error) {
+      return {
+        isError: true,
+        content: [{ type: "text", text: `Failed: ${error.message}` }],
+      };
+    }
+  }
+});
+```
+
+### Git Resource: Watching for Changes
+
+We can use `resources/subscribe` to watch the `.git/HEAD` file. When the branch changes, the AI is notified immediately.
+
+```typescript
+// Subscribe to Git HEAD changes
+fs.watch(".git/HEAD", (eventType) => {
+  if (eventType === "change") {
+    server.notification({
+      method: "notifications/resources/updated",
+      params: { uri: "git://current-branch" },
+    });
+  }
+});
+```
+
+## Case Study 3: RAG with MCP (Vector Database)
+
+RAG (Retrieval-Augmented Generation) is usually implemented in the application layer. But with MCP, we can move it to the server layer, making any AI client instantly RAG-capable.
+
+### Architecture
+
+<Mermaid chart={`
+flowchart TD
+    subgraph Host [AI Client]
+        LLM[LLM]
+    end
+
+    subgraph Server [MCP Server]
+        Embed[Embedding Model]
+        VectorDB[(Vector DB)]
+        
+        Tool[Tool: search_knowledge]
+    end
+
+    LLM -->|Query: "How do I reset password?"| Tool
+    Tool -->|Embed Query| Embed
+    Embed -->|Vector| VectorDB
+    VectorDB -->|Similar Docs| Tool
+    Tool -->|Context| LLM
+`} />
+
+### Implementation Snippet
+
+```typescript
+import { OpenAIEmbeddings } from "@langchain/openai";
+import { MemoryVectorStore } from "langchain/vectorstores/memory";
+
+const vectorStore = await MemoryVectorStore.fromTexts(
+  ["Password reset is done via /reset endpoint.", "API keys are in settings."],
+  [{ id: 1 }, { id: 2 }],
+  new OpenAIEmbeddings()
+);
+
+server.setRequestHandler(CallToolRequestSchema, async (request) => {
+  if (request.params.name === "search_docs") {
+    const query = String(request.params.arguments?.query);
+    const results = await vectorStore.similaritySearch(query, 2);
+    
+    return {
+      content: [
+        {
+          type: "text",
+          text: results.map(r => r.pageContent).join("\n\n"),
+        },
+      ],
+    };
+  }
+});
+```
+
+## Testing Strategies for MCP Servers
+
+Testing is crucial given the complexity.
+
+### 1. Unit Testing Tools
+Mock the `server.request` and `server.notification` methods.
+
+```typescript
+import { describe, it, expect, vi } from "vitest";
+
+describe("Weather Tool", () => {
+  it("should return celsius by default", async () => {
+    // Mock the handler context or extract the logic to a pure function
+    const result = await handleWeatherTool({ city: "London" });
+    expect(result.content[0].text).toContain("°C");
+  });
+});
+```
+
+### 2. Integration Testing with `stdio`
+Spawn your server process and communicate via stdin/stdout in your test runner.
+
+```typescript
+import { spawn } from "child_process";
+
+const serverProcess = spawn("node", ["dist/index.js"]);
+// Send JSON-RPC request to stdin
+serverProcess.stdin.write(JSON.stringify({
+  jsonrpc: "2.0",
+  id: 1,
+  method: "tools/call",
+  params: { name: "get_weather", arguments: { city: "London" } }
+}) + "\n");
+```
+
+## Deployment Considerations
+
+-   **Dockerize**: Package your MCP server as a Docker image for easy distribution.
+-   **Authentication**: If exposing over HTTP (SSE), implement API Key or OAuth authentication middleware in your Express app.
+-   **Rate Limiting**: Protect your resources from aggressive AI polling.
+
+## Summary
+
+You have now mastered the advanced aspects of the Model Context Protocol. You can:
+-   Build **Agentic** servers that ask for help (Sampling).
+-   Create powerful **DevOps** tools safely.
+-   Implement **RAG** directly within an MCP server.
+-   **Test and Deploy** your servers confidently.
+
+The future of AI is connected, and with MCP, you are the architect of those connections.

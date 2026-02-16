@@ -11,6 +11,7 @@ import {
   Network,
   Briefcase,
   Sparkles,
+  Database,
 } from "lucide-react";
 import { Header } from "@/components/layout/header";
 import { Sidebar } from "@/components/layout/sidebar";
@@ -42,6 +43,7 @@ const categoryIcons: Record<string, React.ComponentType<{ className?: string }>>
   prompting: BookOpen,
   llm: Brain,
   "ai-tooling": Wrench,
+  mcp: Database,
   reasoning: Network,
   applications: Briefcase,
   resources: FolderOpen,
@@ -55,6 +57,7 @@ export function HomePage({ navigation }: HomePageProps) {
     prompting: t("promptingDesc"),
     llm: t("llmDesc"),
     "ai-tooling": t("aiToolingDesc"),
+    mcp: t("mcpDesc"),
     reasoning: t("reasoningDesc"),
     applications: t("applicationsDesc"),
     resources: t("resourcesDesc"),

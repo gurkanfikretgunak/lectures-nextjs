@@ -1,0 +1,211 @@
+---
+title: "MCP 201"
+description: "Advanced Architecture: Transport Layers, Security, and State Management"
+category: "mcp"
+level: 201
+order: 3
+---
+
+# Advanced MCP Architecture
+
+Welcome to MCP 201! Now that you understand the basics of Resources, Tools, and Prompts, we will dive deep into the architectural decisions that shape robust MCP servers.
+
+## Transport Layers: Beyond Stdio
+
+In 102, we used `StdioServerTransport`. This is great for local desktop apps (like Claude Desktop) because it's simple: the host spawns your process and talks to it over standard input/output.
+
+However, for distributed systems or web-based hosts, we need **Server-Sent Events (SSE)**.
+
+### Stdio vs. SSE
+
+| Feature | Stdio (Standard I/O) | SSE (Server-Sent Events) |
+| :--- | :--- | :--- |
+| **Communication** | Process pipes | HTTP / HTTPS |
+| **Deployment** | Local machine | Remote server / Cloud |
+| **Scalability** | Single instance | Load balanced |
+| **Complexity** | Low | Medium |
+| **Best For** | Desktop Agents, local scripts | Web Apps, Shared Services |
+
+### Implementing an SSE Transport
+
+To build an MCP server that works over HTTP, we typically use a framework like Express or Fastify.
+
+```typescript
+import express from "express";
+import { Server } from "@modelcontextprotocol/sdk/server/index.js";
+import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
+
+const app = express();
+const server = new Server({
+  name: "remote-weather-server",
+  version: "1.0.0",
+}, {
+  capabilities: { tools: {} }
+});
+
+// Store active transport connection
+let transport: SSEServerTransport | null = null;
+
+app.get("/sse", async (req, res) => {
+  transport = new SSEServerTransport("/message", res);
+  await server.connect(transport);
+});
+
+app.post("/message", async (req, res) => {
+  if (transport) {
+    await transport.handlePostMessage(req, res);
+  }
+});
+
+app.listen(3000, () => {
+  console.log("MCP Server running on port 3000");
+});
+```
+
+<Mermaid chart={`
+sequenceDiagram
+    participant Client as MCP Client
+    participant Server as Express App
+    participant MCP as MCP Logic
+
+    Client->>Server: GET /sse (Connect)
+    Server-->>Client: 200 OK (Open Stream)
+    
+    loop Heartbeat
+        Server-->>Client: ping
+    end
+
+    Client->>Server: POST /message (JSON-RPC)
+    Server->>MCP: Process Request
+    MCP-->>Server: Result
+    Server-->>Client: SSE Event (JSON-RPC Response)
+`} />
+
+## Security Best Practices
+
+When you expose tools that can read files or execute commands, security is paramount.
+
+### 1. Input Validation (Zod)
+Never trust user input or LLM-generated arguments. Always validate with Zod schema.
+
+```typescript
+import { z } from "zod";
+
+const ExecuteCommandSchema = z.object({
+  command: z.string().refine((cmd) => !cmd.includes("rm -rf"), {
+    message: "Destructive commands are not allowed",
+  }),
+  args: z.array(z.string()),
+});
+```
+
+### 2. Capability Negotiation
+MCP allows clients and servers to negotiate capabilities.
+- **Experimental capabilities**: Don't rely on them for production.
+- **Sampling**: If your server uses the `sampling` capability (asking the LLM for completions), ensure you trust the host.
+
+### 3. Path Traversal Protection
+If your tool reads files, ensure it can't read outside the allowed directory.
+
+```typescript
+import path from "path";
+
+function validatePath(requestedPath: string, allowedDir: string) {
+  const resolvedPath = path.resolve(allowedDir, requestedPath);
+  if (!resolvedPath.startsWith(allowedDir)) {
+    throw new Error("Access denied: Path traversal attempt");
+  }
+  return resolvedPath;
+}
+```
+
+## Resource Subscriptions
+
+One of the most powerful features of MCP is **Resource Subscriptions**. This allows the server to notify the client when data changes, prompting the LLM to potentially refresh its context.
+
+### How it Works
+1.  **Client**: Lists resources.
+2.  **Client**: Sends `resources/subscribe` for a specific URI.
+3.  **Server**: Sends `notifications/resources/updated` when data changes.
+4.  **Client**: Re-fetches the resource.
+
+### Implementation
+
+```typescript
+// Enable resource subscription capability
+const server = new Server(
+  { name: "stock-ticker", version: "1.0.0" },
+  {
+    capabilities: {
+      resources: { subscribe: true }, // Enable subscriptions
+    },
+  }
+);
+
+// Map of active subscriptions
+const subscriptions = new Set<string>();
+
+server.setRequestHandler(SubscribeRequestSchema, async (request) => {
+  subscriptions.add(request.params.uri);
+  return {};
+});
+
+server.setRequestHandler(UnsubscribeRequestSchema, async (request) => {
+  subscriptions.delete(request.params.uri);
+  return {};
+});
+
+// Simulate live data updates
+setInterval(() => {
+  const uri = "stocks://AAPL";
+  if (subscriptions.has(uri)) {
+    // Notify client that data has changed
+    server.notification({
+      method: "notifications/resources/updated",
+      params: { uri },
+    });
+  }
+}, 5000);
+```
+
+<Mermaid chart={`
+flowchart LR
+    Data[Real-time Data Source] -->|Update| Server[MCP Server]
+    Server -->|Notification| Client[MCP Client/Host]
+    Client -->|ReadResource| Server
+    Server -->|New Content| Client
+`} />
+
+## Error Handling and Logging
+
+Since MCP servers often run in the background (headless), debugging crashes is difficult without proper logging.
+
+### Structured Logging
+Do **not** use `console.log` for debugging if you are using `StdioServerTransport`, as it will corrupt the JSON-RPC messages. Instead:
+1.  Use `server.log(level, message)` to send logs to the client (which appears in the host's console).
+2.  Write to a local file (e.g., `server.log`).
+
+```typescript
+// Sending a log to the client (e.g., Claude Desktop)
+server.log("info", "Connected to database successfully");
+
+// Sending an error notification
+server.log("error", `Database query failed: ${error.message}`);
+```
+
+## State Management
+
+MCP servers are generally stateless between connections, but they often need to maintain state *during* a connection or persist it across restarts.
+
+-   **In-Memory**: Use `Map` or `Set` for session-specific state (like the subscriptions example above).
+-   **Persistent**: Use a file-based DB (SQLite, LevelDB) or a JSON file if the server needs to remember things after a restart.
+
+## Summary
+
+In MCP 201, we've moved beyond simple tools to robust architectures. We've covered:
+-   **SSE** for remote connectivity.
+-   **Security** patterns for validation and file access.
+-   **Subscriptions** for real-time data.
+-   **Logging** without breaking the protocol.
+
+In **MCP 202**, we will apply these concepts to build complex, "Agentic" workflows integrating multiple systems.

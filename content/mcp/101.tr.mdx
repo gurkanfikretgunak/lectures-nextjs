@@ -1,0 +1,148 @@
+---
+title: "MCP 101"
+description: "Model Context Protocol'e Giriş: AI'yı Dünyanıza Bağlamak"
+category: "mcp"
+level: 101
+order: 1
+---
+
+# Model Context Protocol (MCP)'e Giriş
+
+MCP 101'e hoş geldiniz! Bu ders, AI modellerini dış veri ve araçlara bağlamak için yeni standart olan Model Context Protocol (Model Bağlam Protokolü) için kapsamlı rehberinizdir.
+
+## Sorun: "İzole" AI
+
+MCP'den önce, bir AI modelini (Claude veya GPT-4 gibi) yerel dosyalarınıza, veritabanlarınıza veya dahili API'lerinize bağlamak parçalı bir süreçti.
+
+Şöyle bir senaryo düşünün:
+- **3 AI İstemcisi**: Claude Desktop, Cursor, özel bir Chatbot.
+- **3 Veri Kaynağı**: Bir PostgreSQL veritabanı, bir Git deposu ve bir Slack çalışma alanı.
+
+Bir standart olmadan, tam bağlantı sağlamak için **9 farklı entegrasyon** (3 istemci × 3 kaynak) oluşturmanız gerekirdi. Her entegrasyon özel kod, bakım ve güvenlik yönetimi gerektirirdi.
+
+## Çözüm: Evrensel Bağlayıcı Olarak MCP
+
+Model Context Protocol (MCP), evrensel bir standart sağlayarak bu sorunu çözer. AI uygulamaları için bir USB portu gibi davranır.
+
+- **Veri Kaynakları** "MCP Sunucuları" (Servers) olur.
+- **AI Uygulamaları** "MCP İstemcileri" (Clients) olur.
+
+Artık 9 entegrasyon yerine sadece **3 + 3 = 6 bileşene** ihtiyacınız var. Yeni bir AI istemcisi eklerseniz, mevcut tüm MCP sunucularınızla anında çalışır.
+
+<Mermaid chart={`
+flowchart TB
+    subgraph Clients ["AI Uygulamaları (Clients)"]
+        Claude[Claude Desktop]
+        IDE["Cursor / VS Code"]
+        Custom[Özel Uygulamalar]
+    end
+
+    subgraph Protocol ["Model Context Protocol"]
+        Standard[Evrensel Standart Arayüz]
+    end
+
+    subgraph Servers ["Veri Kaynakları (Servers)"]
+        DB[(Veritabanları)]
+        Files[Dosya Sistemleri]
+        API[Harici API'ler]
+        Tools[Özel Araçlar]
+    end
+
+    Claude <--> Standard
+    IDE <--> Standard
+    Custom <--> Standard
+
+    Standard <--> DB
+    Standard <--> Files
+    Standard <--> API
+    Standard <--> Tools
+`} />
+
+## Temel Mimari: "İstemci-Host-Sunucu" Modeli
+
+MCP'de uzmanlaşmak için rolleri anlamak çok önemlidir.
+
+### 1. Host (Uygulama)
+**Host**, AI modelinin "yaşadığı" uygulamadır. Örnekler:
+- **Claude Desktop Uygulaması**: Bilgisayarınızda çalışan bir host.
+- **Cursor IDE**: Host görevi gören bir kod editörü.
+- **AI Ajan Çalışma Zamanı**: Bir ajan döngüsü çalıştıran arka uç hizmeti.
+
+Host şunlardan sorumludur:
+- MCP sunucularına bağlantıyı yönetmek.
+- Kullanıcı izinlerini yönetmek (örn. "Bu sunucunun dosyalarımı okumasına izin ver?").
+- AI'nın çıktısını görüntülemek.
+
+### 2. İstemci (Bağlayıcı)
+**İstemci (Client)**, Host içindeki MCP dilini konuşan dahili bileşendir. Host'un isteklerini protokol mesajlarına çevirir.
+
+### 3. Sunucu (Sağlayıcı)
+**Sunucu (Server)**, İstemciye belirli yetenekleri sunan hafif bir programdır.
+- Yerel makinenizde veya uzaktan çalışır.
+- AI modelinin kendisini **içermez**.
+- Sadece şöyle der: "Okuyabileceğim dosyalar bunlar," veya "Çalıştırabileceğim araç bu."
+
+## MCP Yeteneklerinin Üç Sütunu
+
+MCP sunucuları üç ana türde yetenek sağlayabilir:
+
+### 1. Kaynaklar (Pasif Veri)
+**"Modelin referans alabileceği salt okunur veriler."**
+
+Kaynakları (Resources) dosyalar veya belgeler gibi düşünün. Bir URI'leri (örneğin `file:///logs/error.txt`) ve içerikleri vardır.
+- **Kullanım Durumu**: Log dosyalarını okuma, veritabanı satırlarını getirme, API dokümantasyonunu görüntüleme.
+- **Kullanıcı Deneyimi**: Kullanıcı "Hata loglarını analiz et" diyebilir ve model kaynak içeriğini okur.
+
+### 2. İstemler (Yeniden Kullanılabilir Bağlam)
+**"Modele rehberlik eden önceden tanımlanmış şablonlar."**
+
+İstemler (Prompts), kullanıcıların karmaşık talimatları yeniden yazmadan belirli görevleri gerçekleştirmelerine yardımcı olan kayıtlı talimatlardır.
+- **Kullanım Durumu**: Mevcut dosyayı otomatik olarak yükleyen ve modelden hataları bulmasını isteyen bir "Kod İnceleme" istemi.
+- **Yapı**: Bir istem, kullanıcının doldurduğu argümanları (değişkenleri) içerebilir.
+
+### 3. Araçlar (Aktif Fonksiyonlar)
+**"Eylem gerçekleştiren çalıştırılabilir fonksiyonlar."**
+
+Araçlar (Tools), modelin bir şeyler *yapmasını* sağlar. Gerçek güç buradadır.
+- **Kullanım Durumu**: Bir SQL sorgusu çalıştırma, bir Jira bileti oluşturma, web araması yapma, bir resmi yeniden boyutlandırma.
+- **Güvenlik**: Araçlar verileri değiştirebileceği veya yan etkileri olabileceği için genellikle kullanıcı onayı gerektirir.
+
+## Pratikte Nasıl Çalışır?
+
+Bir kullanıcı soru sorduğunda tipik bir akışa bakalım.
+
+1.  **Kullanıcı**: "'Alice' kullanıcısı için veritabanını kontrol et."
+2.  **Host (AI)**: Veri araması gerektiğini anlar. MCP Sunucusu tarafından sağlanan `query_database` adlı bir aracı görür.
+3.  **Host**: MCP Sunucusuna bir istek gönderir: "`query_database` aracını 'SELECT * FROM users WHERE name = Alice' sorgusuyla çağır".
+4.  **MCP Sunucusu**: SQL sorgusunu gerçek veritabanına karşı çalıştırır.
+5.  **MCP Sunucusu**: Sonucu döndürür: `{ id: 1, name: "Alice", email: "alice@example.com" }`.
+6.  **Host (AI)**: Sonucu okur ve doğal dilde bir yanıt oluşturur.
+7.  **AI**: "Alice'i buldum. E-postası alice@example.com."
+
+<Mermaid chart={`
+sequenceDiagram
+    participant User as Kullanıcı
+    participant AI as AI Modeli (Host)
+    participant MCP as MCP Sunucusu
+    participant DB as Veritabanı
+
+    User->>AI: "Alice kimdir?"
+    AI->>AI: 'get_user' aracını kullanmaya karar verir
+    AI->>MCP: Aracı Çağır: get_user(name="Alice")
+    MCP->>DB: SQL Sorgusu
+    DB-->>MCP: Sonuç Satırı
+    MCP-->>AI: JSON Verisi Döndür
+    AI-->>User: "Alice 1 numaralı kullanıcı..."
+`} />
+
+## Sizin İçin Neden Önemli?
+
+- **Güvenlik**: Verilerinizi yerel tutarsınız. Analiz etmesi için tüm veritabanınızı buluta yüklemenize gerek yoktur. AI sadece MCP sunucusunun açıkça izin verdiği şeyi görür.
+- **Taşınabilirlik**: Dahili API'niz için bir MCP sunucusu yazarsanız, bugün Claude Desktop ile ve yarın standardı benimserlerse ChatGPT veya diğer araçlarla çalışır.
+- **Genişletilebilirlik**: AI'nıza süper güçler verebilirsiniz. Akıllı evinizi kontrol etmesini mi istiyorsunuz? Basit bir MCP sunucusu yazın.
+
+## Özet
+
+MCP, izole edilmiş AI sohbet botlarını dosyalarınızı okuyabilen, veritabanlarınızı sorgulayabilen ve iş akışlarınızı otomatize edebilen entegre asistanlara dönüştüren köprüdür.
+
+**MCP 102**'de, ellerimizi kirleteceğiz ve TypeScript kullanarak ilk özel MCP sunucumuzu inşa edeceğiz.

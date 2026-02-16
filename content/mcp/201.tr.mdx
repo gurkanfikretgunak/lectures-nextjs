@@ -1,0 +1,211 @@
+---
+title: "MCP 201"
+description: "İleri Düzey Mimari: İletişim Katmanları, Güvenlik ve Durum Yönetimi"
+category: "mcp"
+level: 201
+order: 3
+---
+
+# İleri Düzey MCP Mimarisi
+
+MCP 201'e hoş geldiniz! Kaynakların, Araçların ve İstemlerin temellerini anladığınıza göre, sağlam MCP sunucularını şekillendiren mimari kararlara derinlemesine dalacağız.
+
+## İletişim Katmanları: Stdio'nun Ötesinde
+
+102'de `StdioServerTransport` kullandık. Bu, yerel masaüstü uygulamaları (Claude Desktop gibi) için harikadır çünkü basittir: host, işleminizi başlatır ve onunla standart girdi/çıktı üzerinden konuşur.
+
+Ancak, dağıtılmış sistemler veya web tabanlı hostlar için **Server-Sent Events (SSE)** gereklidir.
+
+### Stdio vs. SSE
+
+| Özellik | Stdio (Standart I/O) | SSE (Server-Sent Events) |
+| :--- | :--- | :--- |
+| **İletişim** | İşlem boruları (pipes) | HTTP / HTTPS |
+| **Dağıtım** | Yerel makine | Uzak sunucu / Bulut |
+| **Ölçeklenebilirlik** | Tek örnek | Yük dengeli (Load balanced) |
+| **Karmaşıklık** | Düşük | Orta |
+| **En İyisi** | Masaüstü Ajanları, yerel scriptler | Web Uygulamaları, Paylaşılan Servisler |
+
+### Bir SSE Taşıyıcısı Uygulama
+
+HTTP üzerinden çalışan bir MCP sunucusu oluşturmak için genellikle Express veya Fastify gibi bir çerçeve kullanırız.
+
+```typescript
+import express from "express";
+import { Server } from "@modelcontextprotocol/sdk/server/index.js";
+import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
+
+const app = express();
+const server = new Server({
+  name: "remote-weather-server",
+  version: "1.0.0",
+}, {
+  capabilities: { tools: {} }
+});
+
+// Aktif taşıyıcı bağlantısını sakla
+let transport: SSEServerTransport | null = null;
+
+app.get("/sse", async (req, res) => {
+  transport = new SSEServerTransport("/message", res);
+  await server.connect(transport);
+});
+
+app.post("/message", async (req, res) => {
+  if (transport) {
+    await transport.handlePostMessage(req, res);
+  }
+});
+
+app.listen(3000, () => {
+  console.log("MCP Sunucusu 3000 portunda çalışıyor");
+});
+```
+
+<Mermaid chart={`
+sequenceDiagram
+    participant Client as MCP İstemcisi
+    participant Server as Express Uygulaması
+    participant MCP as MCP Mantığı
+
+    Client->>Server: GET /sse (Bağlan)
+    Server-->>Client: 200 OK (Akışı Aç)
+    
+    loop Heartbeat
+        Server-->>Client: ping
+    end
+
+    Client->>Server: POST /message (JSON-RPC)
+    Server->>MCP: İsteği İşle
+    MCP-->>Server: Sonuç
+    Server-->>Client: SSE Event (JSON-RPC Yanıtı)
+`} />
+
+## Güvenlik En İyi Uygulamaları
+
+Dosyaları okuyabilen veya komut çalıştırabilen araçları açığa çıkardığınızda, güvenlik her şeyden önemlidir.
+
+### 1. Girdi Doğrulama (Zod)
+Kullanıcı girdisine veya LLM tarafından oluşturulan argümanlara asla güvenmeyin. Zod şeması ile her zaman doğrulayın.
+
+```typescript
+import { z } from "zod";
+
+const ExecuteCommandSchema = z.object({
+  command: z.string().refine((cmd) => !cmd.includes("rm -rf"), {
+    message: "Yıkıcı komutlara izin verilmez",
+  }),
+  args: z.array(z.string()),
+});
+```
+
+### 2. Yetenek Müzakeresi
+MCP, istemcilerin ve sunucuların yetenekleri müzakere etmesine izin verir.
+- **Deneysel yetenekler**: Üretim ortamı için bunlara güvenmeyin.
+- **Örnekleme (Sampling)**: Sunucunuz `sampling` yeteneğini kullanıyorsa (tamamlamalar için LLM'e soruyorsa), host'a güvendiğinizden emin olun.
+
+### 3. Yol Geçiş (Path Traversal) Koruması
+Aracınız dosya okuyorsa, izin verilen dizinin dışını okuyamadığından emin olun.
+
+```typescript
+import path from "path";
+
+function validatePath(requestedPath: string, allowedDir: string) {
+  const resolvedPath = path.resolve(allowedDir, requestedPath);
+  if (!resolvedPath.startsWith(allowedDir)) {
+    throw new Error("Erişim reddedildi: Dizin dışına çıkma girişimi");
+  }
+  return resolvedPath;
+}
+```
+
+## Kaynak Abonelikleri
+
+MCP'nin en güçlü özelliklerinden biri **Kaynak Abonelikleri**dir. Bu, sunucunun veri değiştiğinde istemciyi bilgilendirmesine ve LLM'in bağlamını yenilemesine olanak tanır.
+
+### Nasıl Çalışır
+1.  **İstemci**: Kaynakları listeler.
+2.  **İstemci**: Belirli bir URI için `resources/subscribe` gönderir.
+3.  **Sunucu**: Veri değiştiğinde `notifications/resources/updated` gönderir.
+4.  **İstemci**: Kaynağı yeniden getirir.
+
+### Uygulama
+
+```typescript
+// Kaynak aboneliği yeteneğini etkinleştir
+const server = new Server(
+  { name: "stock-ticker", version: "1.0.0" },
+  {
+    capabilities: {
+      resources: { subscribe: true }, // Abonelikleri etkinleştir
+    },
+  }
+);
+
+// Aktif aboneliklerin haritası
+const subscriptions = new Set<string>();
+
+server.setRequestHandler(SubscribeRequestSchema, async (request) => {
+  subscriptions.add(request.params.uri);
+  return {};
+});
+
+server.setRequestHandler(UnsubscribeRequestSchema, async (request) => {
+  subscriptions.delete(request.params.uri);
+  return {};
+});
+
+// Canlı veri güncellemelerini simüle et
+setInterval(() => {
+  const uri = "stocks://AAPL";
+  if (subscriptions.has(uri)) {
+    // İstemciye verinin değiştiğini bildir
+    server.notification({
+      method: "notifications/resources/updated",
+      params: { uri },
+    });
+  }
+}, 5000);
+```
+
+<Mermaid chart={`
+flowchart LR
+    Data["Gerçek Zamanlı Veri Kaynağı"] -->|Güncelleme| Server["MCP Sunucusu"]
+    Server -->|Bildirim| Client["MCP İstemcisi/Host"]
+    Client -->|Kaynağı Oku| Server
+    Server -->|Yeni İçerik| Client
+`} />
+
+## Hata Yönetimi ve Loglama
+
+MCP sunucuları genellikle arka planda (başsız) çalıştığından, uygun loglama olmadan çökmeleri ayıklamak zordur.
+
+### Yapılandırılmış Loglama
+Hata ayıklama için `console.log` kullanmayın, özellikle `StdioServerTransport` kullanıyorsanız, çünkü bu JSON-RPC mesajlarını bozacaktır. Bunun yerine:
+1.  Logları istemciye göndermek için `server.log(level, message)` kullanın (bu, host'un konsolunda görünür).
+2.  Yerel bir dosyaya yazın (örn. `server.log`).
+
+```typescript
+// İstemciye (örn. Claude Desktop) bir log gönderme
+server.log("info", "Veritabanına başarıyla bağlanıldı");
+
+// Bir hata bildirimi gönderme
+server.log("error", `Veritabanı sorgusu başarısız: ${error.message}`);
+```
+
+## Durum Yönetimi (State Management)
+
+MCP sunucuları genellikle bağlantılar arasında durumsuzdur (stateless), ancak genellikle bir bağlantı *sırasında* durumu korumaları veya yeniden başlatmalardan sonra hatırlamaları gerekir.
+
+-   **Bellek İçi (In-Memory)**: Oturuma özgü durum için `Map` veya `Set` kullanın (yukarıdaki abonelikler örneği gibi).
+-   **Kalıcı (Persistent)**: Sunucunun yeniden başlatıldıktan sonra bir şeyleri hatırlaması gerekiyorsa dosya tabanlı bir veritabanı (SQLite, LevelDB) veya bir JSON dosyası kullanın.
+
+## Özet
+
+MCP 201'de basit araçların ötesine geçerek sağlam mimarilere odaklandık. Şunları kapsadık:
+-   Uzaktan bağlantı için **SSE**.
+-   Doğrulama ve dosya erişimi için **Güvenlik** kalıpları.
+-   Gerçek zamanlı veriler için **Abonelikler**.
+-   Protokolü bozmadan **Loglama**.
+
+**MCP 202**'de, birden fazla sistemi entegre eden karmaşık, "Ajan Tabanlı" iş akışları oluşturmak için bu kavramları uygulayacağız.

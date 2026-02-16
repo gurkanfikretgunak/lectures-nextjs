@@ -1,0 +1,238 @@
+---
+title: "MCP 202"
+description: "İleri Düzey Uygulamalar: Ajan İş Akışları, DevOps ve RAG Entegrasyonu"
+category: "mcp"
+level: 202
+order: 4
+---
+
+# İleri Düzey MCP Uygulamaları
+
+MCP 202'ye hoş geldiniz! Bu ders, Model Context Protocol kullanarak sofistike, gerçek dünya uygulamalarının nasıl oluşturulacağını araştırıyor. "Ajan Tabanlı İş Akışları", DevOps araçlarıyla entegrasyon ve MCP kullanarak Retrieval-Augmented Generation (RAG) uygulama gibi ileri düzey kalıpları kapsayacağız.
+
+## Vaka Analizi 1: Ajan Tabanlı İş Akışları (Agentic Workflows)
+
+"Ajan Tabanlı" (Agentic) bir MCP sunucusu sadece basit isteklere yanıt vermez; karmaşık görevleri proaktif olarak yönetebilir.
+
+Bir **Proje Yöneticisi** olarak hareket eden bir sunucu hayal edin. Şunları yapabilir:
+1.  Bir `TODO.md` dosyasını oku (Kaynak).
+2.  Görevlerin durumunu güncelle (Araç).
+3.  Hatta host izin verirse *diğer* araçları çağır (Örnekleme/Sampling).
+
+### Örnekleme (Sampling) Kavramı
+
+Örnekleme, bir MCP sunucusunun host'tan (LLM) yardım istemesine olanak tanır.
+
+-   **Senaryo**: Sunucunun uzun bir log dosyasını saklamadan önce özetlemesi gerekiyor.
+-   **Eski Yöntem**: Tüm logu istemciye gönder ve özetlemesini iste.
+-   **Yeni Yöntem (Sampling)**: Sunucu host'a bir istem gönderir: "Bu metni özetle: ..." ve özeti doğrudan sunucu mantığı içinde geri alır.
+
+```typescript
+import { CreateMessageRequestSchema } from "@modelcontextprotocol/sdk/types.js";
+
+// Bir araç uygulaması içinde
+const result = await server.request(
+  {
+    method: "sampling/createMessage",
+    params: {
+      messages: [
+        {
+          role: "user",
+          content: {
+            type: "text",
+            text: "Bu logları benim için özetle: " + hugeLogContent,
+          },
+        },
+      ],
+      maxTokens: 100,
+    },
+  },
+  CreateMessageRequestSchema
+);
+
+const summary = result.content.text;
+// Şimdi özeti veritabanına kaydet
+await saveToDatabase(summary);
+```
+
+<Mermaid chart={`
+sequenceDiagram
+    participant User as Kullanıcı
+    participant Host as AI Modeli (Host)
+    participant Server as MCP Sunucusu
+
+    User->>Host: "Logları arşivle"
+    Host->>Server: Aracı Çağır: archive_logs()
+    Server->>Server: Devasa log dosyasını oku
+    Server->>Host: Sampling İsteği: "Bunu özetle..."
+    Host-->>Server: "Özet: 5 hata bulundu."
+    Server->>Server: Özeti DB'ye yaz
+    Server-->>Host: Araç Sonucu: "Başarıyla arşivlendi."
+    Host-->>User: "Tamam. Özet arşivlendi."
+`} />
+
+## Vaka Analizi 2: DevOps Otomasyonu (Git + Docker)
+
+Geliştiriciler için güçlü bir sunucu inşa edelim.
+
+### Yetenekler
+-   **Git**: Mevcut dalı oku, değişiklikleri işle (commit).
+-   **Docker**: Konteynerleri listele, servisleri yeniden başlat.
+
+### Mimari
+
+Burada izinler konusunda dikkatli olmalıyız. AI'nın yanlışlıkla üretim konteynerlerini silmesini istemeyiz.
+
+```typescript
+import { z } from "zod";
+import { exec } from "child_process";
+import { promisify } from "util";
+
+const execAsync = promisify(exec);
+
+// Güvenli Docker Aracı
+server.setRequestHandler(CallToolRequestSchema, async (request) => {
+  if (request.params.name === "docker_restart") {
+    const container = String(request.params.arguments?.container);
+    
+    // Konteyner adını doğrula (injection önleme)
+    if (!/^[a-zA-Z0-9_-]+$/.test(container)) {
+      throw new Error("Geçersiz konteyner adı");
+    }
+
+    try {
+      await execAsync(`docker restart ${container}`);
+      return {
+        content: [{ type: "text", text: `Konteyner ${container} yeniden başlatıldı.` }],
+      };
+    } catch (error) {
+      return {
+        isError: true,
+        content: [{ type: "text", text: `Başarısız: ${error.message}` }],
+      };
+    }
+  }
+});
+```
+
+### Git Kaynağı: Değişiklikleri İzleme
+
+`.git/HEAD` dosyasını izlemek için `resources/subscribe` kullanabiliriz. Dal değiştiğinde, AI anında bilgilendirilir.
+
+```typescript
+// Git HEAD değişikliklerine abone ol
+fs.watch(".git/HEAD", (eventType) => {
+  if (eventType === "change") {
+    server.notification({
+      method: "notifications/resources/updated",
+      params: { uri: "git://current-branch" },
+    });
+  }
+});
+```
+
+## Vaka Analizi 3: MCP ile RAG (Vektör Veritabanı)
+
+RAG (Retrieval-Augmented Generation) genellikle uygulama katmanında uygulanır. Ancak MCP ile bunu sunucu katmanına taşıyabiliriz, böylece herhangi bir AI istemcisi anında RAG yeteneğine sahip olur.
+
+### Mimari
+
+<Mermaid chart={`
+flowchart TD
+    subgraph Host ["AI İstemcisi"]
+        LLM[LLM]
+    end
+
+    subgraph Server ["MCP Sunucusu"]
+        Embed["Embedding Modeli"]
+        VectorDB[(Vektör DB)]
+        
+        Tool["Araç: search_knowledge"]
+    end
+
+    LLM -->|Sorgu: "Parolayı nasıl sıfırlarım?"| Tool
+    Tool -->|"Sorguyu Göm (Embed)"| Embed
+    Embed -->|Vektör| VectorDB
+    VectorDB -->|Benzer Dokümanlar| Tool
+    Tool -->|Bağlam| LLM
+`} />
+
+### Uygulama Parçası
+
+```typescript
+import { OpenAIEmbeddings } from "@langchain/openai";
+import { MemoryVectorStore } from "langchain/vectorstores/memory";
+
+const vectorStore = await MemoryVectorStore.fromTexts(
+  ["Parola sıfırlama /reset uç noktası üzerinden yapılır.", "API anahtarları ayarlardadır."],
+  [{ id: 1 }, { id: 2 }],
+  new OpenAIEmbeddings()
+);
+
+server.setRequestHandler(CallToolRequestSchema, async (request) => {
+  if (request.params.name === "search_docs") {
+    const query = String(request.params.arguments?.query);
+    const results = await vectorStore.similaritySearch(query, 2);
+    
+    return {
+      content: [
+        {
+          type: "text",
+          text: results.map(r => r.pageContent).join("\n\n"),
+        },
+      ],
+    };
+  }
+});
+```
+
+## MCP Sunucuları İçin Test Stratejileri
+
+Karmaşıklık göz önüne alındığında test etmek çok önemlidir.
+
+### 1. Birim Test Araçları (Unit Testing)
+`server.request` ve `server.notification` yöntemlerini taklit edin (mock).
+
+```typescript
+import { describe, it, expect, vi } from "vitest";
+
+describe("Weather Tool", () => {
+  it("varsayılan olarak celsius döndürmeli", async () => {
+    // İşleyici bağlamını taklit edin veya mantığı saf bir fonksiyona çıkarın
+    const result = await handleWeatherTool({ city: "London" });
+    expect(result.content[0].text).toContain("°C");
+  });
+});
+```
+
+### 2. `stdio` ile Entegrasyon Testi
+Test çalıştırıcınızda sunucu işlemini başlatın ve stdin/stdout üzerinden iletişim kurun.
+
+```typescript
+import { spawn } from "child_process";
+
+const serverProcess = spawn("node", ["dist/index.js"]);
+// stdin'e JSON-RPC isteği gönder
+serverProcess.stdin.write(JSON.stringify({
+  jsonrpc: "2.0",
+  id: 1,
+  method: "tools/call",
+  params: { name: "get_weather", arguments: { city: "London" } }
+}) + "\n");
+```
+
+## Dağıtım Hususları
+
+-   **Dockerize**: Kolay dağıtım için MCP sunucunuzu bir Docker imajı olarak paketleyin.
+-   **Kimlik Doğrulama**: HTTP (SSE) üzerinden açıyorsanız, Express uygulamanızda API Anahtarı veya OAuth kimlik doğrulama ara yazılımı uygulayın.
+-   **Hız Sınırlama (Rate Limiting)**: Kaynaklarınızı agresif AI sorgulamalarından koruyun.
+
+## Özet
+
+Model Context Protocol'ün ileri düzey yönlerinde uzmanlaştınız. Artık şunları yapabilirsiniz:
+-   Yardım isteyen **Ajan Tabanlı** (Sampling) sunucular inşa etmek.
+-   Güvenli bir şekilde güçlü **DevOps** araçları oluşturmak.
+-   **RAG**'ı doğrudan bir MCP sunucusu içinde uygulamak.
+-   Sunucularınızı güvenle **Test etmek ve Dağıtmak**.
+
+AI'nın geleceği bağlantılıdır ve MCP ile bu bağlantıların mimarı sizsiniz.
