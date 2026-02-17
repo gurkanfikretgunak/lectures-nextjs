@@ -15,6 +15,7 @@ import {
   Zap,
   Check,
   FileEdit,
+  Sparkles,
   BarChart3,
   Pencil,
 } from "lucide-react";
